@@ -8,7 +8,6 @@ use Illuminate\Http\Request;
 
 class GetAllTaxesController
 {
-
     public function __construct(
         private GetAllTaxes $useCase,
     ) {}
@@ -19,5 +18,4 @@ class GetAllTaxesController
 
         return new JsonResponse($taxes);
     }
-
 }
