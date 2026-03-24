@@ -13,6 +13,8 @@ class TableSeeder extends Seeder
     public function run(): void
     {
         $salon = EloquentZone::where('name', 'Salón')->first();
+        $azotea = EloquentZone::where('name', 'Azotea')->first();
+        $terraza = EloquentZone::where('name', 'Terraza')->first();
 
         for ($i = 1; $i <= 10; $i++) {
             EloquentTable::create([
@@ -22,8 +24,6 @@ class TableSeeder extends Seeder
             ]);
         }
 
-        $azotea = EloquentZone::where('name', 'Azotea')->first();
-
         for ($i = 1; $i <= 10; $i++) {
             EloquentTable::create([
                 'uuid' => \Illuminate\Support\Str::uuid(),
@@ -31,8 +31,6 @@ class TableSeeder extends Seeder
                 'name' => 'Azotea ' . $i,
             ]);
         }
-
-        $terraza = EloquentZone::where('name', 'Terraza')->first();
 
         for ($i = 1; $i <= 10; $i++) {
             EloquentTable::create([
