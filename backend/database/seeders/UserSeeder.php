@@ -5,10 +5,11 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
+use App\Restaurant\Infrastructure\Persistence\Models\EloquentRestaurant;
 
 class UserSeeder extends Seeder
 {
-    
+
     public function run(): void
     {
         $users = [
@@ -22,16 +23,17 @@ class UserSeeder extends Seeder
             ['name' => 'Juan', 'email' => 'juansgra@tpv.com', 'role' => 'waiter']
         ];
 
+        $restaurant = EloquentRestaurant::first();
+
         foreach ($users as $user) {
             EloquentUser::create([
                 'uuid' => \Illuminate\Support\Str::uuid(),
                 'name' => $user['name'],
                 'email' => $user['email'],
                 'role' => $user['role'],
+                'restaurant_id' => $restaurant->id,
                 'password' => \Illuminate\Support\Facades\Hash::make('password123')
             ]);
         }
-
-
     }
 }

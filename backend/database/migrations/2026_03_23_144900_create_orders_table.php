@@ -11,12 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('taxes', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->nullable()->unique();
-            $table->string('name');
-            $table->integer('percentage');
             $table->foreignId('restaurant_id')->constrained('restaurants');
+            $table->string('status');
+            $table->foreignId('table_id')->constrained('tables');
+            $table->foreignId('opened_by_user_id')->constrained('users');
+            $table->foreignId('closed_by_user_id')->nullable()->constrained('users');
+            $table->integer('diners');
+            $table->timestamp('opened_at');
+            $table->timestamp('closed_at')->nullable();
             $table->softDeletes();
             $table->timestamps();
         });
@@ -27,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('taxes');
+        Schema::dropIfExists('orders');
     }
 };

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('family_id')->constrained('families');
             $table->foreignId('tax_id')->constrained('taxes');
             $table->string('image_src')->nullable();
+            $table->foreignId('restaurant_id')->constrained('restaurants');
             $table->string('name');
             $table->integer('price');
             $table->integer('stock');

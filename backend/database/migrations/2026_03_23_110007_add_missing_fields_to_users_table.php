@@ -14,6 +14,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->string('role');
             $table->string('image_src')->nullable();
+            $table->string('pin')->nullable();
+            $table->foreignId('restaurant_id')->constrained('restaurants');
             $table->softDeletes();
         });
     }
@@ -24,7 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn(['role', 'image_src']);
+            $table->dropColumn(['role', 'image_src', 'pin', 'restaurant_id']);
             $table->dropSoftDeletes();
         });
     }

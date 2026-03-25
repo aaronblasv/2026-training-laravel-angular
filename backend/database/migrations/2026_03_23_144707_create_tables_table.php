@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->uuid('uuid')->nullable()->unique();
             $table->foreignId('zone_id')->constrained('zones');
+            $table->foreignId('restaurant_id')->constrained('restaurants');
             $table->string('name');
             $table->timestamps();
             $table->softDeletes();

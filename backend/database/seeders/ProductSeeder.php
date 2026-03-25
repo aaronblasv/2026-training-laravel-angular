@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Product\Infrastructure\Persistence\Models\EloquentProduct;
 use App\Family\Infrastructure\Persistence\Models\EloquentFamily;
 use App\Tax\Infrastructure\Persistence\Models\EloquentTax;
+use App\Restaurant\Infrastructure\Persistence\Models\EloquentRestaurant;
 
 class ProductSeeder extends Seeder
 {
@@ -39,6 +40,7 @@ class ProductSeeder extends Seeder
         foreach ($products as $product) {
             $family = EloquentFamily::where ('name', $product['family'])->first();
             $tax = EloquentTax::where ('name', $product['tax'])->first();
+            $restaurant = EloquentRestaurant::first();
 
             EloquentProduct::create([
                 'uuid' => \Illuminate\Support\Str::uuid(),
@@ -47,7 +49,8 @@ class ProductSeeder extends Seeder
                 'name' => $product['name'],
                 'price' => $product['price'],
                 'stock' => 50,
-                'active' => true
+                'active' => true,
+                'restaurant_id' => $restaurant->id,
             ]);
         }
     }
