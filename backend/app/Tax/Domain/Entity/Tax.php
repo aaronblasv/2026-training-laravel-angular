@@ -22,6 +22,12 @@ class Tax
         return new self($uuid, $name, $percentage);
     }
 
+    public function dddUpdate(TaxName $name, TaxPercentage $percentage): void
+    {
+        $this->name = $name;
+        $this->percentage = $percentage;
+    }
+
     public function getUuid(): Uuid
     {
         return $this->uuid;
