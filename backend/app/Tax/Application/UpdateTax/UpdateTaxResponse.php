@@ -6,7 +6,6 @@ use App\Tax\Domain\Entity\Tax;
 
 final readonly class UpdateTaxResponse
 {
-    
     private function __construct(
         public string $uuid,
         public string $name,

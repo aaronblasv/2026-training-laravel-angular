@@ -15,7 +15,8 @@ class EloquentZone extends Model
 
     protected $fillable = [
         'uuid',
-        'name'
+        'name',
+        'restaurant_id',
     ];
 
 }

@@ -10,6 +10,10 @@ use App\Family\Infrastructure\Entrypoint\Http\GetAllFamiliesController;
 use App\Family\Infrastructure\Entrypoint\Http\CreateFamilyController;
 use App\Family\Infrastructure\Entrypoint\Http\UpdateFamilyController;
 use App\Family\Infrastructure\Entrypoint\Http\DeleteFamilyController;
+use App\Zone\Infrastructure\Entrypoint\Http\GetAllZonesController;
+use App\Zone\Infrastructure\Entrypoint\Http\CreateZoneController;
+use App\Zone\Infrastructure\Entrypoint\Http\UpdateZoneController;
+use App\Zone\Infrastructure\Entrypoint\Http\DeleteZoneController;
 
 Route::post('/users', PostController::class);
 Route::get('/taxes', GetAllTaxesController::class);
@@ -20,3 +24,7 @@ Route::get('/families', GetAllFamiliesController::class);
 Route::post('/families', CreateFamilyController::class);
 Route::put('/families/{uuid}', UpdateFamilyController::class);
 Route::delete('/families/{uuid}', DeleteFamilyController::class);
+Route::get('/zones', GetAllZonesController::class);
+Route::post('/zones', CreateZoneController::class);
+Route::put('/zones/{uuid}', UpdateZoneController::class);
+Route::delete('/zones/{uuid}', DeleteZoneController::class);

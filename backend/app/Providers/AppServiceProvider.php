@@ -11,6 +11,8 @@ use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 use App\Tax\Infrastructure\Persistence\Repositories\EloquentTaxRepository;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 use App\Family\Infrastructure\Persistence\Repositories\EloquentFamilyRepository;
+use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
+use App\Zone\Infrastructure\Persistence\Repositories\EloquentZoneRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PasswordHasherInterface::class, LaravelPasswordHasher::class);
         $this->app->bind(TaxRepositoryInterface::class, EloquentTaxRepository::class);
         $this->app->bind(FamilyRepositoryInterface::class, EloquentFamilyRepository::class);
+        $this->app->bind(ZoneRepositoryInterface::class, EloquentZoneRepository::class);
     }
 
     public function boot(): void
