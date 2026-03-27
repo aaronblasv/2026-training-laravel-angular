@@ -1,15 +1,15 @@
 <?php
 
-namespace App\Tax\Infrastructure\Entrypoint\Http;
+namespace App\Table\Infrastructure\Entrypoint\Http;
 
-use App\Tax\Application\DeleteTax\DeleteTax;
+use App\Table\Application\DeleteTable\DeleteTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
-class DeleteTaxController
+class DeleteTableController
 {
     public function __construct(
-        private DeleteTax $useCase,
+        private DeleteTable $useCase,
     ) {}
 
     public function __invoke(Request $request, string $uuid): JsonResponse

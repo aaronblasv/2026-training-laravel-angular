@@ -13,6 +13,8 @@ use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 use App\Family\Infrastructure\Persistence\Repositories\EloquentFamilyRepository;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 use App\Zone\Infrastructure\Persistence\Repositories\EloquentZoneRepository;
+use App\Table\Domain\Interfaces\TableRepositoryInterface;
+use App\Table\Infrastructure\Persistence\Repositories\EloquentTableRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TaxRepositoryInterface::class, EloquentTaxRepository::class);
         $this->app->bind(FamilyRepositoryInterface::class, EloquentFamilyRepository::class);
         $this->app->bind(ZoneRepositoryInterface::class, EloquentZoneRepository::class);
+        $this->app->bind(TableRepositoryInterface::class, EloquentTableRepository::class);
     }
 
     public function boot(): void

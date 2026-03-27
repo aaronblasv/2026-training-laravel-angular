@@ -16,7 +16,8 @@ class EloquentTable extends Model
     protected $fillable = [
         'uuid',
         'name',
-        'zone_id'
+        'zone_id',
+        'restaurant_id',
     ];
 
 }
