@@ -4,6 +4,8 @@ namespace App\Family\Infrastructure\Persistence\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use App\Family\Infrastructure\Persistence\Models\EloquentFamily;
+use App\Tax\Infrastructure\Persistence\Models\EloquentTax;
 
 
 class EloquentFamily extends Model
@@ -18,6 +20,7 @@ class EloquentFamily extends Model
         'name',
         'active',
         'restaurant_id',
+        'tax_id',
     ];
 
 }

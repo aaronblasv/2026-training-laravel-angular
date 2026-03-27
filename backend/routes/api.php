@@ -18,6 +18,10 @@ use App\Table\Infrastructure\Entrypoint\Http\GetAllTablesController;
 use App\Table\Infrastructure\Entrypoint\Http\CreateTableController;
 use App\Table\Infrastructure\Entrypoint\Http\UpdateTableController;
 use App\Table\Infrastructure\Entrypoint\Http\DeleteTableController;
+use App\Product\Infrastructure\Entrypoint\Http\GetAllProductsController;
+use App\Product\Infrastructure\Entrypoint\Http\CreateProductController;
+use App\Product\Infrastructure\Entrypoint\Http\UpdateProductController;
+use App\Product\Infrastructure\Entrypoint\Http\DeleteProductController;
 
 Route::post('/users', PostController::class);
 Route::get('/taxes', GetAllTaxesController::class);
@@ -36,3 +40,7 @@ Route::get('/tables', GetAllTablesController::class);
 Route::post('/tables', CreateTableController::class);
 Route::put('/tables/{uuid}', UpdateTableController::class);
 Route::delete('/tables/{uuid}', DeleteTableController::class);
+Route::get('/products', GetAllProductsController::class);
+Route::post('/products', CreateProductController::class);
+Route::put('/products/{uuid}', UpdateProductController::class);
+Route::delete('/products/{uuid}', DeleteProductController::class);
