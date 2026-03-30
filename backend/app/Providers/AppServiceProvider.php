@@ -17,6 +17,8 @@ use App\Table\Domain\Interfaces\TableRepositoryInterface;
 use App\Table\Infrastructure\Persistence\Repositories\EloquentTableRepository;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Product\Infrastructure\Persistence\Repositories\EloquentProductRepository;
+use App\User\Domain\Interfaces\TokenGeneratorInterface;
+use App\User\Infrastructure\Services\LaravelTokenGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(ZoneRepositoryInterface::class, EloquentZoneRepository::class);
         $this->app->bind(TableRepositoryInterface::class, EloquentTableRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, EloquentProductRepository::class);
+        $this->app->bind(TokenGeneratorInterface::class, LaravelTokenGenerator::class);
     }
 
     public function boot(): void

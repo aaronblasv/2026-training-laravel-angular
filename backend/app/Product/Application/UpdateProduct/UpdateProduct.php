@@ -17,20 +17,25 @@ class UpdateProduct
         $this->repository = $repository;
     }
 
-    public function __invoke(string $uuid, string $name, int $price, int $stock): UpdateProductResponse
+    public function __invoke(string $uuid, string $name, int $price, int $stock, bool $active, string $familyId, string $taxId): UpdateProductResponse
     {
-
         $product = $this->repository->findById($uuid);
 
-        if(!$product) {
+        if (!$product) {
             throw new \Exception('Product not found');
         }
 
-        $product->update($name, $price, $stock);
+        $product->dddUpdate(
+            ProductName::create($name),
+            ProductPrice::create($price),
+            ProductStock::create($stock),
+            $active,
+            $familyId,
+            $taxId,
+        );
 
         $this->repository->save($product);
 
-        return new UpdateProductResponse($product);
-
+        return UpdateProductResponse::create($product);
     }
 }

@@ -6,7 +6,7 @@ use App\User\Domain\Entity\User;
 
 final readonly class CreateUserResponse
 {
-    public function __construct(
+    private function __construct(
         public string $id,
         public string $name,
         public string $email,
