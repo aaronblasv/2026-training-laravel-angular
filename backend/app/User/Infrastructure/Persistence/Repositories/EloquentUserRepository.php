@@ -28,14 +28,17 @@ class EloquentUserRepository implements UserRepositoryInterface
 
     public function findAll(): array
     {
-        return $this->model->newQuery()->get()->map(
-            fn(EloquentUser $model) => User::fromPersistence(
-                $model->uuid,
-                $model->name,
-                $model->email,
-                $model->password,
-                $model->created_at->toDateTimeImmutable(),
-                $model->updated_at->toDateTimeImmutable(),
+        return $this->model->newQuery()
+            ->where('restaurant_id', auth()->user()?->restaurant_id)
+            ->get()
+            ->map(
+                fn(EloquentUser $model) => User::fromPersistence(
+                    $model->uuid,
+                    $model->name,
+                    $model->email,
+                    $model->password,
+                    $model->created_at->toDateTimeImmutable(),
+                    $model->updated_at->toDateTimeImmutable(),
             )
         )->toArray();
     }
@@ -75,4 +78,9 @@ class EloquentUserRepository implements UserRepositoryInterface
             $model->updated_at->toDateTimeImmutable(),
         );
     }
+
+    public function delete(User $user): void
+{
+    $this->model->newQuery()->where('uuid', $user->id()->getValue())->delete();
+}
 }
