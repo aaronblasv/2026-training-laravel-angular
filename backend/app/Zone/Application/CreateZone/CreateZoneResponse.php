@@ -10,8 +10,8 @@ use App\Shared\Domain\ValueObject\Uuid;
 final readonly class CreateZoneResponse
 {
     private function __construct(
-        private string $uuid,
-        private string $name,
+        public string $uuid,
+        public string $name,
     ) {}
 
     public static function create(Zone $zone): self

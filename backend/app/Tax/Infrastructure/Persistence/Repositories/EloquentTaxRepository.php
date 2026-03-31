@@ -34,6 +34,7 @@ class EloquentTaxRepository implements TaxRepositoryInterface
             [
                 'name' => $tax->getName()->getValue(),
                 'percentage' => $tax->getPercentage()->getValue(),
+                'restaurant_id' => auth()->user()?->restaurant_id,
             ]
         );
     }

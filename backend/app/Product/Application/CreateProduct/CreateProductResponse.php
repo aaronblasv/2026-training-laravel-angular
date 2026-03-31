@@ -12,10 +12,10 @@ use App\Product\Domain\ValueObject\ProductStock;
 final readonly class CreateProductResponse
 {
     private function __construct(
-        private string $uuid,
-        private string $name,
-        private float $price,
-        private int $stock,
+        public string $uuid,
+        public string $name,
+        public float $price,
+        public int $stock,
     ) {}
 
     public static function create(Product $product): self
