@@ -29,7 +29,11 @@
     use App\User\Infrastructure\Entrypoint\Http\GetUserByIdController;
     use App\User\Infrastructure\Entrypoint\Http\UpdateUserController;
     use App\User\Infrastructure\Entrypoint\Http\DeleteUserController;
-
+    use App\Product\Infrastructure\Entrypoint\Http\ActivateProductController;
+    use App\Product\Infrastructure\Entrypoint\Http\DeactivateProductController;
+    use App\Family\Infrastructure\Entrypoint\Http\ActivateFamilyController;
+    use App\Family\Infrastructure\Entrypoint\Http\DeactivateFamilyController;
+    
 
     Route::post('/auth/login', LoginController::class);
     Route::middleware('auth:sanctum')->group(function () {
@@ -60,4 +64,13 @@
         Route::get('/users/{uuid}', GetUserByIdController::class);
         Route::put('/users/{uuid}', UpdateUserController::class);
         Route::delete('/users/{uuid}', DeleteUserController::class);
+        Route::patch('/products/{uuid}/activate', ActivateProductController::class);
+        Route::patch('/products/{uuid}/deactivate', DeactivateProductController::class);
+        Route::patch('/families/{uuid}/activate', ActivateFamilyController::class);
+        Route::patch('/families/{uuid}/deactivate', DeactivateFamilyController::class);
+        Route::patch('/products/{uuid}/activate', ActivateProductController::class);
+        Route::patch('/products/{uuid}/deactivate', DeactivateProductController::class);
+        Route::patch('/families/{uuid}/activate', ActivateFamilyController::class);
+        Route::patch('/families/{uuid}/deactivate', DeactivateFamilyController::class);
+
     });
