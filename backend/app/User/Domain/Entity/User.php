@@ -33,6 +33,12 @@ class User
         );
     }
 
+    public function dddUpdate(UserName $name, Email $email): void
+    {
+        $this->name = $name;
+        $this->email = $email;
+    }
+
     public static function fromPersistence(
         string $id,
         string $name,

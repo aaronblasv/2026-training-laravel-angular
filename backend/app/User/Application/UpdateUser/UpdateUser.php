@@ -1,0 +1,31 @@
+<?php
+
+namespace App\User\Application\UpdateUser;
+
+use App\User\Domain\Interfaces\UserRepositoryInterface;
+use App\User\Domain\Entity\User;
+use App\Shared\Domain\ValueObject\Email;
+use App\User\Domain\ValueObject\UserName;
+use App\User\Application\UpdateUser\UpdateUserResponse;
+
+class UpdateUser
+{
+    public function __construct(
+        private UserRepositoryInterface $userRepository,
+    ) {}
+
+    public function __invoke(string $uuid, string $email, string $name): UpdateUserResponse
+    {
+        $user = $this->userRepository->findById($uuid);
+
+        if($user === null) {
+            throw new \Exception('User not found');
+        }
+
+        $user->dddUpdate(UserName::create($name), Email::create($email));
+
+        $this->userRepository->save($user);
+
+        return UpdateUserResponse::create($user);
+    }
+}

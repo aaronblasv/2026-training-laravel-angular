@@ -15,15 +15,29 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function save(User $user): void
     {
         $this->model->newQuery()->updateOrCreate(
-            ['uuid' => $user->id()->value()],
+            ['uuid' => $user->id()->getValue()],
             [
                 'name' => $user->name(),
-                'email' => $user->email()->value(),
+                'email' => $user->email()->getValue(),
                 'password' => $user->passwordHash(),
-                'created_at' => $user->createdAt()->value(),
-                'updated_at' => $user->updatedAt()->value(),
+                'created_at' => $user->createdAt()->getValue(),
+                'updated_at' => $user->updatedAt()->getValue(),
             ]
         );
+    }
+
+    public function findAll(): array
+    {
+        return $this->model->newQuery()->get()->map(
+            fn(EloquentUser $model) => User::fromPersistence(
+                $model->uuid,
+                $model->name,
+                $model->email,
+                $model->password,
+                $model->created_at->toDateTimeImmutable(),
+                $model->updated_at->toDateTimeImmutable(),
+            )
+        )->toArray();
     }
 
     public function findById(string $id): ?User
