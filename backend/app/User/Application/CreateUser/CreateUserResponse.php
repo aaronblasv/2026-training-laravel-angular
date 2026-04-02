@@ -17,9 +17,9 @@ final readonly class CreateUserResponse
     public static function create(User $user): self
     {
         return new self(
-            id: $user->id()->value(),
+            id: $user->id()->getValue(),
             name: $user->name(),
-            email: $user->email()->value(),
+            email: $user->email()->getValue(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );

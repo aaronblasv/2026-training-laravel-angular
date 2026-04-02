@@ -20,6 +20,8 @@ class EloquentUserRepository implements UserRepositoryInterface
                 'name' => $user->name(),
                 'email' => $user->email()->getValue(),
                 'password' => $user->passwordHash(),
+                'role' => 'waiter',
+                'restaurant_id' => auth()->user()?->restaurant_id ?? 1,
                 'created_at' => $user->createdAt()->getValue(),
                 'updated_at' => $user->updatedAt()->getValue(),
             ]
