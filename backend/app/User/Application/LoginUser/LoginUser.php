@@ -24,6 +24,6 @@ class LoginUser
 
         $token = $this->tokenGenerator->generateToken($user);
 
-        return LoginUserResponse::create($token);
+        return LoginUserResponse::create($token, $user);
     }
 }

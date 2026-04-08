@@ -12,9 +12,10 @@ class EloquentFamilyRepository implements FamilyRepositoryInterface
 {
     public function findAll(): array
     {
-        return EloquentFamily::all()->map(
-            fn(EloquentFamily $family) => $this->toDomain($family)
-        )->toArray();
+        return EloquentFamily::where('restaurant_id', auth()->user()->restaurant_id)
+            ->get()
+            ->map(fn(EloquentFamily $family) => $this->toDomain($family))
+            ->toArray();
     }
 
     private function toDomain(EloquentFamily $family): Family

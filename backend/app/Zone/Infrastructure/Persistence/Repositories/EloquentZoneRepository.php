@@ -14,9 +14,10 @@ class EloquentZoneRepository implements ZoneRepositoryInterface
 
     public function findAll(): array
     {
-        return EloquentZone::all()->map(
-            fn(EloquentZone $zone) => $this->toDomain($zone)
-        )->toArray();
+        return EloquentZone::where('restaurant_id', auth()->user()->restaurant_id)
+            ->get()
+            ->map(fn(EloquentZone $zone) => $this->toDomain($zone))
+            ->toArray();
     }
 
     public function toDomain(EloquentZone $zone): Zone

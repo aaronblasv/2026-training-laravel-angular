@@ -18,9 +18,10 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     public function findAll(): array
     {
-        return EloquentProduct::all()->map(
-            fn(EloquentProduct $product) => $this->toDomain($product)
-        )->toArray();
+        return EloquentProduct::where('restaurant_id', auth()->user()->restaurant_id)
+            ->get()
+            ->map(fn(EloquentProduct $product) => $this->toDomain($product))
+            ->toArray();
     }
 
     private function toDomain(EloquentProduct $product): Product

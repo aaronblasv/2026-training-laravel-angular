@@ -12,10 +12,6 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/auth/login/login.page').then(m => m.LoginPage),
   },
   {
-    path: 'register',
-    loadComponent: () => import('./pages/auth/register/register.page').then(m => m.RegisterPage),
-  },
-  {
     path: 'dashboard',
     loadComponent: () => import('./pages/backoffice/dashboard/dashboard.page').then(m => m.DashboardPage),
     canActivate: [authGuard],
@@ -51,7 +47,7 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
-    path: 'register',
-    loadComponent: () => import('./pages/auth/register/register.page').then( m => m.RegisterPage)
+    path: 'no-access',
+    loadComponent: () => import('./pages/no-access/no-access.page').then(m => m.NoAccessPage),
   },
 ];

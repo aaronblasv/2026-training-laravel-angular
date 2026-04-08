@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/api/auth.service';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { homeOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline } from 'ionicons/icons';
+import { homeOutline, closeOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline, menuOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-sidebar',
@@ -14,6 +14,10 @@ import { homeOutline, receiptOutline, folderOutline, cubeOutline, locationOutlin
   imports: [CommonModule, RouterModule, IonIcon]
 })
 export class SidebarComponent implements OnInit {
+
+  collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+  isOpen = false;
+  currentUser: any = null;
 
   menuItems = [
     { label: 'Dashboard', route: '/dashboard', icon: 'home-outline' },
@@ -29,10 +33,15 @@ export class SidebarComponent implements OnInit {
     private authService: AuthService,
     private router: Router,
 ) {
-    addIcons({ homeOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline });
+    addIcons({ homeOutline, closeOutline, menuOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline });
 }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.authService.me().subscribe({
+      next: (user) => this.currentUser = user,
+      error: () => {}
+    });  
+  }
 
   logout() {
     this.authService.logout().subscribe({
@@ -44,5 +53,9 @@ export class SidebarComponent implements OnInit {
         this.router.navigate(['/login']);
       }
     });
+  }
+
+  toggleSidebar() {
+    this.isOpen = !this.isOpen;
   }
 }

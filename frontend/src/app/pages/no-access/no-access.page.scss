@@ -1,0 +1,34 @@
+.no-access {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+  gap: 1rem;
+  text-align: center;
+
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1F2937;
+  }
+
+  p {
+    color: #6B7280;
+  }
+}
+
+.btn-logout {
+  background: #DC2626;
+  color: white;
+  padding: 0.625rem 1.5rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+
+  &:hover {
+    background: #B91C1C;
+  }
+}

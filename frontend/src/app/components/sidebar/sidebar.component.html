@@ -1,4 +1,10 @@
-<div class="sidebar">
+<button class="hamburger-btn" (click)="toggleSidebar()">
+  <ion-icon name="menu-outline"></ion-icon>
+</button>
+
+<div class="sidebar-overlay" [class.visible]="isOpen" (click)="toggleSidebar()"></div>
+
+<div class="sidebar" [class.open]="isOpen">
   <div class="sidebar-header">
     <div class="logo">
       <ion-icon name="restaurant-outline" class="logo-icon"></ion-icon>
@@ -9,7 +15,7 @@
 
   <nav class="sidebar-nav">
     @for (item of menuItems; track item.route) {
-      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item">
+      <a [routerLink]="item.route" routerLinkActive="active" class="nav-item" (click)="toggleSidebar()">
         <ion-icon [name]="item.icon"></ion-icon>
         <span class="nav-label">{{ item.label }}</span>
       </a>
@@ -18,8 +24,17 @@
 
   <div class="sidebar-footer">
     <button class="logout-btn" (click)="logout()">
-        <ion-icon name="log-out-outline"></ion-icon>
-        <span>Cerrar sesión</span>
+      <ion-icon name="log-out-outline"></ion-icon>
+      <span>Cerrar sesión</span>
     </button>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">
+      {{ currentUser?.name?.charAt(0) | uppercase }}
+    </div>
+    <div class="user-info">
+      <span class="user-name">{{ currentUser?.name }}</span>
+      <span class="user-role">{{ currentUser?.role === 'admin' ? 'Administrador' : currentUser?.role === 'supervisor' ? 'Supervisor' : 'Camarero' }}</span>
+    </div>
   </div>
 </div>

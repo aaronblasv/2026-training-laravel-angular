@@ -1,55 +1,30 @@
-/*
- * App Global CSS
- * ----------------------------------------------------------------------------
- * Put style rules here that you want to apply globally. These styles are for
- * the entire app and not just one component. Additionally, this file can be
- * used as an entry point to import other CSS/Sass files to be included in the
- * output CSS.
- * For more information on global stylesheets, visit the documentation:
- * https://ionicframework.com/docs/layout/global-stylesheets
- */
-
-/* Core CSS required for Ionic components to work properly */
 @import "@ionic/angular/css/core.css";
-
-/* Basic CSS for apps built with Ionic */
 @import "@ionic/angular/css/normalize.css";
 @import "@ionic/angular/css/structure.css";
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
-
-/* Optional CSS utils that can be commented out */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode
- * -----------------------------------------------------
- * For more info, please see:
- * https://ionicframework.com/docs/theming/dark-mode
- */
-
-/* @import "@ionic/angular/css/palettes/dark.always.css"; */
-/* @import "@ionic/angular/css/palettes/dark.class.css"; */
-/* @import '@ionic/angular/css/palettes/dark.system.css'; */
-
-// Shared layout
 .layout {
   display: flex;
   min-height: 100vh;
 }
 
 .main-content {
-  margin-left: 260px;
   flex: 1;
   padding: 2rem;
+  padding-top: 4rem;
   background: #F3F4F6;
   min-height: 100vh;
-  width: calc(100% - 260px);
   box-sizing: border-box;
+}
+
+.layout:has(.sidebar.collapsed) .main-content {
+  padding-left: 70px;
 }
 
 .page-header {
@@ -80,7 +55,36 @@
   h2 { margin-bottom: 1rem; font-size: 1.25rem; color: #1F2937; }
 }
 
-.btn-primary, .btn-secondary, .btn-edit, .btn-delete, .btn-toggle {
+.btn-primary, .btn-secondary, .btn-edit, .btn-delete {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.btn-primary   { background: #4F46E5; color: white; }
+.btn-secondary { background: #E5E7EB; color: #374151; }
+.btn-edit      { background: #EFF6FF; color: #1D4ED8; }
+.btn-delete    { background: #FEF2F2; color: #DC2626; }
+
+.btn-toggle-active {
+  min-width: 100px;
+  text-align: center;
+  background: #FEF2F2;
+  color: #DC2626;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+}
+
+.btn-toggle-inactive {
+  min-width: 100px;
+  text-align: center;
+  background: #D1FAE5;
+  color: #065F46;
   padding: 0.5rem 1rem;
   border-radius: 8px;
   border: none;
@@ -94,6 +98,13 @@
   align-items: center;
 }
 
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+}
+
 .input-error {
   border-color: #DC2626 !important;
 }
@@ -103,18 +114,4 @@
   font-size: 0.75rem;
   margin-top: 0.25rem;
   display: block;
-}
-
-.btn-primary   { background: #4F46E5; color: white; }
-.btn-secondary { background: #E5E7EB; color: #374151; }
-.btn-edit      { background: #EFF6FF; color: #1D4ED8; }
-.btn-delete    { background: #FEF2F2; color: #DC2626; }
-.btn-toggle-active  { min-width: 100px; text-align: center; background: #FEF2F2; color: #DC2626; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; }
-.btn-toggle-inactive { min-width: 100px; text-align: center; background: #D1FAE5; color: #065F46; padding: 0.5rem 1rem; border-radius: 8px; border: none; cursor: pointer; font-size: 0.875rem; }
-
-.modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
 }

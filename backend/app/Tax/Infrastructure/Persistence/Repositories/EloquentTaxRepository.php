@@ -13,9 +13,10 @@ class EloquentTaxRepository implements TaxRepositoryInterface
 {
     public function findAll(): array
     {
-        return EloquentTax::all()->map(
-            fn(EloquentTax $tax) => $this->toDomain($tax)
-        )->toArray();
+        return EloquentTax::where('restaurant_id', auth()->user()->restaurant_id)
+            ->get()
+            ->map(fn(EloquentTax $tax) => $this->toDomain($tax))
+            ->toArray();
     }
 
     private function toDomain(EloquentTax $tax): Tax

@@ -10,6 +10,7 @@ final readonly class GetAuthenticatedUserResponse
         public string $id,
         public string $name,
         public string $email,
+        public string $role,
         public string $createdAt,
         public string $updatedAt,
     ) {}
@@ -20,6 +21,7 @@ final readonly class GetAuthenticatedUserResponse
             id: $user->id()->getValue(),
             name: $user->name(),
             email: $user->email()->getValue(),
+            role: $user->role()->getValue(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );
@@ -34,6 +36,7 @@ final readonly class GetAuthenticatedUserResponse
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'role' => $this->role,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

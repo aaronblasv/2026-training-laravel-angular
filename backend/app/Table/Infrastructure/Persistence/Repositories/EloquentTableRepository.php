@@ -13,9 +13,10 @@ class EloquentTableRepository implements TableRepositoryInterface
 {
     public function findAll(): array
     {
-        return EloquentTable::all()->map(
-            fn(EloquentTable $table) => $this->toDomain($table)
-        )->toArray();
+        return EloquentTable::where('restaurant_id', auth()->user()->restaurant_id)
+            ->get()
+            ->map(fn(EloquentTable $table) => $this->toDomain($table))
+            ->toArray();
     }
 
     private function toDomain(EloquentTable $table): Table
