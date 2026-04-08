@@ -10,6 +10,7 @@ final readonly class GetAllUsersResponse
         public string $id,
         public string $name,
         public string $email,
+        public string $role,
         public string $createdAt,
         public string $updatedAt,
     ) {}
@@ -20,6 +21,7 @@ final readonly class GetAllUsersResponse
             id: $user->id()->getValue(),
             name: $user->name(),
             email: $user->email()->getValue(),
+            role: $user->role()->getValue(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );

@@ -27,6 +27,7 @@ use App\User\Infrastructure\Entrypoint\Http\LogoutController;
 use App\User\Infrastructure\Entrypoint\Http\GetAuthenticatedUserController;
 use App\User\Infrastructure\Entrypoint\Http\GetAllUsersController;
 use App\User\Infrastructure\Entrypoint\Http\GetUserByIdController;
+use App\User\Infrastructure\Entrypoint\Http\CreateUserController;
 use App\User\Infrastructure\Entrypoint\Http\UpdateUserController;
 use App\User\Infrastructure\Entrypoint\Http\DeleteUserController;
 use App\Product\Infrastructure\Entrypoint\Http\ActivateProductController;
@@ -62,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/auth/me', GetAuthenticatedUserController::class);
     Route::get('/users', GetAllUsersController::class);
     Route::get('/users/{uuid}', GetUserByIdController::class);
+    Route::post('/users', CreateUserController::class);
     Route::put('/users/{uuid}', UpdateUserController::class);
     Route::delete('/users/{uuid}', DeleteUserController::class);
     Route::patch('/products/{uuid}/activate', ActivateProductController::class);

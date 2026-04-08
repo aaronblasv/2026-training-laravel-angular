@@ -1,13 +1,101 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>products</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
+  <div class="layout">
+    <app-sidebar></app-sidebar>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">products</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <div class="main-content">
+      <div class="page-header">
+        <div>
+          <h1>Productos</h1>
+          <p>Gestiona el catálogo de productos</p>
+        </div>
+        <button class="btn-primary" (click)="openForm()">+ Nuevo Producto</button>
+      </div>
+
+      @for (group of productsByFamily; track group.family.uuid) {
+        <div class="table-card">
+          <h2 class="family-title">{{ group.family.name }}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (product of group.products; track product.uuid) {
+                <tr>
+                  <td>{{ product.name }}</td>
+                  <td>{{ product.price / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</td>
+                  <td>{{ product.stock }}</td>
+                  <td>
+                    <span [class]="product.active ? 'badge-active' : 'badge-inactive'">
+                      {{ product.active ? 'Activo' : 'Inactivo' }}
+                    </span>
+                  </td>
+                  <td class="actions">
+                    <button class="btn-toggle" (click)="toggle(product.uuid)">
+                      {{ product.active ? 'Desactivar' : 'Activar' }}
+                    </button>
+                    <button class="btn-edit" (click)="openForm(product)">Editar</button>
+                    <button class="btn-delete" (click)="delete(product.uuid)">Eliminar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (showForm) {
+        <div class="modal-overlay" (click)="closeForm()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h2>{{ editingProduct ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" [(ngModel)]="form.name" placeholder="Nombre del producto" />
+            </div>
+
+            <div class="form-group">
+              <label>Precio (€)</label>
+              <input type="number" [(ngModel)]="form.price" placeholder="0" />
+            </div>
+
+            <div class="form-group">
+              <label>Stock</label>
+              <input type="number" [(ngModel)]="form.stock" placeholder="0" />
+            </div>
+
+            <div class="form-group">
+              <label>Familia</label>
+              <select [(ngModel)]="form.familyId">
+                <option value="">Selecciona una familia</option>
+                @for (family of families; track family.uuid) {
+                  <option [value]="family.uuid">{{ family.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Impuesto</label>
+              <select [(ngModel)]="form.taxId">
+                <option value="">Selecciona un impuesto</option>
+                @for (tax of taxes; track tax.uuid) {
+                  <option [value]="tax.uuid">{{ tax.name }} ({{ tax.percentage }}%)</option>
+                }
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn-secondary" (click)="closeForm()">Cancelar</button>
+              <button class="btn-primary" (click)="save()">Guardar</button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
 </ion-content>

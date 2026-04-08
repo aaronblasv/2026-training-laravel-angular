@@ -1,0 +1,9 @@
+<div class="actions">
+  @if (showToggle) {
+    <button [class]="isActive ? 'btn-toggle-active' : 'btn-toggle-inactive'" (click)="onToggle.emit()">
+        {{ isActive ? 'Desactivar' : 'Activar' }}
+    </button>
+  }
+  <button class="btn-edit" (click)="onEdit.emit()">Editar</button>
+  <button class="btn-delete" (click)="onDelete.emit()">Eliminar</button>
+</div>

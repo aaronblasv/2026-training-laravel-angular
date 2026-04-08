@@ -10,6 +10,7 @@ final readonly class GetAllTablesResponse
     private function __construct(
         public string $uuid,
         public string $name,
+        public string $zoneId,
     ) {}
 
     public static function create(Table $table): self
@@ -17,6 +18,7 @@ final readonly class GetAllTablesResponse
         return new self(
             $table->getUuid()->getValue(),
             $table->getName()->getValue(),
+            $table->getZoneId(),
         );
     }
 

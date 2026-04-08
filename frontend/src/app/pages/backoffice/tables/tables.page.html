@@ -1,13 +1,79 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>tables</ion-title>
-  </ion-toolbar>
-</ion-header>
+<ion-content>
+  <div class="layout">
+    <app-sidebar></app-sidebar>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">tables</ion-title>
-    </ion-toolbar>
-  </ion-header>
+    <div class="main-content">
+      <div class="page-header">
+        <div>
+          <h1>Mesas</h1>
+          <p>Gestiona las mesas del restaurante</p>
+        </div>
+        <button class="btn-primary" (click)="openForm()">+ Nueva Mesa</button>
+      </div>
+
+      @for (group of tablesByZone; track group.zone.uuid) {
+        <div class="table-card">
+          <h2 class="family-title">{{ group.zone.name }}</h2>
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (table of group.tables; track table.uuid) {
+                <tr>
+                  <td>{{ table.name }}</td>
+                  <td>
+                    <app-action-buttons
+                      [showToggle]="false"
+                      (onEdit)="openForm(table)"
+                      (onDelete)="requestDelete(table.uuid)"
+                    />
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      @if (showForm) {
+        <div class="modal-overlay" (click)="closeForm()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h2>{{ editingTable ? 'Editar Mesa' : 'Nueva Mesa' }}</h2>
+
+            <div class="form-group">
+              <label>Nombre</label>
+              <input type="text" [(ngModel)]="form.name" placeholder="Nombre de la mesa" />
+            </div>
+
+            <div class="form-group">
+              <label>Zona</label>
+              <select [(ngModel)]="form.zone_id">
+                <option value="">Selecciona una zona</option>
+                @for (zone of zones; track zone.uuid) {
+                  <option [value]="zone.uuid">{{ zone.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="modal-actions">
+              <button class="btn-secondary" (click)="closeForm()">Cancelar</button>
+              <button class="btn-primary" (click)="save()">Guardar</button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <app-confirm-modal
+        [visible]="showConfirm"
+        title="¿Eliminar mesa?"
+        message="Esta acción eliminará la mesa permanentemente."
+        (onConfirm)="confirmDelete()"
+        (onCancel)="closeConfirm()"
+      />
+    </div>
+  </div>
 </ion-content>

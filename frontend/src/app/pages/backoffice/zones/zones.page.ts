@@ -1,20 +1,79 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonContent, IonHeader, IonTitle, IonToolbar } from '@ionic/angular/standalone';
+import { IonContent } from '@ionic/angular/standalone';
+import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
+import { ZoneService } from '../../../services/api/zone.service';
+import { ConfirmModalComponent } from '../../../components/confirm-modal/confirm-modal.component';
+import { ActionButtonsComponent } from '../../../components/action-buttons/action-buttons.component';
 
 @Component({
   selector: 'app-zones',
   templateUrl: './zones.page.html',
   styleUrls: ['./zones.page.scss'],
   standalone: true,
-  imports: [IonContent, IonHeader, IonTitle, IonToolbar, CommonModule, FormsModule]
+  imports: [IonContent, CommonModule, FormsModule, SidebarComponent, ConfirmModalComponent, ActionButtonsComponent]
 })
 export class ZonesPage implements OnInit {
 
-  constructor() { }
+  private zoneService = inject(ZoneService);
+
+  zones: any[] = [];
+  showForm = false;
+  showConfirm = false;
+  editingZone: any = null;
+  pendingDeleteUuid: string | null = null;
+
+  form = { name: '' };
 
   ngOnInit() {
+    this.loadZones();
   }
 
+  loadZones() {
+    this.zoneService.getAll().subscribe({
+      next: (data) => this.zones = data,
+      error: (err: any) => console.error(err)
+    });
+  }
+
+  openForm(zone?: any) {
+    this.editingZone = zone ?? null;
+    this.form = { name: zone?.name ?? '' };
+    this.showForm = true;
+  }
+
+  closeForm() {
+    this.showForm = false;
+    this.editingZone = null;
+  }
+
+  save() {
+    const action = this.editingZone
+      ? this.zoneService.update(this.editingZone.uuid, this.form.name)
+      : this.zoneService.create(this.form.name);
+
+    action.subscribe({
+      next: () => { this.loadZones(); this.closeForm(); },
+      error: (err: any) => console.error(err)
+    });
+  }
+
+  requestDelete(uuid: string) {
+    this.pendingDeleteUuid = uuid;
+    this.showConfirm = true;
+  }
+
+  confirmDelete() {
+    if (!this.pendingDeleteUuid) return;
+    this.zoneService.delete(this.pendingDeleteUuid).subscribe({
+      next: () => { this.loadZones(); this.closeConfirm(); },
+      error: (err: any) => console.error(err)
+    });
+  }
+
+  closeConfirm() {
+    this.showConfirm = false;
+    this.pendingDeleteUuid = null;
+  }
 }

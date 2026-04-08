@@ -1,0 +1,29 @@
+meta {
+  name: Create User
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/users
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "name": "Test",
+    "email": "test@tpv.com",
+    "password": "password123",
+    "role": "waiter"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

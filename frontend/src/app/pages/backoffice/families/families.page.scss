@@ -1,0 +1,64 @@
+.table-card {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      color: #6B7280;
+      font-size: 0.875rem;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      color: #1F2937;
+      border-bottom: 1px solid #F3F4F6;
+    }
+  }
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.badge-active {
+  background: #D1FAE5;
+  color: #065F46;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-inactive {
+  background: #F3F4F6;
+  color: #6B7280;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+
+  label { display: block; margin-bottom: 0.5rem; font-size: 0.875rem; color: #374151; }
+
+  input, select {
+    width: 100%;
+    padding: 0.625rem;
+    border: 1px solid #D1D5DB;
+    border-radius: 8px;
+    font-size: 0.875rem;
+    background: white;
+    box-sizing: border-box;
+  }
+}
