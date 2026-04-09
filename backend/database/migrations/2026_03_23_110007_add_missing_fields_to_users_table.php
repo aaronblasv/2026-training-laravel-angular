@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('role');
             $table->string('image_src')->nullable();
             $table->string('pin')->nullable();
-            $table->foreignId('restaurant_id')->constrained('restaurants');
+            $table->foreignId('restaurant_id')->constrained('restaurants')->onDelete('cascade');
             $table->softDeletes();
         });
     }

@@ -17,25 +17,26 @@ table {
   border-collapse: collapse;
   table-layout: fixed;
 
-  th, td {
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid #F3F4F6;
-  }
+  th:nth-child(1), td:nth-child(1) { width: 35%; } // Nombre
+  th:nth-child(2), td:nth-child(2) { width: 15%; } // Precio
+  th:nth-child(3), td:nth-child(3) { width: 12%; } // Stock
+  th:nth-child(4), td:nth-child(4) { width: 15%; } // Estado
+  th:nth-child(5), td:nth-child(5) { width: 23%; } // Acciones
 
   th {
+    text-align: left;
+    padding: 0.75rem 1rem;
     color: #6B7280;
     font-size: 0.875rem;
     border-bottom: 1px solid #E5E7EB;
-    text-align: left;
+    white-space: nowrap;
   }
 
-  td { color: #1F2937; }
-
-  th:nth-child(1), td:nth-child(1) { width: 25%; }  // Nombre
-  th:nth-child(2), td:nth-child(2) { width: 15%; }  // Precio
-  th:nth-child(3), td:nth-child(3) { width: 10%; }  // Stock
-  th:nth-child(4), td:nth-child(4) { width: 15%; }  // Estado
-  th:nth-child(5), td:nth-child(5) { width: 35%; }  // Acciones
+  td {
+    padding: 0.75rem 1rem;
+    color: #1F2937;
+    border-bottom: 1px solid #F3F4F6;
+  }
 }
 
 .table-card + .table-card {

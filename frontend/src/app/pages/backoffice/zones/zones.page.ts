@@ -4,9 +4,11 @@ import { FormsModule } from '@angular/forms';
 import { IonContent } from '@ionic/angular/standalone';
 import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
 import { ZoneService } from '../../../services/api/zone.service';
+import { TableService } from '../../../services/api/table.service';
 import { ConfirmModalComponent } from '../../../components/confirm-modal/confirm-modal.component';
 import { ActionButtonsComponent } from '../../../components/action-buttons/action-buttons.component';
 import { FormModalComponent } from '../../../components/form-modal/form-modal.component';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-zones',
@@ -18,24 +20,32 @@ import { FormModalComponent } from '../../../components/form-modal/form-modal.co
 export class ZonesPage implements OnInit {
 
   private zoneService = inject(ZoneService);
+  private tableService = inject(TableService);
 
   zones: any[] = [];
+  tables: any[] = [];
   showForm = false;
   showConfirm = false;
   editingZone: any = null;
   pendingDeleteUuid: string | null = null;
+  confirmMessage = '';
   errors: { [key: string]: string } = {};
-
 
   form = { name: '' };
 
   ngOnInit() {
-    this.loadZones();
+    this.loadData();
   }
 
-  loadZones() {
-    this.zoneService.getAll().subscribe({
-      next: (data) => this.zones = data,
+  loadData() {
+    forkJoin({
+      zones: this.zoneService.getAll(),
+      tables: this.tableService.getAll(),
+    }).subscribe({
+      next: ({ zones, tables }) => {
+        this.zones = zones;
+        this.tables = tables;
+      },
       error: (err: any) => console.error(err)
     });
   }
@@ -59,7 +69,7 @@ export class ZonesPage implements OnInit {
       : this.zoneService.create(this.form.name);
 
     action.subscribe({
-      next: () => { this.loadZones(); this.closeForm(); },
+      next: () => { this.loadData(); this.closeForm(); },
       error: (err: any) => {
         if (err.status === 422) {
           Object.keys(err.error.errors).forEach(key => {
@@ -70,15 +80,19 @@ export class ZonesPage implements OnInit {
     });
   }
 
-  requestDelete(uuid: string) {
-    this.pendingDeleteUuid = uuid;
+  requestDelete(zone: any) {
+    const tableCount = this.tables.filter(t => t.zoneId === zone.uuid).length;
+    this.pendingDeleteUuid = zone.uuid;
+    this.confirmMessage = tableCount > 0
+      ? `Se eliminará "${zone.name}" y sus mesas asociadas. Esta acción no se puede deshacer.`
+      : `Se eliminará "${zone.name}". Esta acción no se puede deshacer.`;
     this.showConfirm = true;
   }
 
   confirmDelete() {
     if (!this.pendingDeleteUuid) return;
     this.zoneService.delete(this.pendingDeleteUuid).subscribe({
-      next: () => { this.loadZones(); this.closeConfirm(); },
+      next: () => { this.loadData(); this.closeConfirm(); },
       error: (err: any) => console.error(err)
     });
   }

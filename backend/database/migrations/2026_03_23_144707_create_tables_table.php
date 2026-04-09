@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('tables', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->nullable()->unique();
-            $table->foreignId('zone_id')->constrained('zones');
-            $table->foreignId('restaurant_id')->constrained('restaurants');
+            $table->foreignId('zone_id')->constrained('zones')->onDelete('cascade');
+            $table->foreignId('restaurant_id')->constrained('restaurants')->onDelete('cascade');
             $table->string('name');
             $table->timestamps();
             $table->softDeletes();

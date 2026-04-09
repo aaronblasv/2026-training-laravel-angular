@@ -99,7 +99,7 @@
 
         <div class="form-group">
           <label>Familia</label>
-          <select [(ngModel)]="form.familyId" [class.input-error]="errors['family_id']">
+          <select [(ngModel)]="form.family_id" [class.input-error]="errors['family_id']">
             <option value="">Selecciona una familia</option>
             @for (family of families; track family.uuid) {
               <option [value]="family.uuid">{{ family.name }}</option>
@@ -112,7 +112,7 @@
 
         <div class="form-group">
           <label>Impuesto</label>
-          <select [(ngModel)]="form.taxId" [class.input-error]="errors['tax_id']">
+          <select [(ngModel)]="form.tax_id" [class.input-error]="errors['tax_id']">
             <option value="">Selecciona un impuesto</option>
             @for (tax of taxes; track tax.uuid) {
               <option [value]="tax.uuid">{{ tax.name }} ({{ tax.percentage }}%)</option>

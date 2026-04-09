@@ -14,10 +14,10 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->uuid('uuid')->nullable()->unique();
-            $table->foreignId('family_id')->constrained('families');
-            $table->foreignId('tax_id')->constrained('taxes');
+            $table->foreignId('family_id')->constrained('families')->onDelete('cascade');
+            $table->foreignId('restaurant_id')->constrained('restaurants')->onDelete('cascade');
+            $table->foreignId('tax_id')->constrained('taxes')->onDelete('cascade');
             $table->string('image_src')->nullable();
-            $table->foreignId('restaurant_id')->constrained('restaurants');
             $table->string('name');
             $table->integer('price');
             $table->integer('stock');

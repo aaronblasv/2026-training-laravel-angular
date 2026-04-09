@@ -50,4 +50,9 @@ export const routes: Routes = [
     path: 'no-access',
     loadComponent: () => import('./pages/no-access/no-access.page').then(m => m.NoAccessPage),
   },
+  {
+  path: 'settings',
+  loadComponent: () => import('./pages/backoffice/settings/settings.page').then(m => m.SettingsPage),
+  canActivate: [authGuard],
+},
 ];

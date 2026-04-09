@@ -16,7 +16,7 @@ return new class extends Migration
             $table->uuid('uuid')->nullable()->unique();
             $table->string('name');
             $table->softDeletes();
-            $table->foreignId('restaurant_id')->constrained('restaurants');
+            $table->foreignId('restaurant_id')->constrained('restaurants')->onDelete('cascade');
             $table->timestamps();
         });
     }

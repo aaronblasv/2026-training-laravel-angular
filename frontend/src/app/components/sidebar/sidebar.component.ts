@@ -4,7 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/api/auth.service';
 import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { homeOutline, closeOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline, menuOutline } from 'ionicons/icons';
+import { homeOutline, settingsOutline, closeOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline, menuOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-sidebar',
@@ -27,13 +27,14 @@ export class SidebarComponent implements OnInit {
     { label: 'Zonas', route: '/zones', icon: 'location-outline' },
     { label: 'Mesas', route: '/tables', icon: 'grid-outline' },
     { label: 'Usuarios', route: '/users', icon: 'people-outline' },
+    { label: 'Ajustes', route: '/settings', icon: 'settings-outline' },
 ];
 
   constructor(
     private authService: AuthService,
     private router: Router,
 ) {
-    addIcons({ homeOutline, closeOutline, menuOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline });
+    addIcons({ homeOutline, settingsOutline, closeOutline, menuOutline, receiptOutline, folderOutline, cubeOutline, locationOutline, gridOutline, peopleOutline, logOutOutline, restaurantOutline });
 }
 
   ngOnInit() {

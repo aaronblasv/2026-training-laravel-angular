@@ -23,7 +23,7 @@ class UpdateProductController
             $validated['name'],
             $validated['price'],
             $validated['stock'],
-            $request->input('active'),
+            $request->input('active', true),
             $validated['family_id'],
             $validated['tax_id'],
         );

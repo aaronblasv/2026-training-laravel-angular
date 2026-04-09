@@ -27,7 +27,7 @@
                   <app-action-buttons
                     [showToggle]="false"
                     (onEdit)="openForm(zone)"
-                    (onDelete)="requestDelete(zone.uuid)"
+                    (onDelete)="requestDelete(zone)"
                   />
                 </td>
               </tr>
@@ -60,7 +60,7 @@
       <app-confirm-modal
         [visible]="showConfirm"
         title="¿Eliminar zona?"
-        message="Esta acción eliminará la zona permanentemente."
+        [message]="confirmMessage"
         (onConfirm)="confirmDelete()"
         (onCancel)="closeConfirm()"
       />

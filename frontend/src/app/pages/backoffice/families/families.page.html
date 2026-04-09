@@ -34,7 +34,7 @@
                     [showToggle]="true"
                     [isActive]="family.active"
                     (onEdit)="openForm(family)"
-                    (onDelete)="requestDelete(family.uuid)"
+                    (onDelete)="requestDelete(family)"
                     (onToggle)="toggle(family)"
                   />
                 </td>
@@ -68,7 +68,7 @@
       <app-confirm-modal
         [visible]="showConfirm"
         title="¿Eliminar familia?"
-        message="Esta acción eliminará la familia permanentemente."
+        [message]="confirmMessage"
         (onConfirm)="confirmDelete()"
         (onCancel)="closeConfirm()"
       />

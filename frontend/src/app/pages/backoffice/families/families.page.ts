@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from '@ionic/angular/standalone';
@@ -7,6 +7,8 @@ import { FamilyService } from '../../../services/api/family.service';
 import { ConfirmModalComponent } from '../../../components/confirm-modal/confirm-modal.component';
 import { ActionButtonsComponent } from '../../../components/action-buttons/action-buttons.component';
 import { FormModalComponent } from '../../../components/form-modal/form-modal.component';
+import { ProductService } from 'src/app/services/api/product.service';
+import { forkJoin } from 'rxjs';
 
 
 @Component({
@@ -18,6 +20,11 @@ import { FormModalComponent } from '../../../components/form-modal/form-modal.co
 })
 export class FamiliesPage implements OnInit {
 
+
+  private productService = inject(ProductService);
+
+  products: any[] = [];
+  confirmMessage = '';
   families: any[] = [];
   showForm = false;
   editingFamily: any = null;
@@ -29,15 +36,32 @@ export class FamiliesPage implements OnInit {
 
   constructor(private familyService: FamilyService) {}
 
-  requestDelete(uuid: string) {
-    this.pendingDeleteUuid = uuid;
+  loadData() {
+    forkJoin({
+      families: this.familyService.getAll(),
+      products: this.productService.getAll(),
+    }).subscribe({
+      next: ({ families, products }) => {
+        this.families = families;
+        this.products = products;
+      },
+      error: (err: any) => console.error(err)
+    });
+  }
+
+  requestDelete(family: any) {
+    const productCount = this.products.filter(p => p.familyId === family.uuid).length;
+    this.pendingDeleteUuid = family.uuid;
+    this.confirmMessage = productCount > 0
+      ? `Se eliminará "${family.name}" y sus productos asociados. Esta acción no se puede deshacer.`
+      : `Se eliminará "${family.name}". Esta acción no se puede deshacer.`;
     this.showConfirm = true;
   }
 
   confirmDelete() {
     if (!this.pendingDeleteUuid) return;
     this.familyService.delete(this.pendingDeleteUuid).subscribe({
-      next: () => { this.loadFamilies(); this.closeConfirm(); },
+      next: () => { this.loadData(); this.closeConfirm(); },
       error: (err: any) => console.error(err)
     });
   }
@@ -49,14 +73,7 @@ export class FamiliesPage implements OnInit {
 
 
   ngOnInit() {
-    this.loadFamilies();
-  }
-
-  loadFamilies() {
-    this.familyService.getAll().subscribe({
-      next: (data) => this.families = data,
-      error: (err) => console.error(err)
-    });
+    this.loadData();
   }
 
   openForm(family?: any) {
@@ -78,7 +95,7 @@ export class FamiliesPage implements OnInit {
       : this.familyService.create(this.form.name);
 
     action.subscribe({
-      next: () => { this.loadFamilies(); this.closeForm(); },
+      next: () => { this.loadData(); this.closeForm(); },
       error: (err: any) => {
         if (err.status === 422) {
           const apiErrors = err.error.errors;
@@ -96,7 +113,7 @@ export class FamiliesPage implements OnInit {
       : this.familyService.activate(family.uuid);
 
     action.subscribe({
-      next: () => this.loadFamilies(),
+      next: () => this.loadData(),
       error: (err: any) => console.error(err)
     });
   }
@@ -104,7 +121,7 @@ export class FamiliesPage implements OnInit {
   delete(uuid: string) {
     if (confirm('¿Eliminar esta familia?')) {
       this.familyService.delete(uuid).subscribe({
-        next: () => this.loadFamilies(),
+        next: () => this.loadData(),
         error: (err) => console.error(err)
       });
     }

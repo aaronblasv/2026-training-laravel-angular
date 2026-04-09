@@ -1,9 +1,13 @@
 <div class="actions">
   @if (showToggle) {
     <button [class]="isActive ? 'btn-toggle-active' : 'btn-toggle-inactive'" (click)="onToggle.emit()">
-        {{ isActive ? 'Desactivar' : 'Activar' }}
+      <ion-icon [name]="isActive ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
     </button>
   }
-  <button class="btn-edit" (click)="onEdit.emit()">Editar</button>
-  <button class="btn-delete" (click)="onDelete.emit()">Eliminar</button>
+  <button class="btn-edit" (click)="onEdit.emit()">
+    <ion-icon name="create-outline"></ion-icon>
+  </button>
+  <button class="btn-delete" (click)="onDelete.emit()">
+    <ion-icon name="trash-outline"></ion-icon>
+  </button>
 </div>

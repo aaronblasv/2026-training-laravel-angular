@@ -37,8 +37,8 @@ export class ProductsPage implements OnInit {
     name: '',
     price: 0,
     stock: 0,
-    familyId: '',
-    taxId: '',
+    family_id: '',
+    tax_id: '',
   };
 
   ngOnInit() {
@@ -82,8 +82,8 @@ export class ProductsPage implements OnInit {
       name: product?.name ?? '',
       price: product?.price ?? 0,
       stock: product?.stock ?? 0,
-      familyId: product?.familyId ?? '',
-      taxId: product?.taxId ?? '',
+      family_id: product?.familyId ?? '',
+      tax_id: product?.taxId ?? '',
     };
         this.showForm = true;
   }

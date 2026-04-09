@@ -1,0 +1,55 @@
+<ion-content>
+  <div class="layout">
+    <app-sidebar></app-sidebar>
+
+    <div class="main-content">
+      <div class="page-header">
+        <div>
+          <h1>Ajustes</h1>
+          <p>Configuración de tu cuenta y la interfaz</p>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h2>Mi cuenta</h2>
+        <div class="user-info-row">
+          <div class="user-avatar-large">
+            {{ currentUser?.name?.charAt(0) | uppercase }}
+          </div>
+          <div>
+            <p class="user-name">{{ currentUser?.name }}</p>
+            <p class="user-role">{{ getRoleLabel() }}</p>
+            <p class="user-email">{{ currentUser?.email }}</p>
+            <p class="user-restaurant">{{ currentUser?.restaurant_name }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-card">
+        <h2>Tamaño de la interfaz</h2>
+        <p class="settings-desc">Ajusta el tamaño de todos los elementos de la aplicación.</p>
+
+        <div class="scale-controls">
+          <button class="btn-scale" (click)="changeScale(80)" [class.active]="uiScale === 80">Pequeño</button>
+          <button class="btn-scale" (click)="changeScale(100)" [class.active]="uiScale === 100">Normal</button>
+          <button class="btn-scale" (click)="changeScale(115)" [class.active]="uiScale === 115">Grande</button>
+          <button class="btn-scale" (click)="changeScale(130)" [class.active]="uiScale === 130">Muy grande</button>
+        </div>
+
+        <div class="scale-slider">
+          <span>80%</span>
+          <input
+            type="range"
+            min="80"
+            max="130"
+            step="5"
+            [value]="uiScale"
+            (input)="changeScale(+$any($event.target).value)"
+          />
+          <span>130%</span>
+          <span class="scale-value">{{ uiScale }}%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>
