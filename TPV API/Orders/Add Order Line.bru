@@ -1,0 +1,30 @@
+meta {
+  name: Add Order Line
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/orders/4a2b531f-2f67-48b4-8ccf-4e4ada548a64/lines
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "product_id": "6d5904f7-aedc-44cc-a028-16fc04752152",
+      "user_id": "f6779544-675e-46c0-b603-eef2e600c276",
+      "quantity": 2,
+      "price": 850,
+      "tax_percentage": 10
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

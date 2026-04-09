@@ -1,0 +1,28 @@
+meta {
+  name: Open Order
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/orders
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "table_id": "43fb334f-d9bc-425f-9570-cb2b49c57f41",
+      "opened_by_user_id": "f6779544-675e-46c0-b603-eef2e600c276",
+      "diners": 4
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

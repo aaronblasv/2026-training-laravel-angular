@@ -1,0 +1,20 @@
+meta {
+  name: Cancel Order
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{base_url}}/orders/840b308d-1c79-4e45-8418-f7f8497177c3
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

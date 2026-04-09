@@ -19,6 +19,12 @@ use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Product\Infrastructure\Persistence\Repositories\EloquentProductRepository;
 use App\User\Domain\Interfaces\TokenGeneratorInterface;
 use App\User\Infrastructure\Services\LaravelTokenGenerator;
+use App\Order\Domain\Interfaces\OrderRepositoryInterface;
+use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
+use App\Order\Infrastructure\Persistence\Repositories\EloquentOrderRepository;
+use App\Order\Infrastructure\Persistence\Repositories\EloquentOrderLineRepository;
+use App\Sale\Domain\Interfaces\SaleRepositoryInterface;
+use App\Sale\Infrastructure\Persistence\Repositories\EloquentSaleRepository;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +41,9 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(TableRepositoryInterface::class, EloquentTableRepository::class);
         $this->app->bind(ProductRepositoryInterface::class, EloquentProductRepository::class);
         $this->app->bind(TokenGeneratorInterface::class, LaravelTokenGenerator::class);
+        $this->app->bind(OrderRepositoryInterface::class, EloquentOrderRepository::class);
+        $this->app->bind(OrderLineRepositoryInterface::class, EloquentOrderLineRepository::class);
+        $this->app->bind(SaleRepositoryInterface::class, EloquentSaleRepository::class);
     }
 
     public function boot(): void

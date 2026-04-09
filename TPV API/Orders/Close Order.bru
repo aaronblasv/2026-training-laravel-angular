@@ -1,0 +1,26 @@
+meta {
+  name: Close Order
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/orders/4a2b531f-2f67-48b4-8ccf-4e4ada548a64/close
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "closed_by_user_id": "f6779544-675e-46c0-b603-eef2e600c276"
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

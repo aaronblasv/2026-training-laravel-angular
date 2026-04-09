@@ -1,0 +1,20 @@
+meta {
+  name: Get Order By Table
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/tables/1c009f2c-a6e7-47ca-b05f-c0dd094f6f90/order
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

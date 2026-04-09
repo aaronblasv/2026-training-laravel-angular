@@ -1,0 +1,26 @@
+meta {
+  name: Update Diners
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{base_url}}/orders/840b308d-1c79-4e45-8418-f7f8497177c3/diners
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "diners": 6
+  }
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

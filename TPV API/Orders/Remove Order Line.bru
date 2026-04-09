@@ -1,0 +1,20 @@
+meta {
+  name: Remove Order Line
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{base_url}}/orders/840b308d-1c79-4e45-8418-f7f8497177c3/lines/4bc4677c-b6b8-4279-8e1a-7e42110f3b63
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

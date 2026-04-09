@@ -33,12 +33,29 @@ use App\User\Infrastructure\Entrypoint\Http\GetUserByIdController;
 use App\User\Infrastructure\Entrypoint\Http\CreateUserController;
 use App\User\Infrastructure\Entrypoint\Http\UpdateUserController;
 use App\User\Infrastructure\Entrypoint\Http\DeleteUserController;
+use App\Order\Infrastructure\Entrypoint\Http\OpenOrderController;
+use App\Order\Infrastructure\Entrypoint\Http\GetOrderByTableController;
+use App\Order\Infrastructure\Entrypoint\Http\AddOrderLineController;
+use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderLineQuantityController;
+use App\Order\Infrastructure\Entrypoint\Http\RemoveOrderLineController;
+use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderDinersController;
+use App\Order\Infrastructure\Entrypoint\Http\CloseOrderController;
+use App\Order\Infrastructure\Entrypoint\Http\CancelOrderController;
 
 Route::post('/auth/login', LoginController::class);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/auth/logout', LogoutController::class);
     Route::get('/auth/me', GetAuthenticatedUserController::class);
+
+    Route::post('/orders', OpenOrderController::class);
+    Route::get('/tables/{tableUuid}/order', GetOrderByTableController::class);
+    Route::post('/orders/{orderUuid}/lines', AddOrderLineController::class);
+    Route::put('/orders/{orderUuid}/lines/{lineUuid}', UpdateOrderLineQuantityController::class);
+    Route::delete('/orders/{orderUuid}/lines/{lineUuid}', RemoveOrderLineController::class);
+    Route::patch('/orders/{orderUuid}/diners', UpdateOrderDinersController::class);
+    Route::post('/orders/{orderUuid}/close', CloseOrderController::class);
+    Route::delete('/orders/{orderUuid}', CancelOrderController::class);
 });
 
 Route::middleware(['auth:sanctum', 'backoffice'])->group(function () {
