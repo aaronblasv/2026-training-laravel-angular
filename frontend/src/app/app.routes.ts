@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './providers/auth.guard';
+import { tpvGuard } from './providers/tpv.guard';
 
 export const routes: Routes = [
   {
@@ -54,5 +55,15 @@ export const routes: Routes = [
   path: 'settings',
   loadComponent: () => import('./pages/backoffice/settings/settings.page').then(m => m.SettingsPage),
   canActivate: [authGuard],
+},
+{
+  path: 'tpv',
+  loadComponent: () => import('./pages/tpv/floor/floor.page').then(m => m.FloorPage),
+  canActivate: [tpvGuard],
+},
+{
+  path: 'tpv/order/:tableUuid',
+  loadComponent: () => import('./pages/tpv/order/order.page').then(m => m.OrderPage),
+  canActivate: [tpvGuard],
 },
 ];

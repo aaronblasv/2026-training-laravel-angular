@@ -26,4 +26,8 @@ export class TableService {
   delete(uuid: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${uuid}`);
   }
+
+  getAllTpv(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/tpv/tables`);
+    }
 }

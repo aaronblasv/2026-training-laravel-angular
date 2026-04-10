@@ -41,6 +41,7 @@ use App\Order\Infrastructure\Entrypoint\Http\RemoveOrderLineController;
 use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderDinersController;
 use App\Order\Infrastructure\Entrypoint\Http\CloseOrderController;
 use App\Order\Infrastructure\Entrypoint\Http\CancelOrderController;
+use App\Order\Infrastructure\Entrypoint\Http\GetAllOpenOrdersController;
 
 Route::post('/auth/login', LoginController::class);
 
@@ -51,11 +52,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/orders', OpenOrderController::class);
     Route::get('/tables/{tableUuid}/order', GetOrderByTableController::class);
     Route::post('/orders/{orderUuid}/lines', AddOrderLineController::class);
+    Route::get('/orders/open', GetAllOpenOrdersController::class);
     Route::put('/orders/{orderUuid}/lines/{lineUuid}', UpdateOrderLineQuantityController::class);
     Route::delete('/orders/{orderUuid}/lines/{lineUuid}', RemoveOrderLineController::class);
     Route::patch('/orders/{orderUuid}/diners', UpdateOrderDinersController::class);
     Route::post('/orders/{orderUuid}/close', CloseOrderController::class);
     Route::delete('/orders/{orderUuid}', CancelOrderController::class);
+
+    Route::get('/tpv/zones', GetAllZonesController::class);
+    Route::get('/tpv/tables', GetAllTablesController::class);
+    Route::get('/tpv/products', GetAllProductsController::class);
+    Route::get('/tpv/users', GetAllUsersController::class);
 });
 
 Route::middleware(['auth:sanctum', 'backoffice'])->group(function () {

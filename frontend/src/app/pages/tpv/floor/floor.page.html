@@ -1,0 +1,46 @@
+<div class="floor-layout">
+  <div class="floor-header">
+    <h1>Sala</h1>
+  </div>
+
+  <div class="zone-tabs">
+    <button
+      class="zone-tab"
+      [class.active]="selectedZoneUuid === null"
+      (click)="selectZone(null)"
+    >
+      Todas
+    </button>
+    @for (zone of zones; track zone.uuid) {
+      <button
+        class="zone-tab"
+        [class.active]="selectedZoneUuid === zone.uuid"
+        (click)="selectZone(zone.uuid)"
+      >
+        {{ zone.name }}
+      </button>
+    }
+  </div>
+
+  <div class="tables-grid">
+    @for (table of filteredTables; track table.uuid) {
+      <div
+        class="table-card"
+        [class.occupied]="isOccupied(table.uuid)"
+        [class.free]="!isOccupied(table.uuid)"
+        (click)="onTableClick(table)"
+      >
+        <div class="table-name">{{ table.name }}</div>
+        <div class="table-zone">{{ getZoneName(table.zoneId) }}</div>
+        @if (isOccupied(table.uuid)) {
+          <div class="table-info">
+            <span class="table-diners">{{ getOrder(table.uuid).diners }} 👤</span>
+          </div>
+          <div class="table-status">Ocupada</div>
+        } @else {
+          <div class="table-status">Libre</div>
+        }
+      </div>
+    }
+  </div>
+</div>

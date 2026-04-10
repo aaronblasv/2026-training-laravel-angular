@@ -13,4 +13,5 @@ interface OrderRepositoryInterface
     public function findOpenByTableId(string $tableUuid): ?Order;
     public function update(Order $order): void;
     public function delete(string $uuid): void;
+    public function findAllOpen(): array;
 }

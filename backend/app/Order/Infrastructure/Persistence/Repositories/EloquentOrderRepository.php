@@ -47,6 +47,21 @@ class EloquentOrderRepository implements OrderRepositoryInterface
         EloquentOrder::where('uuid', $uuid)->firstOrFail()->delete();
     }
 
+    public function findAllOpen(): array
+    {
+        return EloquentOrder::where('restaurant_id', auth()->user()->restaurant_id)
+            ->where('status', 'open')
+            ->get()
+            ->map(fn(EloquentOrder $model) => [
+                'uuid' => $model->uuid,
+                'tableId' => EloquentTable::find($model->table_id)->uuid,
+                'openedByUserId' => EloquentUser::find($model->opened_by_user_id)->uuid,
+                'diners' => $model->diners,
+                'openedAt' => $model->opened_at,
+            ])
+            ->toArray();
+    }
+
     public function findOpenByTableId(string $tableUuid): ?Order
     {
         $tableId = EloquentTable::where('uuid', $tableUuid)->firstOrFail()->id;
