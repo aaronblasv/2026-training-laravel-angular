@@ -20,17 +20,26 @@ class OrderLine
         private int $taxPercentage,
     ) {}
 
-    public static function dddRestore(
-        Uuid $uuid,
+    public static function fromPersistence(
+        string $uuid,
         int $restaurantId,
-        Uuid $orderId,
-        Uuid $productId,
-        Uuid $userId,
-        Quantity $quantity,
+        string $orderId,
+        string $productId,
+        string $userId,
+        int $quantity,
         int $price,
         int $taxPercentage,
     ): self {
-        return new self($uuid, $restaurantId, $orderId, $productId, $userId, $quantity, $price, $taxPercentage);
+        return new self(
+            Uuid::create($uuid),
+            $restaurantId,
+            Uuid::create($orderId),
+            Uuid::create($productId),
+            Uuid::create($userId),
+            Quantity::create($quantity),
+            $price,
+            $taxPercentage,
+        );
     }
 
     public static function dddCreate(
@@ -51,12 +60,12 @@ class OrderLine
         $this->quantity = $quantity;
     }
 
-    public function getUuid(): Uuid { return $this->uuid; }
-    public function getRestaurantId(): int { return $this->restaurantId; }
-    public function getOrderId(): Uuid { return $this->orderId; }
-    public function getProductId(): Uuid { return $this->productId; }
-    public function getUserId(): Uuid { return $this->userId; }
-    public function getQuantity(): Quantity { return $this->quantity; }
-    public function getPrice(): int { return $this->price; }
-    public function getTaxPercentage(): int { return $this->taxPercentage; }
+    public function uuid(): Uuid { return $this->uuid; }
+    public function restaurantId(): int { return $this->restaurantId; }
+    public function orderId(): Uuid { return $this->orderId; }
+    public function productId(): Uuid { return $this->productId; }
+    public function userId(): Uuid { return $this->userId; }
+    public function quantity(): Quantity { return $this->quantity; }
+    public function price(): int { return $this->price; }
+    public function taxPercentage(): int { return $this->taxPercentage; }
 }

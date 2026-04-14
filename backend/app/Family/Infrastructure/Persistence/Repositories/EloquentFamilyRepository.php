@@ -5,51 +5,59 @@ namespace App\Family\Infrastructure\Persistence\Repositories;
 use App\Family\Domain\Entity\Family;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 use App\Family\Infrastructure\Persistence\Models\EloquentFamily;
-use App\Shared\Domain\ValueObject\Uuid;
-use App\Family\Domain\ValueObject\FamilyName;
 
 class EloquentFamilyRepository implements FamilyRepositoryInterface
 {
-    public function findAll(): array
+    public function __construct(
+        private EloquentFamily $model,
+    ) {}
+
+    public function findAll(int $restaurantId): array
     {
-        return EloquentFamily::where('restaurant_id', auth()->user()->restaurant_id)
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentFamily $family) => $this->toDomain($family))
             ->toArray();
     }
 
-    private function toDomain(EloquentFamily $family): Family
-    {
-        return Family::dddCreate(
-            Uuid::create($family->uuid),
-            FamilyName::create($family->name),
-            $family->active,
-        );
-    }
-
     public function save(Family $family): void
     {
-        EloquentFamily::updateOrCreate(
-            ['uuid' => $family->getUuid()->getValue()],
+        $this->model->newQuery()->updateOrCreate(
+            ['uuid' => $family->uuid()->getValue()],
             [
-                'name' => $family->getName()->getValue(),
-                'active' => $family->isActive(),
-                'restaurant_id' => auth()->user()->restaurant_id,
+                'name' => $family->name()->getValue(),
+                'active' => $family->active(),
+                'restaurant_id' => $family->restaurantId(),
             ]
         );
     }
 
-    public function findById(string $id): ?Family
+    public function findById(string $id, int $restaurantId): ?Family
     {
-        $family = EloquentFamily::where('uuid', $id)->first();
+        $family = $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->first();
 
         return $family ? $this->toDomain($family) : null;
     }
 
-    public function delete(string $id): void
+    public function delete(string $id, int $restaurantId): void
     {
-        EloquentFamily::where('uuid', $id)->delete();
+        $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->delete();
     }
 
-
+    private function toDomain(EloquentFamily $family): Family
+    {
+        return Family::fromPersistence(
+            $family->uuid,
+            $family->name,
+            (bool) $family->active,
+            $family->restaurant_id,
+        );
+    }
 }

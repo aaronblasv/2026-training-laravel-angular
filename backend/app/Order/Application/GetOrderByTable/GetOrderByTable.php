@@ -14,14 +14,14 @@ class GetOrderByTable
         private OrderLineRepositoryInterface $lineRepository,
     ) {}
 
-    public function __invoke(string $tableUuid): ?GetOrderByTableResponse
+    public function __invoke(string $tableUuid, int $restaurantId): ?GetOrderByTableResponse
     {
-        $order = $this->orderRepository->findOpenByTableId($tableUuid);
+        $order = $this->orderRepository->findOpenByTableId($tableUuid, $restaurantId);
         if (!$order) {
             return null;
         }
 
-        $lines = $this->lineRepository->findAllByOrderId($order->getUuid()->getValue());
+        $lines = $this->lineRepository->findAllByOrderId($order->uuid()->getValue(), $restaurantId);
 
         return GetOrderByTableResponse::create($order, $lines);
     }

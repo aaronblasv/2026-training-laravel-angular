@@ -29,11 +29,31 @@ class Sale
         return new self($uuid, $restaurantId, $orderId, $userId, $ticketNumber, new \DateTimeImmutable(), $total);
     }
 
-    public function getUuid(): Uuid { return $this->uuid; }
-    public function getRestaurantId(): int { return $this->restaurantId; }
-    public function getOrderId(): Uuid { return $this->orderId; }
-    public function getUserId(): Uuid { return $this->userId; }
-    public function getTicketNumber(): int { return $this->ticketNumber; }
-    public function getValueDate(): \DateTimeImmutable { return $this->valueDate; }
-    public function getTotal(): int { return $this->total; }
+    public static function fromPersistence(
+        string $uuid,
+        int $restaurantId,
+        string $orderId,
+        string $userId,
+        int $ticketNumber,
+        \DateTimeImmutable $valueDate,
+        int $total,
+    ): self {
+        return new self(
+            Uuid::create($uuid),
+            $restaurantId,
+            Uuid::create($orderId),
+            Uuid::create($userId),
+            $ticketNumber,
+            $valueDate,
+            $total,
+        );
+    }
+
+    public function uuid(): Uuid { return $this->uuid; }
+    public function restaurantId(): int { return $this->restaurantId; }
+    public function orderId(): Uuid { return $this->orderId; }
+    public function userId(): Uuid { return $this->userId; }
+    public function ticketNumber(): int { return $this->ticketNumber; }
+    public function valueDate(): \DateTimeImmutable { return $this->valueDate; }
+    public function total(): int { return $this->total; }
 }

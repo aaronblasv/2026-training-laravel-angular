@@ -18,7 +18,7 @@ class LoginUser
 
         $user = $this->userRepository->findByEmail($email);
 
-        if ($user === null || !password_verify($password, $user->passwordHash())) {
+        if ($user === null || !password_verify($password, $user->passwordHash()->getValue())) {
             throw new \Exception('Invalid credentials');
         }
 

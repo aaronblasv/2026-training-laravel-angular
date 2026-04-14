@@ -10,6 +10,7 @@ final readonly class CreateUserResponse
         public string $id,
         public string $name,
         public string $email,
+        public string $pin,
         public string $createdAt,
         public string $updatedAt,
     ) {}
@@ -18,8 +19,9 @@ final readonly class CreateUserResponse
     {
         return new self(
             id: $user->id()->getValue(),
-            name: $user->name(),
+            name: $user->name()->getValue(),
             email: $user->email()->getValue(),
+            pin: $user->pin(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );
@@ -34,6 +36,7 @@ final readonly class CreateUserResponse
             'id' => $this->id,
             'name' => $this->name,
             'email' => $this->email,
+            'pin' => $this->pin,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

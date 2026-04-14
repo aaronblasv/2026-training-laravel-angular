@@ -20,7 +20,7 @@ final readonly class GetAuthenticatedUserResponse
     {
         return new self(
             id: $user->id()->getValue(),
-            name: $user->name(),
+            name: $user->name()->getValue(),
             email: $user->email()->getValue(),
             role: $user->role()->getValue(),
             restaurantId: (string) $user->restaurantId(),

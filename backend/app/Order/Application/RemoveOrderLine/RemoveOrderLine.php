@@ -12,13 +12,13 @@ class RemoveOrderLine
         private OrderLineRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $lineUuid): void
+    public function __invoke(string $lineUuid, int $restaurantId): void
     {
-        $line = $this->repository->findById($lineUuid);
+        $line = $this->repository->findById($lineUuid, $restaurantId);
         if (!$line) {
             throw new \DomainException('Order line not found.');
         }
 
-        $this->repository->delete($lineUuid);
+        $this->repository->delete($lineUuid, $restaurantId);
     }
 }

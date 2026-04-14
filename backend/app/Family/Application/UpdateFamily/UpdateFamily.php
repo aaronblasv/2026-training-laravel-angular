@@ -2,40 +2,27 @@
 
 namespace App\Family\Application\UpdateFamily;
 
-use App\Family\Domain\Entity\Family;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
-use App\Family\Application\UpdateFamily\UpdateFamilyResponse;
-use App\Shared\Domain\ValueObject\Uuid;
 use App\Family\Domain\ValueObject\FamilyName;
 
 class UpdateFamily
 {
+    public function __construct(
+        private FamilyRepositoryInterface $repository,
+    ) {}
 
-    private FamilyRepositoryInterface $repository;
-
-    public function __construct(FamilyRepositoryInterface $repository)
+    public function __invoke(string $uuid, string $name, bool $active, int $restaurantId): UpdateFamilyResponse
     {
-        $this->repository = $repository;
-    }
+        $family = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid, string $name, bool $active): UpdateFamilyResponse
-    {
-
-        $family = $this->repository->findbyId($uuid);
-
-        if(!$family) {
+        if ($family === null) {
             throw new \Exception('Family not found');
         }
 
-        $family->dddUpdate(
-            FamilyName::create($name),
-            $active,
-        );
+        $family->dddUpdate(FamilyName::create($name), $active);
 
         $this->repository->save($family);
 
         return UpdateFamilyResponse::create($family);
-
     }
-
 }

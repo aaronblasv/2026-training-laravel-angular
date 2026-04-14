@@ -17,11 +17,12 @@ class EloquentUserRepository implements UserRepositoryInterface
         $this->model->newQuery()->updateOrCreate(
             ['uuid' => $user->id()->getValue()],
             [
-                'name' => $user->name(),
+                'name' => $user->name()->getValue(),
                 'email' => $user->email()->getValue(),
-                'password' => $user->passwordHash(),
+                'password' => $user->passwordHash()->getValue(),
                 'role' => $user->role()->getValue(),
                 'restaurant_id' => $user->restaurantId(),
+                'pin' => $user->pin(),
                 'created_at' => $user->createdAt()->getValue(),
                 'updated_at' => $user->updatedAt()->getValue(),
             ]
@@ -40,6 +41,7 @@ class EloquentUserRepository implements UserRepositoryInterface
                 $model->password,
                 $model->role,
                 $model->restaurant_id,
+                $model->pin,
                 $model->created_at->toDateTimeImmutable(),
                 $model->updated_at->toDateTimeImmutable(),
             ))->toArray();
@@ -60,6 +62,7 @@ class EloquentUserRepository implements UserRepositoryInterface
             $model->password,
             $model->role,
             $model->restaurant_id,
+            $model->pin,
             $model->created_at->toDateTimeImmutable(),
             $model->updated_at->toDateTimeImmutable(),
         );
@@ -80,6 +83,7 @@ class EloquentUserRepository implements UserRepositoryInterface
             $model->password,
             $model->role,
             $model->restaurant_id,
+            $model->pin,
             $model->created_at->toDateTimeImmutable(),
             $model->updated_at->toDateTimeImmutable(),
         );
@@ -88,5 +92,29 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function delete(User $user): void
     {
         $this->model->newQuery()->where('uuid', $user->id()->getValue())->delete();
+    }
+
+    public function findByPin(string $pin): ?User
+    {
+        $model = $this->model->newQuery()
+            ->where('pin', $pin)
+            ->where('restaurant_id', auth()->user()?->restaurant_id)
+            ->first();
+
+        if ($model === null) {
+            return null;
+        }
+
+        return User::fromPersistence(
+            $model->uuid,
+            $model->name,
+            $model->email,
+            $model->password,
+            $model->role,
+            $model->restaurant_id,
+            $model->pin,
+            $model->created_at->toDateTimeImmutable(),
+            $model->updated_at->toDateTimeImmutable(),
+        );
     }
 }

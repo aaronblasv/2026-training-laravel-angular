@@ -6,7 +6,6 @@ use App\Table\Domain\Entity\Table;
 
 final readonly class GetAllTablesResponse
 {
-    
     private function __construct(
         public string $uuid,
         public string $name,
@@ -16,10 +15,9 @@ final readonly class GetAllTablesResponse
     public static function create(Table $table): self
     {
         return new self(
-            $table->getUuid()->getValue(),
-            $table->getName()->getValue(),
-            $table->getZoneId(),
+            $table->uuid()->getValue(),
+            $table->name()->getValue(),
+            $table->zoneId()->getValue(),
         );
     }
-
 }

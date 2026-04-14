@@ -15,10 +15,9 @@ final readonly class UpdateTaxResponse
     public static function create(Tax $tax): self
     {
         return new self(
-            $tax->getUuid()->getValue(),
-            $tax->getName()->getValue(),
-            $tax->getPercentage()->getValue(),
+            $tax->uuid()->getValue(),
+            $tax->name()->getValue(),
+            $tax->percentage()->getValue(),
         );
     }
-
 }

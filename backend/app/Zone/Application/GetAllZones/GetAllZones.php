@@ -4,7 +4,6 @@ namespace App\Zone\Application\GetAllZones;
 
 use App\Zone\Domain\Entity\Zone;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
-use App\Zone\Application\GetAllZones\GetAllZonesResponse;
 
 class GetAllZones
 {
@@ -12,9 +11,9 @@ class GetAllZones
         private ZoneRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(int $restaurantId): array
     {
-        $zones = $this->repository->findAll();
+        $zones = $this->repository->findAll($restaurantId);
 
         return array_map(
             fn(Zone $zone) => GetAllZonesResponse::create($zone),

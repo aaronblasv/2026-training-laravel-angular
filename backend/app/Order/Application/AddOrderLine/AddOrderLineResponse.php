@@ -20,12 +20,12 @@ final readonly class AddOrderLineResponse
     public static function create(OrderLine $line): self
     {
         return new self(
-            $line->getUuid()->getValue(),
-            $line->getProductId()->getValue(),
-            $line->getUserId()->getValue(),
-            $line->getQuantity()->getValue(),
-            $line->getPrice(),
-            $line->getTaxPercentage(),
+            $line->uuid()->getValue(),
+            $line->productId()->getValue(),
+            $line->userId()->getValue(),
+            $line->quantity()->getValue(),
+            $line->price(),
+            $line->taxPercentage(),
         );
     }
 }

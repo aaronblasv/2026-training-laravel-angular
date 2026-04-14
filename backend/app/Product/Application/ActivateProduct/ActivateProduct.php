@@ -10,21 +10,22 @@ class ActivateProduct
         private ProductRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $uuid): void
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $product = $this->repository->findById($uuid);
+        $product = $this->repository->findById($uuid, $restaurantId);
 
         if ($product === null) {
             throw new \Exception('Product not found');
         }
 
         $product->dddUpdate(
-            $product->getName(),
-            $product->getPrice(),
-            $product->getStock(),
+            $product->name(),
+            $product->price(),
+            $product->stock(),
             true,
-            $product->getFamilyId(),
-            $product->getTaxId(),
+            $product->familyId(),
+            $product->taxId(),
+            $product->imageSrc(),
         );
 
         $this->repository->save($product);

@@ -18,7 +18,7 @@ class UpdateOrderDinersController
             'diners' => 'required|integer|min:1',
         ]);
 
-        ($this->useCase)($orderUuid, $validated['diners']);
+        ($this->useCase)($orderUuid, $validated['diners'], $request->user()->restaurant_id);
 
         return new JsonResponse(null, 204);
     }

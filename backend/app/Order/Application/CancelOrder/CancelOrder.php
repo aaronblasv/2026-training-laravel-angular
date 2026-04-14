@@ -12,16 +12,16 @@ class CancelOrder
         private OrderRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $orderUuid): void
+    public function __invoke(string $orderUuid, int $restaurantId): void
     {
-        $order = $this->repository->findById($orderUuid);
+        $order = $this->repository->findById($orderUuid, $restaurantId);
         if (!$order) {
             throw new \DomainException('Order not found.');
         }
-        if (!$order->getStatus()->isOpen()) {
+        if (!$order->status()->isOpen()) {
             throw new \DomainException('Cannot cancel an order that is not open.');
         }
 
-        $this->repository->delete($orderUuid);
+        $this->repository->delete($orderUuid, $restaurantId);
     }
 }

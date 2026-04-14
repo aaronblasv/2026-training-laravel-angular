@@ -6,14 +6,15 @@ namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\RemoveOrderLine\RemoveOrderLine;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class RemoveOrderLineController
 {
     public function __construct(private RemoveOrderLine $useCase) {}
 
-    public function __invoke(string $orderUuid, string $lineUuid): JsonResponse
+    public function __invoke(Request $request, string $orderUuid, string $lineUuid): JsonResponse
     {
-        ($this->useCase)($lineUuid);
+        ($this->useCase)($lineUuid, $request->user()->restaurant_id);
 
         return new JsonResponse(null, 204);
     }

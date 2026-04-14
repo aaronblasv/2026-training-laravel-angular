@@ -18,6 +18,7 @@ class User
         private PasswordHash $passwordHash,
         private UserRole $role,
         private int $restaurantId,
+        private ?string $pin,
         private DomainDateTime $createdAt,
         private DomainDateTime $updatedAt,
     ) {}
@@ -33,6 +34,7 @@ class User
             $passwordHash,
             $role,
             $restaurantId,
+            str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT),
             $now,
             $now,
         );
@@ -51,6 +53,7 @@ class User
         string $passwordHash,
         string $role,
         int $restaurantId,
+        ?string $pin,
         \DateTimeImmutable $createdAt,
         \DateTimeImmutable $updatedAt,
     ): self {
@@ -61,17 +64,19 @@ class User
             PasswordHash::create($passwordHash),
             UserRole::create($role),
             $restaurantId,
+            $pin,
             DomainDateTime::create($createdAt),
             DomainDateTime::create($updatedAt),
         );
     }
 
     public function id(): Uuid { return $this->id; }
-    public function name(): string { return $this->name->value(); }
+    public function name(): UserName { return $this->name; }
     public function email(): Email { return $this->email; }
-    public function passwordHash(): string { return $this->passwordHash->value(); }
+    public function passwordHash(): PasswordHash { return $this->passwordHash; }
     public function role(): UserRole { return $this->role; }
     public function restaurantId(): int { return $this->restaurantId; }
     public function createdAt(): DomainDateTime { return $this->createdAt; }
     public function updatedAt(): DomainDateTime { return $this->updatedAt; }
+    public function pin(): ?string { return $this->pin; }
 }

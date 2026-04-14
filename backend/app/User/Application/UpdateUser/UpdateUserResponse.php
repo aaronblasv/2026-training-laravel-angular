@@ -16,7 +16,7 @@ final readonly class UpdateUserResponse
     {
         return new self(
             uuid: $user->id()->getValue(),
-            name: $user->name(),
+            name: $user->name()->getValue(),
             email: $user->email()->getValue(),
         );
     }

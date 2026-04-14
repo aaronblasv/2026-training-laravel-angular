@@ -6,48 +6,55 @@ namespace App\Order\Infrastructure\Persistence\Repositories;
 
 use App\Order\Domain\Entity\OrderLine;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
-use App\Order\Domain\ValueObject\Quantity;
 use App\Order\Infrastructure\Persistence\Models\EloquentOrderLine;
 use App\Order\Infrastructure\Persistence\Models\EloquentOrder;
 use App\Product\Infrastructure\Persistence\Models\EloquentProduct;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
-use App\Shared\Domain\ValueObject\Uuid;
 
 class EloquentOrderLineRepository implements OrderLineRepositoryInterface
 {
+    public function __construct(
+        private EloquentOrderLine $model,
+        private EloquentOrder $orderModel,
+        private EloquentProduct $productModel,
+        private EloquentUser $userModel,
+    ) {}
+
     public function save(OrderLine $line): void
     {
-        $orderId = EloquentOrder::where('uuid', $line->getOrderId()->getValue())->firstOrFail()->id;
-        $productId = EloquentProduct::where('uuid', $line->getProductId()->getValue())->firstOrFail()->id;
-        $userId = EloquentUser::where('uuid', $line->getUserId()->getValue())->firstOrFail()->id;
+        $orderId = $this->orderModel->newQuery()->where('uuid', $line->orderId()->getValue())->firstOrFail()->id;
+        $productId = $this->productModel->newQuery()->where('uuid', $line->productId()->getValue())->firstOrFail()->id;
+        $userId = $this->userModel->newQuery()->where('uuid', $line->userId()->getValue())->firstOrFail()->id;
 
-        EloquentOrderLine::create([
-            'uuid' => $line->getUuid()->getValue(),
-            'restaurant_id' => $line->getRestaurantId(),
-            'order_id' => $orderId,
-            'product_id' => $productId,
-            'user_id' => $userId,
-            'quantity' => $line->getQuantity()->getValue(),
-            'price' => $line->getPrice(),
-            'tax_percentage' => $line->getTaxPercentage(),
+        $this->model->newQuery()->create([
+            'uuid'           => $line->uuid()->getValue(),
+            'restaurant_id'  => $line->restaurantId(),
+            'order_id'       => $orderId,
+            'product_id'     => $productId,
+            'user_id'        => $userId,
+            'quantity'       => $line->quantity()->getValue(),
+            'price'          => $line->price(),
+            'tax_percentage' => $line->taxPercentage(),
         ]);
     }
 
-    public function findById(string $uuid): ?OrderLine
+    public function findById(string $uuid, int $restaurantId): ?OrderLine
     {
-        $model = EloquentOrderLine::where('uuid', $uuid)
-            ->where('restaurant_id', auth()->user()->restaurant_id)
+        $model = $this->model->newQuery()
+            ->where('uuid', $uuid)
+            ->where('restaurant_id', $restaurantId)
             ->first();
 
         return $model ? $this->toDomain($model) : null;
     }
 
-    public function findAllByOrderId(string $orderUuid): array
+    public function findAllByOrderId(string $orderUuid, int $restaurantId): array
     {
-        $orderId = EloquentOrder::where('uuid', $orderUuid)->firstOrFail()->id;
+        $order = $this->orderModel->newQuery()->where('uuid', $orderUuid)->firstOrFail();
 
-        return EloquentOrderLine::where('order_id', $orderId)
-            ->where('restaurant_id', auth()->user()->restaurant_id)
+        return $this->model->newQuery()
+            ->where('order_id', $order->id)
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentOrderLine $model) => $this->toDomain($model))
             ->toArray();
@@ -55,30 +62,34 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
 
     public function update(OrderLine $line): void
     {
-        $model = EloquentOrderLine::where('uuid', $line->getUuid()->getValue())->firstOrFail();
-        $model->update([
-            'quantity' => $line->getQuantity()->getValue(),
-        ]);
+        $this->model->newQuery()
+            ->where('uuid', $line->uuid()->getValue())
+            ->firstOrFail()
+            ->update(['quantity' => $line->quantity()->getValue()]);
     }
 
-    public function delete(string $uuid): void
+    public function delete(string $uuid, int $restaurantId): void
     {
-        EloquentOrderLine::where('uuid', $uuid)->firstOrFail()->delete();
+        $this->model->newQuery()
+            ->where('uuid', $uuid)
+            ->where('restaurant_id', $restaurantId)
+            ->firstOrFail()
+            ->delete();
     }
 
     private function toDomain(EloquentOrderLine $model): OrderLine
     {
-        $orderUuid = EloquentOrder::find($model->order_id)->uuid;
-        $productUuid = EloquentProduct::find($model->product_id)->uuid;
-        $userUuid = EloquentUser::find($model->user_id)->uuid;
+        $orderUuid = $this->orderModel->newQuery()->find($model->order_id)->uuid;
+        $productUuid = $this->productModel->newQuery()->find($model->product_id)->uuid;
+        $userUuid = $this->userModel->newQuery()->find($model->user_id)->uuid;
 
-        return OrderLine::dddRestore(
-            Uuid::create($model->uuid),
+        return OrderLine::fromPersistence(
+            $model->uuid,
             $model->restaurant_id,
-            Uuid::create($orderUuid),
-            Uuid::create($productUuid),
-            Uuid::create($userUuid),
-            Quantity::create($model->quantity),
+            $orderUuid,
+            $productUuid,
+            $userUuid,
+            $model->quantity,
             $model->price,
             $model->tax_percentage,
         );

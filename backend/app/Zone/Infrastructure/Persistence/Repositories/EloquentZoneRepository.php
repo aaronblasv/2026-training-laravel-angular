@@ -4,50 +4,58 @@ namespace App\Zone\Infrastructure\Persistence\Repositories;
 
 use App\Zone\Domain\Entity\Zone;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
-use App\Zone\Domain\ValueObject\ZoneName;
-use App\Shared\Domain\ValueObject\Uuid;
 use App\Zone\Infrastructure\Persistence\Models\EloquentZone;
-
 
 class EloquentZoneRepository implements ZoneRepositoryInterface
 {
+    public function __construct(
+        private EloquentZone $model,
+    ) {}
 
-    public function findAll(): array
+    public function findAll(int $restaurantId): array
     {
-        return EloquentZone::where('restaurant_id', auth()->user()->restaurant_id)
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentZone $zone) => $this->toDomain($zone))
             ->toArray();
     }
 
-    public function toDomain(EloquentZone $zone): Zone
-    {
-        return Zone::dddCreate(
-            Uuid::create($zone->uuid),
-            ZoneName::create($zone->name),
-        );
-    }
-
     public function save(Zone $zone): void
     {
-        EloquentZone::updateOrCreate(
-            ['uuid' => $zone->getUuid()->getValue()],
+        $this->model->newQuery()->updateOrCreate(
+            ['uuid' => $zone->uuid()->getValue()],
             [
-                'name' => $zone->getName()->getValue(),
-                'restaurant_id' => auth()->user()->restaurant_id,
+                'name' => $zone->name()->getValue(),
+                'restaurant_id' => $zone->restaurantId(),
             ]
         );
     }
 
-    public function findById(string $id): ?Zone
+    public function findById(string $uuid, int $restaurantId): ?Zone
     {
-        $zone = EloquentZone::where('uuid', $id)->first();
+        $zone = $this->model->newQuery()
+            ->where('uuid', $uuid)
+            ->where('restaurant_id', $restaurantId)
+            ->first();
 
         return $zone ? $this->toDomain($zone) : null;
     }
 
-    public function delete(string $id): void
+    public function delete(string $id, int $restaurantId): void
     {
-        EloquentZone::where('uuid', $id)->delete();
+        $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->delete();
+    }
+
+    private function toDomain(EloquentZone $zone): Zone
+    {
+        return Zone::fromPersistence(
+            $zone->uuid,
+            $zone->name,
+            $zone->restaurant_id,
+        );
     }
 }

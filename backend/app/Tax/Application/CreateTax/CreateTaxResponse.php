@@ -6,7 +6,6 @@ use App\Tax\Domain\Entity\Tax;
 
 final readonly class CreateTaxResponse
 {
-    
     private function __construct(
         public string $uuid,
         public string $name,
@@ -16,10 +15,9 @@ final readonly class CreateTaxResponse
     public static function create(Tax $tax): self
     {
         return new self(
-            $tax->getUuid()->getValue(),
-            $tax->getName()->getValue(),
-            $tax->getPercentage()->getValue(),
+            $tax->uuid()->getValue(),
+            $tax->name()->getValue(),
+            $tax->percentage()->getValue(),
         );
     }
-
 }

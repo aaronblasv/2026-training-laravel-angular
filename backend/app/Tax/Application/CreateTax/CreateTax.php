@@ -4,7 +4,6 @@ namespace App\Tax\Application\CreateTax;
 
 use App\Tax\Domain\Entity\Tax;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
-use App\Tax\Application\CreateTax\CreateTaxResponse;
 use App\Shared\Domain\ValueObject\Uuid;
 use App\Tax\Domain\ValueObject\TaxName;
 use App\Tax\Domain\ValueObject\TaxPercentage;
@@ -15,12 +14,13 @@ class CreateTax
         private TaxRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $name, int $percentage): CreateTaxResponse
+    public function __invoke(string $name, int $percentage, int $restaurantId): CreateTaxResponse
     {
         $tax = Tax::dddCreate(
             Uuid::generate(),
             TaxName::create($name),
             TaxPercentage::create($percentage),
+            $restaurantId,
         );
 
         $this->repository->save($tax);

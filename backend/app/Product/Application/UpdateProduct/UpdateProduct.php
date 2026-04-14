@@ -2,26 +2,32 @@
 
 namespace App\Product\Application\UpdateProduct;
 
-use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Product\Domain\ValueObject\ProductName;
-use App\Shared\Domain\ValueObject\Uuid;
 use App\Product\Domain\ValueObject\ProductPrice;
 use App\Product\Domain\ValueObject\ProductStock;
+use App\Shared\Domain\ValueObject\Uuid;
 
 class UpdateProduct
 {
-    private ProductRepositoryInterface $repository;
+    public function __construct(
+        private ProductRepositoryInterface $repository,
+    ) {}
 
-    public function __construct(ProductRepositoryInterface $repository) {
-        $this->repository = $repository;
-    }
+    public function __invoke(
+        string $uuid,
+        string $name,
+        int $price,
+        int $stock,
+        bool $active,
+        string $familyId,
+        string $taxId,
+        int $restaurantId,
+        ?string $imageSrc = null,
+    ): UpdateProductResponse {
+        $product = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid, string $name, int $price, int $stock, bool $active, string $familyId, string $taxId): UpdateProductResponse
-    {
-        $product = $this->repository->findById($uuid);
-
-        if (!$product) {
+        if ($product === null) {
             throw new \Exception('Product not found');
         }
 
@@ -30,8 +36,9 @@ class UpdateProduct
             ProductPrice::create($price),
             ProductStock::create($stock),
             $active,
-            $familyId,
-            $taxId,
+            Uuid::create($familyId),
+            Uuid::create($taxId),
+            $imageSrc,
         );
 
         $this->repository->save($product);

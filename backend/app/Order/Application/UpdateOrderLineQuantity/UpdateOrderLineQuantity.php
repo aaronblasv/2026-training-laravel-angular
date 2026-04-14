@@ -13,9 +13,9 @@ class UpdateOrderLineQuantity
         private OrderLineRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $lineUuid, int $quantity): void
+    public function __invoke(string $lineUuid, int $quantity, int $restaurantId): void
     {
-        $line = $this->repository->findById($lineUuid);
+        $line = $this->repository->findById($lineUuid, $restaurantId);
         if (!$line) {
             throw new \DomainException('Order line not found.');
         }

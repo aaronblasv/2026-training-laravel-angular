@@ -3,9 +3,6 @@
 namespace App\Zone\Application\CreateZone;
 
 use App\Zone\Domain\Entity\Zone;
-use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
-use App\Zone\Domain\ValueObject\ZoneName;
-use App\Shared\Domain\ValueObject\Uuid;
 
 final readonly class CreateZoneResponse
 {
@@ -17,8 +14,8 @@ final readonly class CreateZoneResponse
     public static function create(Zone $zone): self
     {
         return new self(
-            $zone->getUuid()->getValue(),
-            $zone->getName()->getValue(),
+            $zone->uuid()->getValue(),
+            $zone->name()->getValue(),
         );
     }
 }

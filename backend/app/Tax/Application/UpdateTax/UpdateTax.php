@@ -2,29 +2,21 @@
 
 namespace App\Tax\Application\UpdateTax;
 
-use App\Tax\Domain\Entity\Tax;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
-use App\Tax\Application\UpdateTax\UpdateTaxResponse;
-use App\Shared\Domain\ValueObject\Uuid;
 use App\Tax\Domain\ValueObject\TaxName;
 use App\Tax\Domain\ValueObject\TaxPercentage;
 
 class UpdateTax
 {
+    public function __construct(
+        private TaxRepositoryInterface $repository,
+    ) {}
 
-    private TaxRepositoryInterface $repository;
-
-    public function __construct(TaxRepositoryInterface $repository)
+    public function __invoke(string $uuid, string $name, int $percentage, int $restaurantId): UpdateTaxResponse
     {
-        $this->repository = $repository;
-    }
+        $tax = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid, string $name, int $percentage): UpdateTaxResponse
-    {
-
-        $tax = $this->repository->findbyId($uuid);
-
-        if(!$tax) {
+        if ($tax === null) {
             throw new \Exception('Tax not found');
         }
 
@@ -36,7 +28,5 @@ class UpdateTax
         $this->repository->save($tax);
 
         return UpdateTaxResponse::create($tax);
-
     }
-
 }

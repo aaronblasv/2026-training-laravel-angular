@@ -14,7 +14,7 @@ class GetAllFamiliesController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $families = ($this->useCase)();
+        $families = ($this->useCase)($request->user()->restaurant_id);
 
         return new JsonResponse($families);
     }

@@ -11,14 +11,30 @@ class Family
         private Uuid $uuid,
         private FamilyName $name,
         private bool $active,
+        private int $restaurantId,
     ) {}
 
     public static function dddCreate(
         Uuid $uuid,
         FamilyName $name,
         bool $active,
-    ) : self {
-        return new self($uuid, $name, $active);
+        int $restaurantId,
+    ): self {
+        return new self($uuid, $name, $active, $restaurantId);
+    }
+
+    public static function fromPersistence(
+        string $uuid,
+        string $name,
+        bool $active,
+        int $restaurantId,
+    ): self {
+        return new self(
+            Uuid::create($uuid),
+            FamilyName::create($name),
+            $active,
+            $restaurantId,
+        );
     }
 
     public function dddUpdate(FamilyName $name, bool $active): void
@@ -27,18 +43,23 @@ class Family
         $this->active = $active;
     }
 
-    public function getUuid(): Uuid
+    public function uuid(): Uuid
     {
         return $this->uuid;
     }
 
-    public function getName(): FamilyName
+    public function name(): FamilyName
     {
         return $this->name;
     }
 
-    public function isActive(): bool
+    public function active(): bool
     {
         return $this->active;
+    }
+
+    public function restaurantId(): int
+    {
+        return $this->restaurantId;
     }
 }

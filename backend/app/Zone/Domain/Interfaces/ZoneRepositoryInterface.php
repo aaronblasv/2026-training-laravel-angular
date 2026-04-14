@@ -7,6 +7,10 @@ use App\Zone\Domain\Entity\Zone;
 interface ZoneRepositoryInterface
 {
     public function save(Zone $zone): void;
-    public function findById(string $uuid): ?Zone;
-    public function delete(string $id): void;
+
+    public function findById(string $uuid, int $restaurantId): ?Zone;
+
+    public function findAll(int $restaurantId): array;
+
+    public function delete(string $id, int $restaurantId): void;
 }

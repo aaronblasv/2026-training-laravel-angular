@@ -14,14 +14,18 @@ class UpdateTableController
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        $name = $request->input('name');
-        $zoneId = $request->input('zone_id');
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'zone_id' => 'required|string',
+            'zone_id' => 'required|uuid',
         ]);
-        $table = ($this->useCase)($uuid, $validated['name'], $validated['zone_id']);
+
+        $table = ($this->useCase)(
+            $uuid,
+            $validated['name'],
+            $validated['zone_id'],
+            $request->user()->restaurant_id,
+        );
+
         return new JsonResponse($table);
     }
 }

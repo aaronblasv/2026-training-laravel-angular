@@ -20,12 +20,12 @@ final readonly class CloseOrderResponse
     public static function create(Order $order, int $total, int $ticketNumber): self
     {
         return new self(
-            $order->getUuid()->getValue(),
-            $order->getStatus()->getValue(),
+            $order->uuid()->getValue(),
+            $order->status()->getValue(),
             $total,
             $ticketNumber,
-            $order->getClosedByUserId()->getValue(),
-            $order->getClosedAt()->format('Y-m-d H:i:s'),
+            $order->closedByUserId()->getValue(),
+            $order->closedAt()->format('Y-m-d H:i:s'),
         );
     }
 }

@@ -9,8 +9,8 @@ use App\Order\Domain\Entity\OrderLine;
 interface OrderLineRepositoryInterface
 {
     public function save(OrderLine $line): void;
-    public function findById(string $uuid): ?OrderLine;
-    public function findAllByOrderId(string $orderUuid): array;
+    public function findById(string $uuid, int $restaurantId): ?OrderLine;
+    public function findAllByOrderId(string $orderUuid, int $restaurantId): array;
     public function update(OrderLine $line): void;
-    public function delete(string $uuid): void;
+    public function delete(string $uuid, int $restaurantId): void;
 }

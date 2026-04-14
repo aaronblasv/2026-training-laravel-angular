@@ -3,30 +3,31 @@
 namespace App\Product\Application\UpdateProduct;
 
 use App\Product\Domain\Entity\Product;
-use App\Product\Domain\Interfaces\ProductRepositoryInterface;
-use App\Product\Domain\ValueObject\ProductName;
-use App\Shared\Domain\ValueObject\Uuid;
-use App\Product\Domain\ValueObject\ProductPrice;
-use App\Product\Domain\ValueObject\ProductStock;
 
 final readonly class UpdateProductResponse
 {
-
     private function __construct(
-        private string $uuid,
-        private string $name,
-        private int $price,
-        private int $stock,
+        public string $uuid,
+        public string $name,
+        public int $price,
+        public int $stock,
+        public bool $active,
+        public string $familyId,
+        public string $taxId,
+        public ?string $imageSrc = null,
     ) {}
 
     public static function create(Product $product): self
     {
         return new self(
-            $product->getUuid()->getValue(),
-            $product->getName()->getValue(),
-            $product->getPrice()->getValue(),
-            $product->getStock()->getValue(),
+            $product->uuid()->getValue(),
+            $product->name()->getValue(),
+            $product->price()->getValue(),
+            $product->stock()->getValue(),
+            $product->active(),
+            $product->familyId()->getValue(),
+            $product->taxId()->getValue(),
+            $product->imageSrc(),
         );
     }
-
 }

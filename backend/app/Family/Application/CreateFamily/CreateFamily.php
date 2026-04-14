@@ -4,7 +4,6 @@ namespace App\Family\Application\CreateFamily;
 
 use App\Family\Domain\Entity\Family;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
-use App\Family\Application\CreateFamily\CreateFamilyResponse;
 use App\Shared\Domain\ValueObject\Uuid;
 use App\Family\Domain\ValueObject\FamilyName;
 
@@ -14,12 +13,13 @@ class CreateFamily
         private FamilyRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $name, bool $active): CreateFamilyResponse
+    public function __invoke(string $name, bool $active, int $restaurantId): CreateFamilyResponse
     {
         $family = Family::dddCreate(
             Uuid::generate(),
             FamilyName::create($name),
             $active,
+            $restaurantId,
         );
 
         $this->repository->save($family);

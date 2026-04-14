@@ -18,7 +18,7 @@ class UpdateOrderLineQuantityController
             'quantity' => 'required|integer|min:1',
         ]);
 
-        ($this->useCase)($lineUuid, $validated['quantity']);
+        ($this->useCase)($lineUuid, $validated['quantity'], $request->user()->restaurant_id);
 
         return new JsonResponse(null, 204);
     }

@@ -12,9 +12,9 @@ class DeleteZoneController
         private DeleteZone $useCase,
     ) {}
 
-    public function __invoke(Request $request,string $uuid): JsonResponse
+    public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        ($this->useCase)($uuid);
+        ($this->useCase)($uuid, $request->user()->restaurant_id);
 
         return new JsonResponse(null, 204);
     }

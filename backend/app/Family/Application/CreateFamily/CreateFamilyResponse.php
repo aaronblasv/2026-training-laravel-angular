@@ -15,9 +15,9 @@ final readonly class CreateFamilyResponse
     public static function create(Family $family): self
     {
         return new self(
-            $family->getUuid()->getValue(),
-            $family->getName()->getValue(),
-            $family->isActive()
+            $family->uuid()->getValue(),
+            $family->name()->getValue(),
+            $family->active(),
         );
     }
 }

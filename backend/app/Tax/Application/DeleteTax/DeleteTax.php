@@ -6,25 +6,18 @@ use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 
 class DeleteTax
 {
+    public function __construct(
+        private TaxRepositoryInterface $repository,
+    ) {}
 
-    private TaxRepositoryInterface $repository;
-
-    public function __construct(TaxRepositoryInterface $repository)
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $this->repository = $repository;
-    }
+        $tax = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid): void
-    {
-
-        $tax = $this->repository->findbyId($uuid);
-
-        if(!$tax) {
+        if ($tax === null) {
             throw new \Exception('Tax not found');
         }
 
-        $this->repository->delete($uuid);
-
+        $this->repository->delete($uuid, $restaurantId);
     }
-
 }

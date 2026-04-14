@@ -6,23 +6,18 @@ use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 
 class DeleteFamily
 {
+    public function __construct(
+        private FamilyRepositoryInterface $repository,
+    ) {}
 
-    private FamilyRepositoryInterface $repository;
-
-    public function __construct(FamilyRepositoryInterface $repository)
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $this->repository = $repository;
-    }
+        $family = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid): void
-    {
-        $family = $this->repository->findbyId($uuid);
-
-        if(!$family) {
+        if ($family === null) {
             throw new \Exception('Family not found');
         }
 
-        $this->repository->delete($uuid);
+        $this->repository->delete($uuid, $restaurantId);
     }
-
 }

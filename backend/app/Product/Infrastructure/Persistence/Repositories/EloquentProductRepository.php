@@ -4,70 +4,87 @@ namespace App\Product\Infrastructure\Persistence\Repositories;
 
 use App\Product\Domain\Entity\Product;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
-use App\Product\Domain\ValueObject\ProductName;
-use App\Shared\Domain\ValueObject\Uuid;
-use App\Product\Domain\ValueObject\ProductPrice;
-use App\Product\Domain\ValueObject\ProductStock;
 use App\Product\Infrastructure\Persistence\Models\EloquentProduct;
 use App\Family\Infrastructure\Persistence\Models\EloquentFamily;
 use App\Tax\Infrastructure\Persistence\Models\EloquentTax;
 
-
 class EloquentProductRepository implements ProductRepositoryInterface
 {
+    public function __construct(
+        private EloquentProduct $model,
+        private EloquentFamily $familyModel,
+        private EloquentTax $taxModel,
+    ) {}
 
-    public function findAll(): array
+    public function findAll(int $restaurantId): array
     {
-        return EloquentProduct::where('restaurant_id', auth()->user()->restaurant_id)
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentProduct $product) => $this->toDomain($product))
             ->toArray();
     }
 
-    private function toDomain(EloquentProduct $product): Product
-    {
-        $family = EloquentFamily::withTrashed()->find($product->family_id);
-        $tax = EloquentTax::withTrashed()->find($product->tax_id);
-
-        return Product::dddCreate(
-            Uuid::create($product->uuid),
-            ProductName::create($product->name),
-            ProductPrice::create($product->price),
-            ProductStock::create($product->stock),
-            (bool) $product->active,
-            $family->uuid,
-            $tax->uuid,
-        );
-    }
-
     public function save(Product $product): void
     {
-        $family = EloquentFamily::withTrashed()->where('uuid', $product->getFamilyId())->first();
-        $tax = EloquentTax::withTrashed()->where('uuid', $product->getTaxId())->first();
+        $family = $this->familyModel->newQuery()
+            ->withTrashed()
+            ->where('uuid', $product->familyId()->getValue())
+            ->firstOrFail();
 
-        EloquentProduct::updateOrCreate(
-            ['uuid' => $product->getUuid()->getValue()],
+        $tax = $this->taxModel->newQuery()
+            ->withTrashed()
+            ->where('uuid', $product->taxId()->getValue())
+            ->firstOrFail();
+
+        $this->model->newQuery()->updateOrCreate(
+            ['uuid' => $product->uuid()->getValue()],
             [
-                'name' => $product->getName()->getValue(),
-                'price' => $product->getPrice()->getValue(),
-                'stock' => $product->getStock()->getValue(),
-                'active' => $product->isActive(),
+                'name' => $product->name()->getValue(),
+                'price' => $product->price()->getValue(),
+                'stock' => $product->stock()->getValue(),
+                'active' => $product->active(),
                 'family_id' => $family->id,
                 'tax_id' => $tax->id,
-                'restaurant_id' => auth()->user()->restaurant_id,
+                'restaurant_id' => $product->restaurantId(),
+                'image_src' => $product->imageSrc(),
             ]
         );
     }
 
-    public function findById(string $id): ?Product
+    public function findById(string $uuid, int $restaurantId): ?Product
     {
-        $product = EloquentProduct::where('uuid', $id)->first();
+        $product = $this->model->newQuery()
+            ->where('uuid', $uuid)
+            ->where('restaurant_id', $restaurantId)
+            ->first();
 
         return $product ? $this->toDomain($product) : null;
     }
 
-    public function delete(string $id): void
+    public function delete(string $id, int $restaurantId): void
     {
-        EloquentProduct::where('uuid', $id)->delete();
+        $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->delete();
+    }
+
+    private function toDomain(EloquentProduct $product): Product
+    {
+        $family = $this->familyModel->newQuery()->withTrashed()->find($product->family_id);
+        $tax = $this->taxModel->newQuery()->withTrashed()->find($product->tax_id);
+
+        return Product::fromPersistence(
+            $product->uuid,
+            $product->name,
+            $product->price,
+            $product->stock,
+            (bool) $product->active,
+            $family->uuid,
+            $tax->uuid,
+            $product->restaurant_id,
+            $product->image_src,
+        );
     }
 }

@@ -20,12 +20,12 @@ final readonly class OpenOrderResponse
     public static function create(Order $order): self
     {
         return new self(
-            $order->getUuid()->getValue(),
-            $order->getStatus()->getValue(),
-            $order->getTableId()->getValue(),
-            $order->getOpenedByUserId()->getValue(),
-            $order->getDiners()->getValue(),
-            $order->getOpenedAt()->format('Y-m-d H:i:s'),
+            $order->uuid()->getValue(),
+            $order->status()->getValue(),
+            $order->tableId()->getValue(),
+            $order->openedByUserId()->getValue(),
+            $order->diners()->getValue(),
+            $order->openedAt()->format('Y-m-d H:i:s'),
         );
     }
 }

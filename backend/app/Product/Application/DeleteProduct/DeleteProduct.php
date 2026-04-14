@@ -6,24 +6,18 @@ use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 
 class DeleteProduct
 {
+    public function __construct(
+        private ProductRepositoryInterface $repository,
+    ) {}
 
-    private ProductRepositoryInterface $repository;
-
-    public function __construct(ProductRepositoryInterface $repository) 
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $this->repository = $repository;
-    }
+        $product = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid): void 
-    {
-        
-        $product = $this->repository->findById($uuid);
-
-        if(!$product) {
+        if ($product === null) {
             throw new \Exception('Product not found');
         }
 
-        $this->repository->delete($uuid);
-        
+        $this->repository->delete($uuid, $restaurantId);
     }
 }

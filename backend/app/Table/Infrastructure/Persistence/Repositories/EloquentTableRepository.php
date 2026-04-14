@@ -2,57 +2,70 @@
 
 namespace App\Table\Infrastructure\Persistence\Repositories;
 
-use App\Table\Domain\Interfaces\TableRepositoryInterface;
 use App\Table\Domain\Entity\Table;
-use App\Shared\Domain\ValueObject\Uuid;
-use App\Table\Domain\ValueObject\TableName;
+use App\Table\Domain\Interfaces\TableRepositoryInterface;
 use App\Table\Infrastructure\Persistence\Models\EloquentTable;
 use App\Zone\Infrastructure\Persistence\Models\EloquentZone;
 
 class EloquentTableRepository implements TableRepositoryInterface
 {
-    public function findAll(): array
+    public function __construct(
+        private EloquentTable $model,
+        private EloquentZone $zoneModel,
+    ) {}
+
+    public function findAll(int $restaurantId): array
     {
-        return EloquentTable::where('restaurant_id', auth()->user()->restaurant_id)
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentTable $table) => $this->toDomain($table))
             ->toArray();
     }
 
-    private function toDomain(EloquentTable $table): Table
-    {
-        $zone = EloquentZone::find($table->zone_id);
-
-        return Table::dddCreate(
-            Uuid::create($table->uuid),
-            TableName::create($table->name),
-            $zone->uuid,
-        );
-    }
-
     public function save(Table $table): void
     {
-        $zone = EloquentZone::where('uuid', $table->getZoneId())->first();
+        $zone = $this->zoneModel->newQuery()
+            ->where('uuid', $table->zoneId()->getValue())
+            ->firstOrFail();
 
-        EloquentTable::updateOrCreate(
-            ['uuid' => $table->getUuid()->getValue()],
+        $this->model->newQuery()->updateOrCreate(
+            ['uuid' => $table->uuid()->getValue()],
             [
-                'name' => $table->getName()->getValue(),
+                'name' => $table->name()->getValue(),
                 'zone_id' => $zone->id,
-                'restaurant_id' => auth()->user()->restaurant_id,
+                'restaurant_id' => $table->restaurantId(),
             ]
         );
     }
 
-    public function findById(string $id): ?Table
+    public function findById(string $id, int $restaurantId): ?Table
     {
-        $table = EloquentTable::where('uuid', $id)->first();
+        $table = $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->first();
 
         return $table ? $this->toDomain($table) : null;
     }
 
-    public function delete(string $id): void
+    public function delete(string $id, int $restaurantId): void
     {
-        EloquentTable::where('uuid', $id)->delete();
+        $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->delete();
+    }
+
+    private function toDomain(EloquentTable $table): Table
+    {
+        $zone = $this->zoneModel->newQuery()->find($table->zone_id);
+
+        return Table::fromPersistence(
+            $table->uuid,
+            $table->name,
+            $zone->uuid,
+            $table->restaurant_id,
+        );
     }
 }

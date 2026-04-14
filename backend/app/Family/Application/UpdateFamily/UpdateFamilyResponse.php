@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Family\Application\UpdateFamily;
 
 use App\Family\Domain\Entity\Family;
@@ -14,9 +15,9 @@ final readonly class UpdateFamilyResponse
     public static function create(Family $family): self
     {
         return new self(
-            $family->getUuid()->getValue(),
-            $family->getName()->getValue(),
-            $family->isActive()
+            $family->uuid()->getValue(),
+            $family->name()->getValue(),
+            $family->active(),
         );
     }
 }

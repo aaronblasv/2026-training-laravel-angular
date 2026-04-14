@@ -22,19 +22,19 @@ final readonly class GetOrderByTableResponse
     public static function create(Order $order, array $lines): self
     {
         return new self(
-            $order->getUuid()->getValue(),
-            $order->getStatus()->getValue(),
-            $order->getTableId()->getValue(),
-            $order->getOpenedByUserId()->getValue(),
-            $order->getDiners()->getValue(),
-            $order->getOpenedAt()->format('Y-m-d H:i:s'),
+            $order->uuid()->getValue(),
+            $order->status()->getValue(),
+            $order->tableId()->getValue(),
+            $order->openedByUserId()->getValue(),
+            $order->diners()->getValue(),
+            $order->openedAt()->format('Y-m-d H:i:s'),
             array_map(fn(OrderLine $line) => [
-                'uuid' => $line->getUuid()->getValue(),
-                'productId' => $line->getProductId()->getValue(),
-                'userId' => $line->getUserId()->getValue(),
-                'quantity' => $line->getQuantity()->getValue(),
-                'price' => $line->getPrice(),
-                'taxPercentage' => $line->getTaxPercentage(),
+                'uuid'          => $line->uuid()->getValue(),
+                'productId'     => $line->productId()->getValue(),
+                'userId'        => $line->userId()->getValue(),
+                'quantity'      => $line->quantity()->getValue(),
+                'price'         => $line->price(),
+                'taxPercentage' => $line->taxPercentage(),
             ], $lines),
         );
     }

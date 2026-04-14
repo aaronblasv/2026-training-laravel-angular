@@ -26,11 +26,11 @@ class AddOrderLine
         int $price,
         int $taxPercentage,
     ): AddOrderLineResponse {
-        $order = $this->orderRepository->findById($orderUuid);
+        $order = $this->orderRepository->findById($orderUuid, $restaurantId);
         if (!$order) {
             throw new \DomainException('Order not found.');
         }
-        if (!$order->getStatus()->isOpen()) {
+        if (!$order->status()->isOpen()) {
             throw new \DomainException('Cannot add lines to a closed order.');
         }
 

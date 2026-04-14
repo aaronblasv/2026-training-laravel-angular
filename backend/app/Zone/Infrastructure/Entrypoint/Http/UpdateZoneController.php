@@ -14,12 +14,12 @@ class UpdateZoneController
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        $name = $request->input('name');
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
-        $zone = ($this->useCase)($uuid, $validated['name']);
+
+        $zone = ($this->useCase)($uuid, $validated['name'], $request->user()->restaurant_id);
+
         return new JsonResponse($zone);
     }
 }

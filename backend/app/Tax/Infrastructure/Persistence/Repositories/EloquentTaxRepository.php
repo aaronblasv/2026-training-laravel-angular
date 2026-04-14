@@ -5,50 +5,59 @@ namespace App\Tax\Infrastructure\Persistence\Repositories;
 use App\Tax\Domain\Entity\Tax;
 use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 use App\Tax\Infrastructure\Persistence\Models\EloquentTax;
-use App\Shared\Domain\ValueObject\Uuid;
-use App\Tax\Domain\ValueObject\TaxName;
-use App\Tax\Domain\ValueObject\TaxPercentage;
 
 class EloquentTaxRepository implements TaxRepositoryInterface
 {
-    public function findAll(): array
+    public function __construct(
+        private EloquentTax $model,
+    ) {}
+
+    public function findAll(int $restaurantId): array
     {
-        return EloquentTax::where('restaurant_id', auth()->user()->restaurant_id)
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentTax $tax) => $this->toDomain($tax))
             ->toArray();
     }
 
-    private function toDomain(EloquentTax $tax): Tax
-    {
-        return Tax::dddCreate(
-            Uuid::create($tax->uuid),
-            TaxName::create($tax->name),
-            TaxPercentage::create($tax->percentage),
-        );
-    }
-
     public function save(Tax $tax): void
     {
-        EloquentTax::updateOrCreate(
-            ['uuid' => $tax->getUuid()->getValue()],
+        $this->model->newQuery()->updateOrCreate(
+            ['uuid' => $tax->uuid()->getValue()],
             [
-                'name' => $tax->getName()->getValue(),
-                'percentage' => $tax->getPercentage()->getValue(),
-                'restaurant_id' => auth()->user()?->restaurant_id,
+                'name' => $tax->name()->getValue(),
+                'percentage' => $tax->percentage()->getValue(),
+                'restaurant_id' => $tax->restaurantId(),
             ]
         );
     }
 
-    public function findById(string $id): ?Tax
+    public function findById(string $id, int $restaurantId): ?Tax
     {
-        $tax = EloquentTax::where('uuid', $id)->first();
+        $tax = $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->first();
 
         return $tax ? $this->toDomain($tax) : null;
     }
 
-    public function delete(string $id): void
+    public function delete(string $id, int $restaurantId): void
     {
-        EloquentTax::where('uuid', $id)->delete();
+        $this->model->newQuery()
+            ->where('uuid', $id)
+            ->where('restaurant_id', $restaurantId)
+            ->delete();
+    }
+
+    private function toDomain(EloquentTax $tax): Tax
+    {
+        return Tax::fromPersistence(
+            $tax->uuid,
+            $tax->name,
+            $tax->percentage,
+            $tax->restaurant_id,
+        );
     }
 }

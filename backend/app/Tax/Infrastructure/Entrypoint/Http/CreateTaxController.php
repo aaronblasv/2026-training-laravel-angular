@@ -19,7 +19,11 @@ class CreateTaxController
             'percentage' => 'required|numeric|min:0|max:100',
         ]);
 
-        $tax = ($this->useCase)($validated['name'], $validated['percentage']);
+        $tax = ($this->useCase)(
+            $validated['name'],
+            $validated['percentage'],
+            $request->user()->restaurant_id,
+        );
 
         return new JsonResponse($tax, 201);
     }

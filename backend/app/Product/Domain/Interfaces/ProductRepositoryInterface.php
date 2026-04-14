@@ -7,6 +7,10 @@ use App\Product\Domain\Entity\Product;
 interface ProductRepositoryInterface
 {
     public function save(Product $product): void;
-    public function findById(string $uuid): ?Product;
-    public function delete(string $id): void;
+
+    public function findById(string $uuid, int $restaurantId): ?Product;
+
+    public function findAll(int $restaurantId): array;
+
+    public function delete(string $id, int $restaurantId): void;
 }

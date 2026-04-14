@@ -13,13 +13,13 @@ class UpdateOrderDiners
         private OrderRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $orderUuid, int $diners): void
+    public function __invoke(string $orderUuid, int $diners, int $restaurantId): void
     {
-        $order = $this->repository->findById($orderUuid);
+        $order = $this->repository->findById($orderUuid, $restaurantId);
         if (!$order) {
             throw new \DomainException('Order not found.');
         }
-        if (!$order->getStatus()->isOpen()) {
+        if (!$order->status()->isOpen()) {
             throw new \DomainException('Cannot update diners on a closed order.');
         }
 

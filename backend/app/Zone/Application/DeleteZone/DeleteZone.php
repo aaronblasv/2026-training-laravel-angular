@@ -6,24 +6,18 @@ use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 
 class DeleteZone
 {
+    public function __construct(
+        private ZoneRepositoryInterface $repository,
+    ) {}
 
-    private ZoneRepositoryInterface $repository;
-
-    public function __construct(ZoneRepositoryInterface $repository) 
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $this->repository = $repository;
-    }
+        $zone = $this->repository->findById($uuid, $restaurantId);
 
-    public function __invoke(string $uuid): void 
-    {
-        
-        $zone = $this->repository->findById($uuid);
-
-        if(!$zone) {
+        if ($zone === null) {
             throw new \Exception('Zone not found');
         }
 
-        $this->repository->delete($uuid);
-        
+        $this->repository->delete($uuid, $restaurantId);
     }
 }

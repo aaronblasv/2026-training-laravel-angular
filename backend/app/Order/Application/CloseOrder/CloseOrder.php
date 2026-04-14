@@ -19,35 +19,36 @@ class CloseOrder
         private SaleRepositoryInterface $saleRepository,
     ) {}
 
-    public function __invoke(string $orderUuid, string $closedByUserUuid): CloseOrderResponse
+    public function __invoke(string $orderUuid, string $closedByUserUuid, int $restaurantId): CloseOrderResponse
     {
-        $order = $this->orderRepository->findById($orderUuid);
+        $order = $this->orderRepository->findById($orderUuid, $restaurantId);
         if (!$order) {
             throw new \DomainException('Order not found.');
         }
 
-        $lines = $this->lineRepository->findAllByOrderId($orderUuid);
+        $lines = $this->lineRepository->findAllByOrderId($orderUuid, $restaurantId);
         if (empty($lines)) {
             throw new \DomainException('Cannot close an order with no lines.');
         }
 
         $total = 0;
         foreach ($lines as $line) {
-            $lineSubtotal = $line->getPrice() * $line->getQuantity()->getValue();
-            $lineTotal = $lineSubtotal + (int) round($lineSubtotal * $line->getTaxPercentage() / 100);
+            $lineSubtotal = $line->price() * $line->quantity()->getValue();
+            $lineTotal = $lineSubtotal + (int) round($lineSubtotal * $line->taxPercentage() / 100);
             $total += $lineTotal;
         }
 
         $order->close(Uuid::create($closedByUserUuid));
+
         $this->orderRepository->update($order);
 
-        $ticketNumber = $this->saleRepository->getNextTicketNumber($order->getRestaurantId());
+        $ticketNumber = $this->saleRepository->getNextTicketNumber($order->restaurantId());
         $saleUuid = Uuid::generate();
 
         $sale = Sale::dddCreate(
             $saleUuid,
-            $order->getRestaurantId(),
-            $order->getUuid(),
+            $order->restaurantId(),
+            $order->uuid(),
             Uuid::create($closedByUserUuid),
             $ticketNumber,
             $total,
@@ -57,13 +58,13 @@ class CloseOrder
         foreach ($lines as $line) {
             $saleLine = SaleLine::dddCreate(
                 Uuid::generate(),
-                $order->getRestaurantId(),
+                $order->restaurantId(),
                 $saleUuid,
-                $line->getUuid(),
-                $line->getUserId(),
-                $line->getQuantity()->getValue(),
-                $line->getPrice(),
-                $line->getTaxPercentage(),
+                $line->uuid(),
+                $line->userId(),
+                $line->quantity()->getValue(),
+                $line->price(),
+                $line->taxPercentage(),
             );
             $this->saleRepository->saveLine($saleLine);
         }

@@ -9,16 +9,16 @@ use App\Shared\Domain\ValueObject\Uuid;
 
 class CreateZone
 {
-
     public function __construct(
         private ZoneRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $name): CreateZoneResponse
+    public function __invoke(string $name, int $restaurantId): CreateZoneResponse
     {
         $zone = Zone::dddCreate(
             Uuid::generate(),
             ZoneName::create($name),
+            $restaurantId,
         );
 
         $this->repository->save($zone);

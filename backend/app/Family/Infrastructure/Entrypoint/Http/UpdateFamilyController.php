@@ -14,7 +14,17 @@ class UpdateFamilyController
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        $family = ($this->useCase)($uuid, $request->input('name'), $request->input('active'));
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'active' => 'required|boolean',
+        ]);
+
+        $family = ($this->useCase)(
+            $uuid,
+            $validated['name'],
+            $validated['active'],
+            $request->user()->restaurant_id,
+        );
 
         return new JsonResponse($family);
     }

@@ -2,20 +2,19 @@
 
 namespace App\Family\Infrastructure\Entrypoint\Http;
 
+use App\Family\Application\DeleteFamily\DeleteFamily;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use App\Family\Application\DeleteFamily\DeleteFamily;
 
 class DeleteFamilyController
 {
     public function __construct(
-        private DeleteFamily $deleteFamily,
-    ) {
-    }
+        private DeleteFamily $useCase,
+    ) {}
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        $this->deleteFamily->__invoke($uuid);
+        ($this->useCase)($uuid, $request->user()->restaurant_id);
 
         return new JsonResponse(null, 204);
     }

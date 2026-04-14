@@ -21,7 +21,7 @@ class OpenOrder
         string $openedByUserUuid,
         int $diners,
     ): OpenOrderResponse {
-        $existing = $this->repository->findOpenByTableId($tableUuid);
+        $existing = $this->repository->findOpenByTableId($tableUuid, $restaurantId);
         if ($existing) {
             throw new \DomainException('This table already has an open order.');
         }

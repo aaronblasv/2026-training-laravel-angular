@@ -15,43 +15,52 @@ use App\User\Infrastructure\Persistence\Models\EloquentUser;
 
 class EloquentSaleRepository implements SaleRepositoryInterface
 {
+    public function __construct(
+        private EloquentSale $model,
+        private EloquentSaleLine $saleLineModel,
+        private EloquentOrder $orderModel,
+        private EloquentOrderLine $orderLineModel,
+        private EloquentUser $userModel,
+    ) {}
+
     public function save(Sale $sale): void
     {
-        $orderId = EloquentOrder::where('uuid', $sale->getOrderId()->getValue())->firstOrFail()->id;
-        $userId = EloquentUser::where('uuid', $sale->getUserId()->getValue())->firstOrFail()->id;
+        $orderId = $this->orderModel->newQuery()->where('uuid', $sale->orderId()->getValue())->firstOrFail()->id;
+        $userId = $this->userModel->newQuery()->where('uuid', $sale->userId()->getValue())->firstOrFail()->id;
 
-        EloquentSale::create([
-            'uuid' => $sale->getUuid()->getValue(),
-            'restaurant_id' => $sale->getRestaurantId(),
-            'order_id' => $orderId,
-            'user_id' => $userId,
-            'ticket_number' => $sale->getTicketNumber(),
-            'value_date' => $sale->getValueDate()->format('Y-m-d H:i:s'),
-            'total' => $sale->getTotal(),
+        $this->model->newQuery()->create([
+            'uuid'          => $sale->uuid()->getValue(),
+            'restaurant_id' => $sale->restaurantId(),
+            'order_id'      => $orderId,
+            'user_id'       => $userId,
+            'ticket_number' => $sale->ticketNumber(),
+            'value_date'    => $sale->valueDate()->format('Y-m-d H:i:s'),
+            'total'         => $sale->total(),
         ]);
     }
 
     public function saveLine(SaleLine $line): void
     {
-        $saleId = EloquentSale::where('uuid', $line->getSaleId()->getValue())->firstOrFail()->id;
-        $orderLineId = EloquentOrderLine::where('uuid', $line->getOrderLineId()->getValue())->firstOrFail()->id;
-        $userId = EloquentUser::where('uuid', $line->getUserId()->getValue())->firstOrFail()->id;
+        $saleId = $this->model->newQuery()->where('uuid', $line->saleId()->getValue())->firstOrFail()->id;
+        $orderLineId = $this->orderLineModel->newQuery()->where('uuid', $line->orderLineId()->getValue())->firstOrFail()->id;
+        $userId = $this->userModel->newQuery()->where('uuid', $line->userId()->getValue())->firstOrFail()->id;
 
-        EloquentSaleLine::create([
-            'uuid' => $line->getUuid()->getValue(),
-            'restaurant_id' => $line->getRestaurantId(),
-            'sale_id' => $saleId,
-            'order_line_id' => $orderLineId,
-            'user_id' => $userId,
-            'quantity' => $line->getQuantity(),
-            'price' => $line->getPrice(),
-            'tax_percentage' => $line->getTaxPercentage(),
+        $this->saleLineModel->newQuery()->create([
+            'uuid'           => $line->uuid()->getValue(),
+            'restaurant_id'  => $line->restaurantId(),
+            'sale_id'        => $saleId,
+            'order_line_id'  => $orderLineId,
+            'user_id'        => $userId,
+            'quantity'       => $line->quantity(),
+            'price'          => $line->price(),
+            'tax_percentage' => $line->taxPercentage(),
         ]);
     }
 
     public function getNextTicketNumber(int $restaurantId): int
     {
-        $last = EloquentSale::where('restaurant_id', $restaurantId)
+        $last = $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->max('ticket_number');
 
         return ($last ?? 0) + 1;

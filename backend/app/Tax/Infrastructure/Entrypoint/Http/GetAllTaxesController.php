@@ -14,7 +14,7 @@ class GetAllTaxesController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $taxes = ($this->useCase)();
+        $taxes = ($this->useCase)($request->user()->restaurant_id);
 
         return new JsonResponse($taxes);
     }

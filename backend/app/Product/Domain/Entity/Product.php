@@ -9,15 +9,16 @@ use App\Product\Domain\ValueObject\ProductStock;
 
 class Product
 {
-
     private function __construct(
         private Uuid $uuid,
         private ProductName $name,
         private ProductPrice $price,
         private ProductStock $stock,
         private bool $active,
-        private string $familyId,
-        private string $taxId,
+        private Uuid $familyId,
+        private Uuid $taxId,
+        private int $restaurantId,
+        private ?string $imageSrc = null,
     ) {}
 
     public static function dddCreate(
@@ -26,20 +27,46 @@ class Product
         ProductPrice $price,
         ProductStock $stock,
         bool $active,
+        Uuid $familyId,
+        Uuid $taxId,
+        int $restaurantId,
+        ?string $imageSrc = null,
+    ): self {
+        return new self($uuid, $name, $price, $stock, $active, $familyId, $taxId, $restaurantId, $imageSrc);
+    }
+
+    public static function fromPersistence(
+        string $uuid,
+        string $name,
+        int $price,
+        int $stock,
+        bool $active,
         string $familyId,
         string $taxId,
+        int $restaurantId,
+        ?string $imageSrc = null,
     ): self {
-        return new self($uuid, $name, $price, $stock, $active, $familyId, $taxId);
+        return new self(
+            Uuid::create($uuid),
+            ProductName::create($name),
+            ProductPrice::create($price),
+            ProductStock::create($stock),
+            $active,
+            Uuid::create($familyId),
+            Uuid::create($taxId),
+            $restaurantId,
+            $imageSrc,
+        );
     }
-    
+
     public function dddUpdate(
         ProductName $name,
         ProductPrice $price,
         ProductStock $stock,
         bool $active,
-        string $familyId,
-        string $taxId,
-
+        Uuid $familyId,
+        Uuid $taxId,
+        ?string $imageSrc = null,
     ): void {
         $this->name = $name;
         $this->price = $price;
@@ -47,40 +74,16 @@ class Product
         $this->active = $active;
         $this->familyId = $familyId;
         $this->taxId = $taxId;
-    }
-    
-    public function getUuid(): Uuid
-    {
-        return $this->uuid;
+        $this->imageSrc = $imageSrc;
     }
 
-    public function getName(): ProductName
-    {
-        return $this->name;
-    }
-
-    public function getPrice(): ProductPrice
-    {
-        return $this->price;
-    }
-
-    public function getStock(): ProductStock
-    {
-        return $this->stock;
-    }
-
-    public function isActive(): bool
-    {
-        return $this->active;
-    }
-
-    public function getFamilyId(): string
-    {
-        return $this->familyId;
-    }
-
-    public function getTaxId(): string
-    {
-        return $this->taxId;
-    }
+    public function uuid(): Uuid { return $this->uuid; }
+    public function name(): ProductName { return $this->name; }
+    public function price(): ProductPrice { return $this->price; }
+    public function stock(): ProductStock { return $this->stock; }
+    public function active(): bool { return $this->active; }
+    public function familyId(): Uuid { return $this->familyId; }
+    public function taxId(): Uuid { return $this->taxId; }
+    public function restaurantId(): int { return $this->restaurantId; }
+    public function imageSrc(): ?string { return $this->imageSrc; }
 }

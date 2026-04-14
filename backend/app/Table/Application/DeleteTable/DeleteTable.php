@@ -3,10 +3,6 @@
 namespace App\Table\Application\DeleteTable;
 
 use App\Table\Domain\Interfaces\TableRepositoryInterface;
-use App\Table\Domain\Entity\Table;
-use App\Table\Domain\ValueObject\TableName;
-use App\Shared\Domain\ValueObject\Uuid;
-use App\Table\Application\DeleteTable\DeleteTableResponse;
 
 class DeleteTable
 {
@@ -14,14 +10,14 @@ class DeleteTable
         private TableRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $uuid): void
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $table = $this->repository->findById($uuid);
+        $table = $this->repository->findById($uuid, $restaurantId);
 
-        if (!$table) {
+        if ($table === null) {
             throw new \Exception('Table not found');
         }
 
-        $this->repository->delete($uuid);
+        $this->repository->delete($uuid, $restaurantId);
     }
 }

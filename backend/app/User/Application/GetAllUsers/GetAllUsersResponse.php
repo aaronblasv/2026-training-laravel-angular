@@ -19,7 +19,7 @@ final readonly class GetAllUsersResponse
     {
         return new self(
             id: $user->id()->getValue(),
-            name: $user->name(),
+            name: $user->name()->getValue(),
             email: $user->email()->getValue(),
             role: $user->role()->getValue(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),

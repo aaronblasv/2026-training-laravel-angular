@@ -10,15 +10,15 @@ class ActivateFamily
         private FamilyRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $uuid): void
+    public function __invoke(string $uuid, int $restaurantId): void
     {
-        $family = $this->repository->findById($uuid);
+        $family = $this->repository->findById($uuid, $restaurantId);
 
         if ($family === null) {
             throw new \Exception('Family not found');
         }
 
-        $family->dddUpdate($family->getName(), true);
+        $family->dddUpdate($family->name(), true);
 
         $this->repository->save($family);
     }

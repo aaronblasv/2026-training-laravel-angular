@@ -3,10 +3,8 @@
 namespace App\Table\Application\UpdateTable;
 
 use App\Table\Domain\Interfaces\TableRepositoryInterface;
-use App\Table\Domain\Entity\Table;
 use App\Table\Domain\ValueObject\TableName;
 use App\Shared\Domain\ValueObject\Uuid;
-use App\Table\Application\UpdateTable\UpdateTableResponse;
 
 class UpdateTable
 {
@@ -14,15 +12,15 @@ class UpdateTable
         private TableRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $uuid, string $name): UpdateTableResponse
+    public function __invoke(string $uuid, string $name, string $zoneId, int $restaurantId): UpdateTableResponse
     {
-        $table = $this->repository->findById($uuid);
+        $table = $this->repository->findById($uuid, $restaurantId);
 
-        if (!$table) {
+        if ($table === null) {
             throw new \Exception('Table not found');
         }
 
-        $table->dddUpdate(TableName::create($name), $table->getZoneId());
+        $table->dddUpdate(TableName::create($name), Uuid::create($zoneId));
 
         $this->repository->save($table);
 

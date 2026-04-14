@@ -5,40 +5,61 @@ namespace App\Table\Domain\Entity;
 use App\Shared\Domain\ValueObject\Uuid;
 use App\Table\Domain\ValueObject\TableName;
 
-class Table 
+class Table
 {
     private function __construct(
         private Uuid $uuid,
         private TableName $name,
-        private string $zoneId,
+        private Uuid $zoneId,
+        private int $restaurantId,
     ) {}
 
     public static function dddCreate(
         Uuid $uuid,
         TableName $name,
-        string $zoneId,
+        Uuid $zoneId,
+        int $restaurantId,
     ): self {
-        return new self($uuid, $name, $zoneId);
+        return new self($uuid, $name, $zoneId, $restaurantId);
     }
 
-    public function dddUpdate(TableName $name, string $zoneId): void
+    public static function fromPersistence(
+        string $uuid,
+        string $name,
+        string $zoneId,
+        int $restaurantId,
+    ): self {
+        return new self(
+            Uuid::create($uuid),
+            TableName::create($name),
+            Uuid::create($zoneId),
+            $restaurantId,
+        );
+    }
+
+    public function dddUpdate(TableName $name, Uuid $zoneId): void
     {
         $this->name = $name;
         $this->zoneId = $zoneId;
     }
 
-    public function getUuid(): Uuid
+    public function uuid(): Uuid
     {
         return $this->uuid;
     }
 
-    public function getName(): TableName
+    public function name(): TableName
     {
         return $this->name;
     }
 
-    public function getZoneId(): string
+    public function zoneId(): Uuid
     {
         return $this->zoneId;
+    }
+
+    public function restaurantId(): int
+    {
+        return $this->restaurantId;
     }
 }

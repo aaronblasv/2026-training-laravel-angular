@@ -2,8 +2,8 @@
 
 namespace App\Product\Application\GetAllProducts;
 
-use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Product\Domain\Entity\Product;
+use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 
 class GetAllProducts
 {
@@ -11,13 +11,13 @@ class GetAllProducts
         private ProductRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(int $restaurantId): array
     {
-        $product = $this->repository->findAll();
+        $products = $this->repository->findAll($restaurantId);
 
         return array_map(
             fn(Product $product) => GetAllProductsResponse::create($product),
-            $product
+            $products
         );
     }
 }

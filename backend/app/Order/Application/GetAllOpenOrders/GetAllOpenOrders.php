@@ -12,8 +12,10 @@ class GetAllOpenOrders
         private OrderRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(int $restaurantId): array
     {
-        return $this->repository->findAllOpen();
+        $orders = $this->repository->findAllOpen($restaurantId);
+
+        return array_map(fn($order) => GetAllOpenOrdersResponse::create($order), $orders);
     }
 }

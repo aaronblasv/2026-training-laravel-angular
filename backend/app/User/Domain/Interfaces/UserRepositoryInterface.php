@@ -15,4 +15,6 @@ interface UserRepositoryInterface
     public function findAll(): array;
 
     public function delete(User $user): void;
+
+    public function findByPin(string $pin): ?User;
 }

@@ -14,12 +14,12 @@ class CreateZoneController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $name = $request->input('name');
-        
         $validated = $request->validate([
             'name' => 'required|string|max:255',
         ]);
-        $zone = ($this->useCase)($validated['name']);
+
+        $zone = ($this->useCase)($validated['name'], $request->user()->restaurant_id);
+
         return new JsonResponse($zone, 201);
     }
 }

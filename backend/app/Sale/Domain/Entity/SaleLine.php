@@ -32,12 +32,34 @@ class SaleLine
         return new self($uuid, $restaurantId, $saleId, $orderLineId, $userId, $quantity, $price, $taxPercentage);
     }
 
-    public function getUuid(): Uuid { return $this->uuid; }
-    public function getRestaurantId(): int { return $this->restaurantId; }
-    public function getSaleId(): Uuid { return $this->saleId; }
-    public function getOrderLineId(): Uuid { return $this->orderLineId; }
-    public function getUserId(): Uuid { return $this->userId; }
-    public function getQuantity(): int { return $this->quantity; }
-    public function getPrice(): int { return $this->price; }
-    public function getTaxPercentage(): int { return $this->taxPercentage; }
+    public static function fromPersistence(
+        string $uuid,
+        int $restaurantId,
+        string $saleId,
+        string $orderLineId,
+        string $userId,
+        int $quantity,
+        int $price,
+        int $taxPercentage,
+    ): self {
+        return new self(
+            Uuid::create($uuid),
+            $restaurantId,
+            Uuid::create($saleId),
+            Uuid::create($orderLineId),
+            Uuid::create($userId),
+            $quantity,
+            $price,
+            $taxPercentage,
+        );
+    }
+
+    public function uuid(): Uuid { return $this->uuid; }
+    public function restaurantId(): int { return $this->restaurantId; }
+    public function saleId(): Uuid { return $this->saleId; }
+    public function orderLineId(): Uuid { return $this->orderLineId; }
+    public function userId(): Uuid { return $this->userId; }
+    public function quantity(): int { return $this->quantity; }
+    public function price(): int { return $this->price; }
+    public function taxPercentage(): int { return $this->taxPercentage; }
 }
