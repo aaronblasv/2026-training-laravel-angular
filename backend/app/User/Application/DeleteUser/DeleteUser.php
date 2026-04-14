@@ -11,12 +11,12 @@ class DeleteUser
         private UserRepositoryInterface $userRepository,
     ) {}
 
-    public function __invoke(string $uuid): void
+    public function __invoke(string $uuid, int $restaurantId): void
     {
         $user = $this->userRepository->findById($uuid);
 
-        if($user === null) {
-            throw new \Exception('User not found');
+        if ($user === null || $user->restaurantId() !== $restaurantId) {
+            throw new \DomainException('User not found');
         }
 
         $this->userRepository->delete($user);

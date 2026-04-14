@@ -15,6 +15,10 @@ export class FamilyService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  getAllTpv(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/tpv/families`);
+  }
+
   create(name: string): Observable<any> {
     return this.http.post(this.apiUrl, { name, active: true });
   }

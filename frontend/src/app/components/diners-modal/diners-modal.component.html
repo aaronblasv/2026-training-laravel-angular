@@ -1,0 +1,22 @@
+@if (visible) {
+  <div class="modal-overlay" (click)="cancel()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Comensales</h2>
+
+      <div class="diners-display">{{ displayValue }}</div>
+
+      <div class="keypad">
+        @for (digit of ['1','2','3','4','5','6','7','8','9']; track digit) {
+          <button class="key" (click)="onDigit(digit)">{{ digit }}</button>
+        }
+        <button class="key key-cancel" (click)="cancel()">Cancelar</button>
+        <button class="key" (click)="onDigit('0')">0</button>
+        <button class="key key-delete" (click)="onDelete()">&larr;</button>
+      </div>
+
+      <button class="btn-confirm" (click)="confirm()" [disabled]="!value || value === '0'">
+        Confirmar
+      </button>
+    </div>
+  </div>
+}

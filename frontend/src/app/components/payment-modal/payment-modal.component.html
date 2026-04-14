@@ -1,0 +1,101 @@
+<div class="payment-modal-overlay" *ngIf="visible" (click)="cancel()">
+  <div class="payment-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Procesar Pago</h2>
+      <button class="close-btn" (click)="cancel()">✕</button>
+    </div>
+
+    <div class="payment-info">
+      <div class="info-row">
+        <span class="label">Total:</span>
+        <span class="amount">{{ totalAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="label">Pagado:</span>
+        <span class="amount paid">{{ paidAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+      <div class="info-row pending">
+        <span class="label">Pendiente:</span>
+        <span class="amount">{{ pendingAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+    </div>
+
+    <div class="payment-form">
+      <div class="form-group">
+        <label>Método de pago</label>
+        <select [(ngModel)]="paymentMethod" class="form-control">
+          <option value="cash">💵 Efectivo</option>
+          <option value="card">💳 Tarjeta</option>
+          <option value="bizum">📱 Bizum</option>
+        </select>
+      </div>
+
+      <div class="tip-section" *ngIf="paidAmount === 0">
+        <label>Propina</label>
+        <div class="tip-buttons">
+          <button class="tip-btn" (click)="addTip(5)" [class.active]="tipAmount === Math.round((originalTotal * 5) / 100)">
+            5% ({{ (originalTotal * 5) / 100 | currency:'EUR':'symbol':'1.2-2':'es' }})
+          </button>
+          <button class="tip-btn" (click)="addTip(10)" [class.active]="tipAmount === Math.round((originalTotal * 10) / 100)">
+            10% ({{ (originalTotal * 10) / 100 | currency:'EUR':'symbol':'1.2-2':'es' }})
+          </button>
+          <button class="tip-btn" (click)="addTip(15)" [class.active]="tipAmount === Math.round((originalTotal * 15) / 100)">
+            15% ({{ (originalTotal * 15) / 100 | currency:'EUR':'symbol':'1.2-2':'es' }})
+          </button>
+        </div>
+        @if (tipAmount > 0) {
+          <div class="tip-amount">Total con propina: {{ (pendingAmount + tipAmount) / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</div>
+        }
+      </div>
+
+      <div class="form-group">
+        <label class="checkbox-label">
+          <input type="checkbox" [ngModel]="percentageMode" (change)="togglePercentageMode()">
+          Pagar por porcentaje
+        </label>
+      </div>
+
+      @if (percentageMode) {
+        <div class="form-group">
+          <label>Porcentaje (%)</label>
+          <div class="percentage-input">
+            <input type="number" min="0" max="100" [(ngModel)]="percentage" (ngModelChange)="onPercentageChange()" class="form-control">
+            <span class="percentage-display">{{ paymentAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+          </div>
+        </div>
+      } @else {
+        <div class="form-group">
+          <label>Cantidad a pagar</label>
+          <input type="number" min="0" [(ngModel)]="paymentAmount" class="form-control">
+        </div>
+      }
+
+      <div class="form-group">
+        <label>Descripción (opcional)</label>
+        <textarea [(ngModel)]="description" class="form-control" rows="2" placeholder="Notas sobre el pago..."></textarea>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-full-payment" (click)="payFull()" [disabled]="pendingAmount <= 0 || loading">
+          Pagar completo
+        </button>
+        <button class="btn btn-partial-payment" (click)="processPayment()" [disabled]="paymentAmount <= 0 || loading">
+          Registrar pago
+        </button>
+        <button class="btn btn-cancel" (click)="cancel()" [disabled]="loading">
+          Cancelar
+        </button>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <span class="footer-text">
+        @if (pendingAmount <= 0) {
+          <span class="paid-complete">✓ Pagado completo</span>
+        } @else {
+          <span class="pending-text">Falta: {{ pendingAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+        }
+      </span>
+    </div>
+  </div>
+</div>

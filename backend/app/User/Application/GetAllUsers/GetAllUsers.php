@@ -10,9 +10,9 @@ class GetAllUsers
         private UserRepositoryInterface $userRepository,
     ) {}
 
-    public function __invoke(): array
+    public function __invoke(int $restaurantId): array
     {
-        $users = $this->userRepository->findAll();
+        $users = $this->userRepository->findAll($restaurantId);
 
         return array_map(
             fn($user) => GetAllUsersResponse::create($user),

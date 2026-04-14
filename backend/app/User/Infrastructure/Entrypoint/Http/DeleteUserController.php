@@ -14,7 +14,11 @@ class DeleteUserController
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        ($this->deleteUser)($uuid);
+        try {
+            ($this->deleteUser)($uuid, $request->user()->restaurant_id);
+        } catch (\DomainException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        }
 
         return new JsonResponse(null, 204);
     }

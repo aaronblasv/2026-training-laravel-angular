@@ -14,7 +14,7 @@ class GetAllUsersController
 
     public function __invoke(Request $request): JsonResponse
     {
-        $response = ($this->getAllUsers)();
+        $response = ($this->getAllUsers)($request->user()->restaurant_id);
 
         return new JsonResponse($response);
     }

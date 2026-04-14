@@ -21,11 +21,16 @@ class UpdateUserController
             ],
         ]);
 
-        $response = ($this->updateUser)(
-            $uuid,
-            $validated['email'],
-            $validated['name'],
-        );
+        try {
+            $response = ($this->updateUser)(
+                $uuid,
+                $validated['email'],
+                $validated['name'],
+                $request->user()->restaurant_id,
+            );
+        } catch (\DomainException $e) {
+            return new JsonResponse(['message' => $e->getMessage()], 404);
+        }
 
         return new JsonResponse($response);
     }

@@ -24,9 +24,10 @@ class EloquentLogRepository implements LogRepositoryInterface
         ]);
     }
 
-    public function findAll(int $limit = 50, int $offset = 0): array
+    public function findAll(int $restaurantId, int $limit = 50, int $offset = 0): array
     {
         return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->orderBy('created_at', 'desc')
             ->limit($limit)
             ->offset($offset)
@@ -35,9 +36,10 @@ class EloquentLogRepository implements LogRepositoryInterface
             ->toArray();
     }
 
-    public function findByUser(string $userId, int $limit = 50, int $offset = 0): array
+    public function findByUser(int $restaurantId, string $userId, int $limit = 50, int $offset = 0): array
     {
         return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->limit($limit)
@@ -47,9 +49,10 @@ class EloquentLogRepository implements LogRepositoryInterface
             ->toArray();
     }
 
-    public function findByAction(string $action, int $limit = 50, int $offset = 0): array
+    public function findByAction(int $restaurantId, string $action, int $limit = 50, int $offset = 0): array
     {
         return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->where('action', $action)
             ->orderBy('created_at', 'desc')
             ->limit($limit)
@@ -59,9 +62,10 @@ class EloquentLogRepository implements LogRepositoryInterface
             ->toArray();
     }
 
-    public function findByEntity(string $entityType, string $entityUuid, int $limit = 50, int $offset = 0): array
+    public function findByEntity(int $restaurantId, string $entityType, string $entityUuid, int $limit = 50, int $offset = 0): array
     {
         return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
             ->where('entity_type', $entityType)
             ->where('entity_uuid', $entityUuid)
             ->orderBy('created_at', 'desc')
@@ -72,9 +76,9 @@ class EloquentLogRepository implements LogRepositoryInterface
             ->toArray();
     }
 
-    public function count(): int
+    public function count(int $restaurantId): int
     {
-        return $this->model->newQuery()->count();
+        return $this->model->newQuery()->where('restaurant_id', $restaurantId)->count();
     }
 
     private function toDomain(EloquentLog $model): Log

@@ -18,7 +18,7 @@ class GetLogsController
         $offset = (int)$request->query('offset', 0);
 
         try {
-            $response = ($this->useCase)($action, $userId, $limit, $offset);
+            $response = ($this->useCase)($request->user()->restaurant_id, $action, $userId, $limit, $offset);
             return new JsonResponse($response, 200);
         } catch (\Exception $e) {
             return new JsonResponse(['message' => $e->getMessage()], 500);

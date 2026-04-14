@@ -1,0 +1,51 @@
+<ion-content>
+  <div class="layout">
+    <app-sidebar></app-sidebar>
+
+    <div class="main-content">
+      <div class="page-header">
+        <div>
+          <h1>Registro de actividad</h1>
+          <p>{{ total }} registros</p>
+        </div>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Acción</th>
+              <th>Entidad</th>
+              <th>Usuario</th>
+              <th>IP</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (log of logs; track log.uuid) {
+              <tr>
+                <td class="date-cell">{{ log.created_at }}</td>
+                <td>
+                  <span class="badge" [ngClass]="getActionClass(log.action)">
+                    {{ getActionLabel(log.action) }}
+                  </span>
+                </td>
+                <td>
+                  @if (log.entity_type) {
+                    <span class="entity-type">{{ log.entity_type }}</span>
+                  }
+                </td>
+                <td>{{ log.user_id ?? '-' }}</td>
+                <td class="ip-cell">{{ log.ip_address ?? '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+
+        @if (logs.length === 0) {
+          <div class="empty-state">No hay registros de actividad</div>
+        }
+      </div>
+    </div>
+  </div>
+</ion-content>

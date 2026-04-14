@@ -29,10 +29,10 @@ class EloquentUserRepository implements UserRepositoryInterface
         );
     }
 
-    public function findAll(): array
+    public function findAll(int $restaurantId): array
     {
         return $this->model->newQuery()
-            ->where('restaurant_id', auth()->user()?->restaurant_id)
+            ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentUser $model) => User::fromPersistence(
                 $model->uuid,
@@ -94,11 +94,11 @@ class EloquentUserRepository implements UserRepositoryInterface
         $this->model->newQuery()->where('uuid', $user->id()->getValue())->delete();
     }
 
-    public function findByPin(string $pin): ?User
+    public function findByPin(string $pin, int $restaurantId): ?User
     {
         $model = $this->model->newQuery()
             ->where('pin', $pin)
-            ->where('restaurant_id', auth()->user()?->restaurant_id)
+            ->where('restaurant_id', $restaurantId)
             ->first();
 
         if ($model === null) {

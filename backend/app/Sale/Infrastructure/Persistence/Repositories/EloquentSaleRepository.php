@@ -65,4 +65,30 @@ class EloquentSaleRepository implements SaleRepositoryInterface
 
         return ($last ?? 0) + 1;
     }
+
+    public function findAll(int $restaurantId): array
+    {
+        return $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(fn(EloquentSale $model) => $this->toDomain($model))
+            ->toArray();
+    }
+
+    private function toDomain(EloquentSale $model): Sale
+    {
+        $orderUuid = $this->orderModel->newQuery()->find($model->order_id)->uuid;
+        $userUuid  = $this->userModel->newQuery()->find($model->user_id)->uuid;
+
+        return Sale::fromPersistence(
+            $model->uuid,
+            $model->restaurant_id,
+            $orderUuid,
+            $userUuid,
+            $model->ticket_number,
+            new \DateTimeImmutable($model->value_date),
+            $model->total,
+        );
+    }
 }

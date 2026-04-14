@@ -42,6 +42,12 @@ use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderDinersController;
 use App\Order\Infrastructure\Entrypoint\Http\CloseOrderController;
 use App\Order\Infrastructure\Entrypoint\Http\CancelOrderController;
 use App\Order\Infrastructure\Entrypoint\Http\GetAllOpenOrdersController;
+use App\User\Infrastructure\Entrypoint\Http\ValidatePinController;
+use App\Payment\Infrastructure\Entrypoint\Http\RegisterPaymentController;
+use App\Invoice\Infrastructure\Entrypoint\Http\GenerateInvoiceController;
+use App\Log\Infrastructure\Entrypoint\Http\GetLogsController;
+use App\Sale\Infrastructure\Entrypoint\Http\GetAllSalesController;
+use App\Dashboard\Infrastructure\Entrypoint\Http\DashboardController;
 
 Route::post('/auth/login', LoginController::class);
 
@@ -53,6 +59,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/tables/{tableUuid}/order', GetOrderByTableController::class);
     Route::post('/orders/{orderUuid}/lines', AddOrderLineController::class);
     Route::get('/orders/open', GetAllOpenOrdersController::class);
+    Route::post('/orders/{orderUuid}/payments', RegisterPaymentController::class);
+    Route::post('/orders/{orderUuid}/generate-invoice', GenerateInvoiceController::class);
     Route::put('/orders/{orderUuid}/lines/{lineUuid}', UpdateOrderLineQuantityController::class);
     Route::delete('/orders/{orderUuid}/lines/{lineUuid}', RemoveOrderLineController::class);
     Route::patch('/orders/{orderUuid}/diners', UpdateOrderDinersController::class);
@@ -63,9 +71,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/tpv/tables', GetAllTablesController::class);
     Route::get('/tpv/products', GetAllProductsController::class);
     Route::get('/tpv/users', GetAllUsersController::class);
+    Route::post('/tpv/validate-pin', ValidatePinController::class);
+    Route::get('/tpv/families', GetAllFamiliesController::class);
+    Route::get('/tpv/taxes', GetAllTaxesController::class);
 });
 
 Route::middleware(['auth:sanctum', 'backoffice'])->group(function () {
+    Route::get('/dashboard', DashboardController::class);
+
     Route::get('/taxes', GetAllTaxesController::class);
     Route::post('/taxes', CreateTaxController::class);
     Route::put('/taxes/{uuid}', UpdateTaxController::class);
@@ -100,4 +113,8 @@ Route::middleware(['auth:sanctum', 'backoffice'])->group(function () {
     Route::post('/users', CreateUserController::class);
     Route::put('/users/{uuid}', UpdateUserController::class);
     Route::delete('/users/{uuid}', DeleteUserController::class);
+
+    Route::get('/logs', GetLogsController::class);
+
+    Route::get('/sales', GetAllSalesController::class);
 });

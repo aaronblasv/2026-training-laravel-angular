@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from 'src/environments/environment.prod';
 
 @Injectable({ providedIn: 'root' })
@@ -9,7 +9,9 @@ export class OrderService {
   private apiUrl = 'http://localhost:8000/api';
 
   getOrderByTable(tableUuid: string): Observable<any> {
-    return this.http.get(`${this.apiUrl}/tables/${tableUuid}/order`);
+    return this.http.get(`${this.apiUrl}/tables/${tableUuid}/order`, { observe: 'response' }).pipe(
+      map(response => response.status === 204 ? null : response.body)
+    );
   }
 
   openOrder(tableId: string, openedByUserId: string, diners: number): Observable<any> {
@@ -44,9 +46,13 @@ export class OrderService {
 
   getAllOpen(): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/orders/open`);
-    }
+  }
 
-    getAllTpv(): Observable<any[]> {
+  getAllTpv(): Observable<any[]> {
     return this.http.get<any[]>(`${environment.apiUrl}/tpv/zones`);
-    }
+  }
+
+  validatePin(pin: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/tpv/validate-pin`, { pin });
+  }
 }

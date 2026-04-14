@@ -1,0 +1,21 @@
+<div class="success-overlay" *ngIf="visible" (click)="close()">
+  <div class="success-modal" (click)="$event.stopPropagation()">
+    <div class="success-icon">✓</div>
+    
+    <h2>¡Venta Cerrada!</h2>
+    <p class="message">La venta se ha procesado correctamente</p>
+    
+    <div class="details">
+      <div class="detail-row">
+        <span class="label">Número de Factura:</span>
+        <span class="value">{{ invoiceNumber }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Total Cobrado:</span>
+        <span class="value">{{ totalAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+    </div>
+    
+    <button class="btn-accept" (click)="close()">Aceptar</button>
+  </div>
+</div>

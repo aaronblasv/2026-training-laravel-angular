@@ -1,0 +1,27 @@
+meta {
+  name: Validate Pin
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/tpv/validate-pin
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+      "pin": "4444"
+  }
+  
+}
+
+settings {
+  encodeUrl: true
+  timeout: 0
+}

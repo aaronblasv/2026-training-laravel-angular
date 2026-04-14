@@ -17,7 +17,7 @@ class CreateUser
         private PasswordHasherInterface $passwordHasher,
     ) {}
 
-    public function __invoke(string $email, string $name, string $plainPassword, string $role = 'waiter', int $restaurantId = 1): CreateUserResponse
+    public function __invoke(string $email, string $name, string $plainPassword, string $role, int $restaurantId): CreateUserResponse
     {
         $emailVO = Email::create($email);
         $nameVO = UserName::create($name);

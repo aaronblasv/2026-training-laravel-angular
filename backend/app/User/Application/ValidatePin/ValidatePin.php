@@ -12,9 +12,9 @@ class ValidatePin
         private UserRepositoryInterface $repository,
     ) {}
 
-    public function __invoke(string $pin): ValidatePinResponse
+    public function __invoke(string $pin, int $restaurantId): ValidatePinResponse
     {
-        $user = $this->repository->findByPin($pin);
+        $user = $this->repository->findByPin($pin, $restaurantId);
         if (!$user) {
             throw new \DomainException('Invalid PIN.');
         }

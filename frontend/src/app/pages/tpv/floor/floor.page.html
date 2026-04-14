@@ -44,3 +44,22 @@
     }
   </div>
 </div>
+
+<app-waiter-modal
+  [visible]="showWaiterModal"
+  (onSelected)="onWaiterSelected($event)"
+  (onCancel)="onWaiterCancelled()"
+></app-waiter-modal>
+
+<app-pin-modal
+  [visible]="showPinModal"
+  [selectedWaiter]="selectedWaiter"
+  (onValidated)="onPinValidated($event)"
+  (onCancel)="onPinCancelled()"
+></app-pin-modal>
+
+<app-diners-modal
+  [visible]="showDinersModal"
+  (onConfirm)="onDinersConfirmed($event)"
+  (onCancel)="onDinersCancelled()"
+></app-diners-modal>

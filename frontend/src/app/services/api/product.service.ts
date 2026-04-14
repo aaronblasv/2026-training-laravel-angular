@@ -9,13 +9,15 @@ import { environment } from '../../../environments/environment';
 export class ProductService {
   private apiUrl = `${environment.apiUrl}/products`;
 
-  constructor(private http: HttpClient) {
-    console.log('apiUrl:', this.apiUrl);
-  }
+  constructor(private http: HttpClient) {}
 
   getAll(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl);
-    }
+  }
+
+  getAllTpv(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/tpv/products`);
+  }
 
   create(data: any): Observable<any> {
     return this.http.post(this.apiUrl, data);

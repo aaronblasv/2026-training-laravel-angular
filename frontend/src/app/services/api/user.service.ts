@@ -15,6 +15,10 @@ export class UserService {
     return this.http.get<any[]>(this.apiUrl);
   }
 
+  getAllTpv(): Observable<any[]> {
+    return this.http.get<any[]>(`${environment.apiUrl}/tpv/users`);
+  }
+
   create(data: any): Observable<any> {
     return this.http.post(this.apiUrl, data);
   }

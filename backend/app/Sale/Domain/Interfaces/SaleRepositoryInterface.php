@@ -12,4 +12,5 @@ interface SaleRepositoryInterface
     public function save(Sale $sale): void;
     public function saveLine(SaleLine $line): void;
     public function getNextTicketNumber(int $restaurantId): int;
+    public function findAll(int $restaurantId): array;
 }

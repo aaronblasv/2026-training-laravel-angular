@@ -12,9 +12,9 @@ interface UserRepositoryInterface
 
     public function findByEmail(string $email): ?User;
 
-    public function findAll(): array;
+    public function findAll(int $restaurantId): array;
 
     public function delete(User $user): void;
 
-    public function findByPin(string $pin): ?User;
+    public function findByPin(string $pin, int $restaurantId): ?User;
 }

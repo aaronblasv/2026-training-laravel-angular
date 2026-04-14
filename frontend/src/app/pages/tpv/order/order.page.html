@@ -1,0 +1,130 @@
+<div class="order-layout">
+  <!-- Panel izquierdo: Productos -->
+  <div class="products-panel">
+    <div class="products-header">
+      <button class="btn-back" (click)="goBack()">&larr;</button>
+      <h2>{{ tableName }}</h2>
+    </div>
+
+    <div class="family-tabs">
+      <button
+        class="family-tab"
+        [class.active]="selectedFamilyUuid === null"
+        (click)="selectFamily(null)"
+      >
+        Ver todos
+      </button>
+      @for (family of families; track family.uuid) {
+        <button
+          class="family-tab"
+          [class.active]="selectedFamilyUuid === family.uuid"
+          (click)="selectFamily(family.uuid)"
+        >
+          {{ family.name }}
+        </button>
+      }
+    </div>
+
+    <div class="products-grid">
+      @for (product of filteredProducts; track product.uuid) {
+        <button class="product-card" (click)="addProduct(product)">
+          @if (product.imageSrc) {
+            <img class="product-image" [src]="product.imageSrc" [alt]="product.name" />
+          } @else {
+            <div class="product-image-placeholder">📷</div>
+          }
+          <span class="product-name">{{ product.name }}</span>
+          <span class="product-price">{{ product.price / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Panel derecho: Resumen de la order -->
+  <div class="order-panel">
+    <div class="order-header">
+      <h2>Comanda</h2>
+      <div class="order-meta">
+        <span>{{ tableName }}</span>
+        @if (order) {
+          <span>{{ order.diners }} comensales</span>
+        }
+      </div>
+      <div class="waiter-info">
+        <span class="waiter-avatar-sm">{{ currentUser?.name?.charAt(0) }}</span>
+        <span class="waiter-label">{{ currentUser?.name }}</span>
+      </div>
+    </div>
+
+    <div class="order-lines">
+      @if (order?.lines?.length) {
+        @for (line of order.lines; track line.uuid) {
+          <div class="order-line">
+            <div class="line-info">
+              <span class="line-name">{{ getProductName(line.productId) }}</span>
+            </div>
+            <div class="line-actions">
+              <button class="qty-btn" (click)="decrementLine(line)">-</button>
+              <span class="line-qty">{{ line.quantity }}</span>
+              <button class="qty-btn" (click)="incrementLine(line)">+</button>
+              <button class="remove-btn" (click)="removeLine(line)">🗑️</button>
+            </div>
+            <div class="line-subtotal">
+              {{ getLineSubtotal(line) / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="empty-order">Sin productos</div>
+      }
+    </div>
+
+    <div class="order-totals">
+      <div class="total-row">
+        <span>Subtotal</span>
+        <span>{{ orderSubtotal / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+      <div class="total-row">
+        <span>Impuestos</span>
+        <span>{{ orderTax / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+      <div class="total-row total-final">
+        <span>Total</span>
+        <span>{{ orderTotal / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+      </div>
+    </div>
+
+    <div class="order-actions">
+      <button class="btn-cancel" (click)="cancelOrder()" [disabled]="totalPaid > 0" [class.disabled]="totalPaid > 0">Cancelar order</button>
+      <button class="btn-close" (click)="requestClose()">Cerrar y cobrar</button>
+    </div>
+  </div>
+</div>
+
+<app-waiter-modal
+  [visible]="showCloseWaiterModal"
+  (onSelected)="onCloseWaiterSelected($event)"
+  (onCancel)="onCloseWaiterCancelled()"
+></app-waiter-modal>
+
+<app-pin-modal
+  [visible]="showClosePinModal"
+  [selectedWaiter]="closeSelectedWaiter"
+  (onValidated)="onClosePinValidated($event)"
+  (onCancel)="onClosePinCancelled()"
+></app-pin-modal>
+
+<app-payment-modal
+  [visible]="showPaymentModal"
+  [totalAmount]="orderTotal"
+  [paidAmount]="totalPaid"
+  (onPayment)="onPaymentRegistered($event)"
+  (onCancel)="onPaymentCancelled()"
+></app-payment-modal>
+
+<app-success-modal
+  [visible]="showSuccessModal"
+  [invoiceNumber]="lastInvoiceNumber"
+  [totalAmount]="lastTotalAmount"
+  (onClose)="onSuccessModalClose()"
+></app-success-modal>

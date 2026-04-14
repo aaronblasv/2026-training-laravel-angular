@@ -1,0 +1,98 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  width: 340px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  text-align: center;
+
+  h2 {
+    margin: 0 0 1.5rem;
+    color: #1F2937;
+    font-size: 1.25rem;
+  }
+}
+
+.diners-display {
+  font-size: 3rem;
+  font-weight: 700;
+  color: #1F2937;
+  margin-bottom: 1.5rem;
+  min-height: 4rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #F3F4F6;
+  border-radius: 12px;
+}
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.key {
+  height: 64px;
+  min-width: 64px;
+  border-radius: 12px;
+  border: 2px solid #E5E7EB;
+  background: white;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1F2937;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:active {
+    background: #F3F4F6;
+    transform: scale(0.95);
+  }
+
+  &.key-delete {
+    color: #6B7280;
+    font-size: 1.25rem;
+  }
+
+  &.key-cancel {
+    font-size: 0.75rem;
+    color: #EF4444;
+    border-color: #FEE2E2;
+  }
+}
+
+.btn-confirm {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  border: none;
+  background: #4F46E5;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+
+  &:active {
+    transform: scale(0.98);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

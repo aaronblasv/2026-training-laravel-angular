@@ -1,0 +1,81 @@
+.table-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  overflow: hidden;
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+      text-align: left;
+      padding: 1rem 1.5rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #6B7280;
+      border-bottom: 1px solid #E5E7EB;
+    }
+
+    td {
+      padding: 1rem 1.5rem;
+      color: #1F2937;
+      border-bottom: 1px solid #F3F4F6;
+      font-size: 0.875rem;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+  }
+}
+
+.date-cell {
+  color: #6B7280 !important;
+  white-space: nowrap;
+}
+
+.ip-cell {
+  font-family: monospace;
+  color: #6B7280 !important;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-green {
+  background: #D1FAE5;
+  color: #065F46;
+}
+
+.badge-blue {
+  background: #DBEAFE;
+  color: #1E40AF;
+}
+
+.badge-red {
+  background: #FEE2E2;
+  color: #991B1B;
+}
+
+.badge-gray {
+  background: #F3F4F6;
+  color: #374151;
+}
+
+.entity-type {
+  font-size: 0.8rem;
+  color: #6B7280;
+}
+
+.empty-state {
+  padding: 3rem;
+  text-align: center;
+  color: #6B7280;
+  font-size: 0.875rem;
+}

@@ -1,0 +1,22 @@
+@if (visible) {
+  <div class="modal-overlay" (click)="cancel()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <h2>Seleccionar camarero</h2>
+
+      <div class="waiters-grid">
+        @for (waiter of waiters; track waiter.id) {
+          <button class="waiter-card" (click)="selectWaiter(waiter)">
+            <div class="waiter-avatar">{{ waiter.name.charAt(0) }}</div>
+            <span class="waiter-name">{{ waiter.name }}</span>
+          </button>
+        }
+      </div>
+
+      @if (waiters.length === 0) {
+        <div class="empty-message">No hay camareros disponibles</div>
+      }
+
+      <button class="btn-cancel" (click)="cancel()">Cancelar</button>
+    </div>
+  </div>
+}

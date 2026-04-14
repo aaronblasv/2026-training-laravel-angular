@@ -15,6 +15,10 @@ export class TaxService extends BaseApiService {
     return this.httpCall('/taxes', null, 'get');
   }
 
+  getAllTpv(): Observable<any> {
+    return this.httpCall('/tpv/taxes', null, 'get');
+  }
+
   create(name: string, percentage: number): Observable<any> {
     return this.httpCall('/taxes', { name, percentage }, 'post');
   }

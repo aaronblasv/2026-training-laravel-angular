@@ -3,21 +3,168 @@
     <app-sidebar></app-sidebar>
 
     <div class="main-content">
+
       <div class="page-header">
-        <h1>Dashboard</h1>
-        <p>Bienvenido al Panel de Administración</p>
+        <div>
+          <h1>Dashboard</h1>
+          <p>Panel de administración</p>
+        </div>
       </div>
 
-      <div class="stats-grid">
-        @for (stat of stats; track stat.label) {
-          <div class="stat-card">
-            <div class="stat-info">
-              <p class="stat-label">{{ stat.label }}</p>
-              <p class="stat-value">{{ stat.value }}</p>
+      @if (loading) {
+        <div class="loading-state">Cargando datos...</div>
+      } @else {
+
+        <!-- KPI Cards -->
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-blue">📦</div>
+            <div class="kpi-info">
+              <p class="kpi-label">Productos</p>
+              <p class="kpi-value">{{ stats.products }}</p>
             </div>
           </div>
-        }
-      </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-purple">📁</div>
+            <div class="kpi-info">
+              <p class="kpi-label">Familias</p>
+              <p class="kpi-value">{{ stats.families }}</p>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-orange">👥</div>
+            <div class="kpi-info">
+              <p class="kpi-label">Usuarios</p>
+              <p class="kpi-value">{{ stats.users }}</p>
+            </div>
+          </div>
+          <div class="kpi-card">
+            <div class="kpi-icon kpi-green">🧾</div>
+            <div class="kpi-info">
+              <p class="kpi-label">Ventas este mes</p>
+              <p class="kpi-value">{{ stats.sales_this_month }}</p>
+            </div>
+          </div>
+          <div class="kpi-card kpi-card--wide">
+            <div class="kpi-icon kpi-teal">💰</div>
+            <div class="kpi-info">
+              <p class="kpi-label">Facturación este mes</p>
+              <p class="kpi-value kpi-value--large">{{ formatCurrency(stats.revenue_this_month) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick actions -->
+        <div class="section-title">Acciones rápidas</div>
+        <div class="actions-grid">
+          @for (action of quickActions; track action.route) {
+            <button class="action-card" (click)="navigateTo(action.route)">
+              <span class="action-icon">{{ action.icon }}</span>
+              <span class="action-label">{{ action.label }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Charts row -->
+        <div class="charts-row">
+
+          <!-- Sales by day chart -->
+          <div class="card chart-card">
+            <h2 class="card-title">Ventas últimos 30 días</h2>
+            @if (salesByDay.length === 0) {
+              <div class="empty-chart">Sin datos en este periodo</div>
+            } @else {
+              <div class="chart-container">
+                <svg [attr.viewBox]="'0 0 ' + chartWidth + ' ' + chartHeight" preserveAspectRatio="xMidYMid meet">
+                  <!-- Y axis labels -->
+                  @for (label of getYAxisLabels(); track label.y) {
+                    <text [attr.x]="chartPaddingLeft - 6" [attr.y]="label.y + 4"
+                          text-anchor="end" class="chart-label">{{ label.value }}</text>
+                    <line [attr.x1]="chartPaddingLeft" [attr.y1]="label.y"
+                          [attr.x2]="chartWidth - 16" [attr.y2]="label.y"
+                          class="chart-grid-line" />
+                  }
+                  <!-- Bars -->
+                  @for (day of salesByDay; track day.day; let i = $index) {
+                    <rect
+                      [attr.x]="getBarX(i)"
+                      [attr.y]="getBarY(day.total)"
+                      [attr.width]="getBarWidth()"
+                      [attr.height]="getBarHeight(day.total)"
+                      class="chart-bar"
+                      rx="3"
+                    />
+                    <text
+                      [attr.x]="getBarX(i) + getBarWidth() / 2"
+                      [attr.y]="chartHeight - 6"
+                      text-anchor="middle"
+                      class="chart-label chart-label--day"
+                    >{{ getBarLabel(day) }}</text>
+                  }
+                </svg>
+              </div>
+            }
+          </div>
+
+          <!-- Top products chart -->
+          <div class="card chart-card">
+            <h2 class="card-title">Productos más vendidos</h2>
+            @if (topProducts.length === 0) {
+              <div class="empty-chart">Sin datos disponibles</div>
+            } @else {
+              <div class="top-products">
+                @for (product of topProducts; track product.name; let i = $index) {
+                  <div class="product-row">
+                    <div class="product-rank">{{ i + 1 }}</div>
+                    <div class="product-info">
+                      <div class="product-name">{{ product.name }}</div>
+                      <div class="product-bar-track">
+                        <div class="product-bar-fill"
+                             [style.width.px]="getProductBarWidth(product.total_quantity)">
+                        </div>
+                      </div>
+                    </div>
+                    <div class="product-qty">{{ product.total_quantity }} ud.</div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+        </div>
+
+        <!-- Sales this month table -->
+        <div class="card table-card">
+          <h2 class="card-title">Últimas ventas del mes</h2>
+          @if (salesThisMonth.length === 0) {
+            <div class="empty-chart">No hay ventas este mes</div>
+          } @else {
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket</th>
+                  <th>Mesa</th>
+                  <th>Usuario</th>
+                  <th>Fecha</th>
+                  <th class="text-right">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (sale of salesThisMonth; track sale.uuid) {
+                  <tr>
+                    <td><span class="ticket-badge">#{{ sale.ticket_number }}</span></td>
+                    <td>{{ sale.table_name }}</td>
+                    <td>{{ sale.user_name }}</td>
+                    <td class="date-cell">{{ formatDate(sale.value_date) }}</td>
+                    <td class="text-right amount-cell">{{ formatCurrency(sale.total) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+
+      }
     </div>
   </div>
 </ion-content>

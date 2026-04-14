@@ -1,0 +1,36 @@
+@if (visible) {
+  <div class="modal-overlay" (click)="cancel()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      @if (selectedWaiter) {
+        <div class="selected-waiter">
+          <div class="waiter-avatar">{{ selectedWaiter.name.charAt(0) }}</div>
+          <span class="waiter-name">{{ selectedWaiter.name }}</span>
+        </div>
+      }
+      <h2>Introduce tu PIN</h2>
+
+      <div class="pin-dots">
+        @for (filled of dots; track $index) {
+          <div class="dot" [class.filled]="filled"></div>
+        }
+      </div>
+
+      @if (error) {
+        <div class="error-message">{{ error }}</div>
+      }
+
+      @if (loading) {
+        <div class="loading-message">Validando...</div>
+      }
+
+      <div class="keypad">
+        @for (digit of ['1','2','3','4','5','6','7','8','9']; track digit) {
+          <button class="key" (click)="onDigit(digit)" [disabled]="loading">{{ digit }}</button>
+        }
+        <button class="key key-cancel" (click)="cancel()" [disabled]="loading">Cancelar</button>
+        <button class="key" (click)="onDigit('0')" [disabled]="loading">0</button>
+        <button class="key key-delete" (click)="onDelete()" [disabled]="loading">&larr;</button>
+      </div>
+    </div>
+  </div>
+}

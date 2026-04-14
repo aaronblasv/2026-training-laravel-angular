@@ -14,12 +14,12 @@ class UpdateUser
         private UserRepositoryInterface $userRepository,
     ) {}
 
-    public function __invoke(string $uuid, string $email, string $name): UpdateUserResponse
+    public function __invoke(string $uuid, string $email, string $name, int $restaurantId): UpdateUserResponse
     {
         $user = $this->userRepository->findById($uuid);
 
-        if($user === null) {
-            throw new \Exception('User not found');
+        if ($user === null || $user->restaurantId() !== $restaurantId) {
+            throw new \DomainException('User not found');
         }
 
         $user->dddUpdate(UserName::create($name), Email::create($email));
