@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TPV – Plano de Planta</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&family=Funnel+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:            #111827;
+      --card:          #1E2A3B;
+      --sidebar:       #0F172A;
+      --topbar:        #0F172A;
+      --border:        #1E293B;
+      --border-light:  #263347;
+      --text-primary:  #F1F5F9;
+      --text-muted:    #64748B;
+      --text-dim:      #94A3B8;
+      --orange:        #F97316;
+      --orange-dim:    #431407;
+      --green:         #22C55E;
+      --green-dim:     #052E16;
+      --amber:         #F59E0B;
+      --amber-dim:     #451A03;
+      --blue:          #3B82F6;
+      --blue-dim:      #172554;
+      --radius:        10px;
+      --radius-sm:     6px;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: 'Geist', sans-serif;
+      font-size: 14px;
+      overflow: hidden;
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    /* ─── TOP BAR ─── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      padding: 0 24px;
+      background: var(--topbar);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .topbar-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 34px;
+      height: 34px;
+      background: var(--orange);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Funnel Sans', sans-serif;
+      font-weight: 800;
+      font-size: 18px;
+      color: #fff;
+      flex-shrink: 0;
+    }
+
+    .logo-text {
+      font-family: 'Funnel Sans', sans-serif;
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-primary);
+      letter-spacing: -0.3px;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .topbar-time {
+      font-family: 'Geist Mono', monospace;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      letter-spacing: 1px;
+    }
+
+    .topbar-date {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #334155, #1E293B);
+      border: 2px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+
+    /* ─── BODY ROW ─── */
+    .body-row {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      width: 210px;
+      flex-shrink: 0;
+      background: var(--sidebar);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 12px;
+      gap: 4px;
+    }
+
+    .sidebar-title {
+      font-family: 'Funnel Sans', sans-serif;
+      font-weight: 700;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      padding: 0 8px 10px;
+      text-transform: uppercase;
+    }
+
+    .zone-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: background 0.15s;
+      gap: 8px;
+    }
+
+    .zone-item:hover {
+      background: rgba(255,255,255,0.05);
+    }
+
+    .zone-item.active {
+      background: var(--orange);
+    }
+
+    .zone-item.active .zone-name { color: #fff; font-weight: 600; }
+    .zone-item.active .zone-badge {
+      background: rgba(0,0,0,0.25);
+      color: #fff;
+    }
+
+    .zone-name {
+      font-size: 14px;
+      color: var(--text-dim);
+      font-weight: 500;
+      flex: 1;
+    }
+
+    .zone-badge {
+      font-family: 'Geist Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      background: var(--card);
+      color: var(--text-muted);
+      border-radius: 20px;
+      padding: 2px 8px;
+      flex-shrink: 0;
+    }
+
+    /* ─── MAIN FLOOR AREA ─── */
+    .floor-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg);
+    }
+
+    .floor-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .floor-title {
+      font-family: 'Funnel Sans', sans-serif;
+      font-weight: 700;
+      font-size: 20px;
+      color: var(--text-primary);
+    }
+
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ─── TABLE GRID ─── */
+    .table-grid-wrap {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+
+    .table-grid-wrap::-webkit-scrollbar { width: 4px; }
+    .table-grid-wrap::-webkit-scrollbar-track { background: transparent; }
+    .table-grid-wrap::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+    .table-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    /* ─── TABLE CARD ─── */
+    .table-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+      min-height: 120px;
+    }
+
+    .table-card:hover {
+      transform: translateY(-1px);
+    }
+
+    .table-card.libre   { border-top: 2px solid var(--green); }
+    .table-card.ocupada { border-top: 2px solid var(--orange); }
+    .table-card.reservada { border-top: 2px solid var(--amber); }
+    .table-card.cobro   { border-top: 2px solid var(--blue); }
+
+    .table-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .table-name {
+      font-family: 'Funnel Sans', sans-serif;
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--text-primary);
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 20px;
+    }
+
+    .badge-libre     { background: var(--green-dim);  color: var(--green); }
+    .badge-ocupada   { background: var(--orange-dim); color: var(--orange); }
+    .badge-reservada { background: var(--amber-dim);  color: var(--amber); }
+    .badge-cobro     { background: var(--blue-dim);   color: var(--blue); }
+
+    .table-amount {
+      font-family: 'Geist Mono', monospace;
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--orange);
+    }
+
+    .table-amount.cobro {
+      color: var(--blue);
+    }
+
+    .table-amount.empty {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-family: 'Geist', sans-serif;
+      font-weight: 400;
+    }
+
+    .table-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .table-info {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .table-persons {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .icon-xs {
+      width: 14px;
+      height: 14px;
+      opacity: 0.6;
+    }
+
+    /* ─── BOTTOM STATUS BAR ─── */
+    .statusbar {
+      height: 56px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      background: var(--topbar);
+      border-top: 1px solid var(--border);
+    }
+
+    .statusbar-stats {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .stat-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .stat-value {
+      font-family: 'Geist Mono', monospace;
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text-primary);
+    }
+
+    .stat-divider {
+      width: 1px;
+      height: 20px;
+      background: var(--border-light);
+    }
+
+    .btn-nuevo-pedido {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--orange);
+      color: #fff;
+      font-family: 'Funnel Sans', sans-serif;
+      font-weight: 700;
+      font-size: 14px;
+      padding: 10px 20px;
+      border-radius: var(--radius-sm);
+      border: none;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      text-decoration: none;
+    }
+
+    .btn-nuevo-pedido:hover {
+      background: #ea6c0a;
+      transform: translateY(-1px);
+    }
+
+    .btn-nuevo-pedido svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    /* ─── RESPONSIVE FALL-BACK (tablet) ─── */
+    @media (max-width: 1024px) {
+      .table-grid { grid-template-columns: repeat(3, 1fr); }
+      .sidebar { width: 180px; }
+    }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a href="#" class="topbar-logo">
+      <div class="logo-icon">Y</div>
+      <span class="logo-text">RestaurantPOS</span>
+    </a>
+    <div class="topbar-right">
+      <span class="topbar-time">14:31</span>
+      <span class="topbar-date">27/04/2026</span>
+      <div class="avatar">A</div>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="body-row">
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+      <div class="sidebar-title">Zonas</div>
+
+      <div class="zone-item active">
+        <span class="zone-name">Terraza</span>
+        <span class="zone-badge">8</span>
+      </div>
+
+      <div class="zone-item">
+        <span class="zone-name">Salón Principal</span>
+        <span class="zone-badge">12</span>
+      </div>
+
+      <div class="zone-item">
+        <span class="zone-name">VIP</span>
+        <span class="zone-badge">4</span>
+      </div>
+
+      <div class="zone-item">
+        <span class="zone-name">Barra</span>
+        <span class="zone-badge">6</span>
+      </div>
+    </nav>
+
+    <!-- FLOOR AREA -->
+    <main class="floor-area">
+
+      <!-- FLOOR HEADER -->
+      <div class="floor-header">
+        <h1 class="floor-title">Terraza</h1>
+        <div class="legend">
+          <div class="legend-item">
+            <span class="legend-dot" style="background:var(--green)"></span>
+            Libre
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:var(--orange)"></span>
+            Ocupada
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:var(--amber)"></span>
+            Reservada
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background:var(--blue)"></span>
+            Cobro
+          </div>
+        </div>
+      </div>
+
+      <!-- TABLE GRID -->
+      <div class="table-grid-wrap">
+        <div class="table-grid">
+
+          <!-- T1 – Libre -->
+          <a href="tpv-order.html" class="table-card libre" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T1</span>
+              <span class="status-badge badge-libre">Libre</span>
+            </div>
+            <div class="table-amount empty">Sin pedido</div>
+            <div class="table-meta">
+              <span>—</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                0
+              </div>
+            </div>
+          </a>
+
+          <!-- T2 – Ocupada -->
+          <a href="tpv-order.html" class="table-card ocupada" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T2</span>
+              <span class="status-badge badge-ocupada">Ocupada</span>
+            </div>
+            <div class="table-amount">€47.50</div>
+            <div class="table-meta">
+              <span style="color:var(--text-muted);font-size:12px;">1h 12m</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                3
+              </div>
+            </div>
+          </a>
+
+          <!-- T3 – Reservada -->
+          <div class="table-card reservada">
+            <div class="table-card-head">
+              <span class="table-name">T3</span>
+              <span class="status-badge badge-reservada">Reservada</span>
+            </div>
+            <div class="table-amount empty" style="color:var(--amber);">20:30 · Gente</div>
+            <div class="table-meta">
+              <span style="color:var(--text-muted);font-size:12px;">Reserva</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                4
+              </div>
+            </div>
+          </div>
+
+          <!-- T4 – Cobro -->
+          <a href="tpv-payment.html" class="table-card cobro" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T4</span>
+              <span class="status-badge badge-cobro">Cobro</span>
+            </div>
+            <div class="table-amount cobro">€125.80</div>
+            <div class="table-meta">
+              <span style="color:var(--text-muted);font-size:12px;">2h 04m</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                5
+              </div>
+            </div>
+          </a>
+
+          <!-- T5 – Ocupada -->
+          <a href="tpv-order.html" class="table-card ocupada" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T5</span>
+              <span class="status-badge badge-ocupada">Ocupada</span>
+            </div>
+            <div class="table-amount">€32.00</div>
+            <div class="table-meta">
+              <span style="color:var(--text-muted);font-size:12px;">0h 45m</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                2
+              </div>
+            </div>
+          </a>
+
+          <!-- T6 – Libre -->
+          <a href="tpv-order.html" class="table-card libre" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T6</span>
+              <span class="status-badge badge-libre">Libre</span>
+            </div>
+            <div class="table-amount empty">Sin pedido</div>
+            <div class="table-meta">
+              <span>—</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                0
+              </div>
+            </div>
+          </a>
+
+          <!-- T7 – Libre -->
+          <a href="tpv-order.html" class="table-card libre" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T7</span>
+              <span class="status-badge badge-libre">Libre</span>
+            </div>
+            <div class="table-amount empty">Sin pedido</div>
+            <div class="table-meta">
+              <span>—</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                0
+              </div>
+            </div>
+          </a>
+
+          <!-- T8 – Ocupada -->
+          <a href="tpv-order.html" class="table-card ocupada" style="text-decoration:none;">
+            <div class="table-card-head">
+              <span class="table-name">T8</span>
+              <span class="status-badge badge-ocupada">Ocupada</span>
+            </div>
+            <div class="table-amount">€89.20</div>
+            <div class="table-meta">
+              <span style="color:var(--text-muted);font-size:12px;">1h 33m</span>
+              <div class="table-persons">
+                <svg class="icon-xs" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+                6
+              </div>
+            </div>
+          </a>
+
+        </div>
+      </div>
+
+      <!-- BOTTOM STATUS BAR -->
+      <footer class="statusbar">
+        <div class="statusbar-stats">
+          <div class="stat-item">
+            Mesas ocupadas
+            <span class="stat-value">4/8</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            Venta acumulada
+            <span class="stat-value" style="color:var(--orange);">€294.50</span>
+          </div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">
+            Comensales
+            <span class="stat-value">16</span>
+          </div>
+        </div>
+        <a href="tpv-order.html" class="btn-nuevo-pedido">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Nuevo Pedido
+        </a>
+      </footer>
+
+    </main>
+  </div><!-- /body-row -->
+</div><!-- /app -->
+</body>
+</html>

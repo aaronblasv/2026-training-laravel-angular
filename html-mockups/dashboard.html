@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YuRest — Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;600&family=Newsreader:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy: #1C2438;
+    --navy-mid: #2A3550;
+    --navy-light: #6B7FA3;
+    --navy-pale: #A8BDD4;
+    --bg: #F0F4F8;
+    --white: #FFFFFF;
+    --border: #E2E8F0;
+    --muted: #F8FAFC;
+    --orange: #FF8400;
+    --orange-bg: #FFF7ED;
+    --blue: #3B82F6;
+    --blue-bg: #EEF2FF;
+    --green: #22863A;
+    --green-bg: #F0FDF4;
+    --purple: #8B5CF6;
+    --text-primary: #1C2438;
+    --text-secondary: #6B7FA3;
+    --shadow: 0 2px 8px rgba(28,36,56,.08);
+    --radius: 12px;
+    --radius-sm: 8px;
+    --radius-xs: 6px;
+  }
+
+  body { font-family: 'Geist', sans-serif; background: var(--bg); color: var(--text-primary); display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 280px; min-width: 280px; height: 100vh;
+    background: var(--navy); display: flex; flex-direction: column;
+  }
+  .sidebar-logo {
+    height: 72px; display: flex; align-items: center; gap: 12px; padding: 0 20px;
+    border-bottom: 1px solid var(--navy-mid);
+  }
+  .logo-icon {
+    width: 36px; height: 36px; border-radius: 10px; background: var(--orange);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Funnel Sans', sans-serif; font-weight: 700; font-size: 18px; color: #fff;
+  }
+  .logo-text { display: flex; flex-direction: column; }
+  .logo-title { font-family: 'Funnel Sans', sans-serif; font-weight: 700; font-size: 18px; color: #F0F4F8; line-height: 1; }
+  .logo-sub { font-size: 11px; color: var(--navy-light); margin-top: 2px; }
+
+  .nav { flex: 1; padding: 12px; display: flex; flex-direction: column; gap: 2px; }
+  .nav-item {
+    display: flex; align-items: center; gap: 10px; padding: 0 12px;
+    height: 40px; border-radius: var(--radius-sm); cursor: pointer;
+    text-decoration: none; transition: background .15s;
+  }
+  .nav-item span { font-size: 13px; color: var(--navy-pale); }
+  .nav-item svg { flex-shrink: 0; color: var(--navy-light); }
+  .nav-item:hover { background: rgba(255,255,255,.06); }
+  .nav-item.active { background: var(--orange); }
+  .nav-item.active span { color: var(--navy); font-weight: 600; }
+  .nav-item.active svg { color: var(--navy); }
+
+  .sidebar-footer {
+    border-top: 1px solid var(--navy-mid); padding: 0 16px; height: 72px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #2E4170; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 14px; color: var(--navy-pale); flex-shrink: 0; }
+  .user-info { flex: 1; }
+  .user-name { font-size: 13px; font-weight: 600; color: #F0F4F8; }
+  .user-role { font-family: 'Newsreader', serif; font-size: 11px; color: var(--navy-light); }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    height: 64px; background: var(--white); border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; padding: 0 32px; gap: 16px;
+  }
+  .breadcrumb { flex: 1; display: flex; align-items: center; gap: 8px; font-size: 13px; }
+  .breadcrumb .bc-parent { color: var(--text-secondary); }
+  .breadcrumb .bc-sep { color: #A0AEC0; font-size: 12px; }
+  .breadcrumb .bc-current { color: var(--text-primary); font-weight: 600; }
+  .topbar-date { font-family: 'Newsreader', serif; font-size: 12px; color: var(--text-secondary); }
+  .topbar-icon-btn { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--bg); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); }
+  .topbar-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--orange); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+
+  .content { flex: 1; overflow-y: auto; padding: 32px; display: flex; flex-direction: column; gap: 24px; }
+
+  /* ── PAGE HEADER ── */
+  .page-header h1 { font-family: 'Funnel Sans', sans-serif; font-size: 28px; font-weight: 700; color: var(--text-primary); }
+  .page-header p { font-family: 'Newsreader', serif; font-size: 13px; color: var(--text-secondary); margin-top: 4px; }
+
+  /* ── KPI CARDS ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .kpi-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display: flex; flex-direction: column; gap: 8px; }
+  .kpi-top { display: flex; align-items: center; }
+  .kpi-label { flex: 1; font-size: 12px; color: var(--text-secondary); }
+  .kpi-icon { width: 20px; height: 20px; }
+  .kpi-value { font-family: 'Geist Mono', monospace; font-size: 22px; font-weight: 700; color: var(--text-primary); }
+  .kpi-delta { display: flex; align-items: center; gap: 4px; font-size: 11px; }
+  .kpi-delta.up { color: var(--green); }
+  .kpi-delta.neutral { color: var(--text-secondary); }
+
+  /* ── MID ROW ── */
+  .mid-row { display: grid; grid-template-columns: 1fr 240px; gap: 16px; }
+  .card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+  .card-header { display: flex; align-items: center; margin-bottom: 12px; }
+  .card-title { font-family: 'Funnel Sans', sans-serif; font-size: 14px; font-weight: 600; flex: 1; }
+  .badge-green { background: var(--green-bg); color: var(--green); font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+  .badge-orange { background: var(--orange-bg); color: var(--orange); font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+  .badge-blue { background: var(--blue-bg); color: var(--blue); font-size: 11px; font-weight: 600; padding: 4px 8px; border-radius: 6px; }
+
+  /* Bar Chart */
+  .bar-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; background: var(--muted); border-radius: var(--radius-sm); padding: 8px; }
+  .bar { flex: 1; border-radius: 3px; background: var(--border); transition: background .2s; }
+  .bar.peak { background: var(--orange); }
+
+  /* Categories */
+  .cat-list { display: flex; flex-direction: column; gap: 14px; }
+  .cat-item-row { display: flex; align-items: center; gap: 0; }
+  .cat-name { flex: 1; font-size: 12px; color: var(--text-primary); }
+  .cat-val { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-secondary); }
+  .cat-bar-bg { width: 100%; height: 4px; background: var(--bg); border-radius: 2px; margin-top: 4px; }
+  .cat-bar-fill { height: 4px; border-radius: 2px; }
+
+  /* ── BOTTOM ROW ── */
+  .bottom-row { display: grid; grid-template-columns: 1fr 240px; gap: 16px; }
+
+  /* Orders table */
+  .orders-link { font-size: 12px; color: var(--orange); font-weight: 500; cursor: pointer; text-decoration: none; }
+  .table-head { display: flex; align-items: center; background: var(--muted); border-radius: var(--radius-sm); padding: 0 12px; height: 32px; margin-bottom: 4px; }
+  .th { font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+  .col-mesa { width: 80px; }
+  .col-hora { width: 80px; }
+  .col-items { flex: 1; }
+  .col-importe { width: 90px; }
+  .col-estado { width: 90px; }
+  .order-row { display: flex; align-items: center; padding: 0 12px; height: 40px; border-bottom: 1px solid var(--bg); }
+  .order-row:last-child { border-bottom: none; }
+  .td-mono { font-family: 'Geist Mono', monospace; font-size: 12px; }
+  .td-text { font-size: 12px; color: var(--text-secondary); }
+  .td-bold { font-family: 'Geist Mono', monospace; font-size: 12px; font-weight: 600; }
+  .status-pill { display: inline-flex; align-items: center; justify-content: center; height: 22px; padding: 0 10px; border-radius: 6px; font-size: 10px; font-weight: 600; }
+  .pill-green { background: var(--green-bg); color: var(--green); }
+  .pill-orange { background: var(--orange-bg); color: var(--orange); }
+  .pill-blue { background: var(--blue-bg); color: var(--blue); }
+
+  /* Stats card */
+  .stat-list { display: flex; flex-direction: column; gap: 12px; }
+  .stat-item { display: flex; align-items: center; gap: 12px; padding: 12px; background: var(--muted); border-radius: var(--radius-sm); }
+  .stat-icon-box { width: 32px; height: 32px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .stat-info { flex: 1; }
+  .stat-label { font-size: 11px; color: var(--text-secondary); }
+  .stat-value { font-family: 'Geist Mono', monospace; font-size: 13px; font-weight: 600; margin-top: 2px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">Y</div>
+    <div class="logo-text">
+      <span class="logo-title">YuRest</span>
+      <span class="logo-sub">Backoffice</span>
+    </div>
+  </div>
+  <nav class="nav">
+    <a href="dashboard.html" class="nav-item active">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span>Dashboard</span>
+    </a>
+    <a href="products.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      <span>Productos</span>
+    </a>
+    <a href="families.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+      <span>Familias</span>
+    </a>
+    <a href="tables.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+      <span>Mesas</span>
+    </a>
+    <a href="zones.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></svg>
+      <span>Zonas</span>
+    </a>
+    <a href="taxes.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="19" y1="5" x2="5" y2="19"/><circle cx="6.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/></svg>
+      <span>Impuestos</span>
+    </a>
+    <a href="users.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span>Usuarios</span>
+    </a>
+    <a href="sales.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+      <span>Ventas</span>
+    </a>
+    <a href="logs.html" class="nav-item">
+      <svg class="kpi-icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      <span>Logs</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="avatar">A</div>
+    <div class="user-info">
+      <div class="user-name">Admin</div>
+      <div class="user-role">Administrador</div>
+    </div>
+    <svg width="16" height="16" fill="none" stroke="#6B7FA3" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <header class="topbar">
+    <div class="breadcrumb">
+      <span class="bc-parent">Backoffice</span>
+      <span class="bc-sep">›</span>
+      <span class="bc-current">Dashboard</span>
+    </div>
+    <span class="topbar-date">15 Abril 2026</span>
+    <button class="topbar-icon-btn">
+      <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+    </button>
+    <div class="topbar-avatar">A</div>
+  </header>
+
+  <div class="content">
+
+    <!-- Page Header -->
+    <div class="page-header">
+      <h1>Dashboard</h1>
+      <p>Resumen de actividad del restaurante — hoy, 15 de abril de 2026</p>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Ingresos Hoy</span>
+          <svg class="kpi-icon" fill="none" stroke="#FF8400" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M14.31 8l5.74 9.94M9.69 8h11.48M7.38 12l5.74-9.94M9.69 16L3.95 6.06M14.31 16H2.83M16.62 12l-5.74 9.94"/></svg>
+        </div>
+        <div class="kpi-value">€2,847.50</div>
+        <div class="kpi-delta up">▲ +12% vs ayer</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Pedidos Hoy</span>
+          <svg class="kpi-icon" fill="none" stroke="#3B82F6" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/></svg>
+        </div>
+        <div class="kpi-value">124</div>
+        <div class="kpi-delta up">▲ +8% vs ayer</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Mesas Activas</span>
+          <svg class="kpi-icon" fill="none" stroke="#8B5CF6" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/></svg>
+        </div>
+        <div class="kpi-value">8 / 22</div>
+        <div class="kpi-delta neutral">● 36% ocupación</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-top">
+          <span class="kpi-label">Ticket Medio</span>
+          <svg class="kpi-icon" fill="none" stroke="#10B981" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>
+        </div>
+        <div class="kpi-value">€22.96</div>
+        <div class="kpi-delta up">▲ +3% vs ayer</div>
+      </div>
+    </div>
+
+    <!-- Mid Row -->
+    <div class="mid-row">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Ingresos por hora</span>
+          <span class="badge-green">Hoy</span>
+        </div>
+        <div class="bar-chart">
+          <div class="bar" style="height:30px"></div>
+          <div class="bar" style="height:55px"></div>
+          <div class="bar peak" style="height:75px"></div>
+          <div class="bar" style="height:45px"></div>
+          <div class="bar" style="height:90px"></div>
+          <div class="bar" style="height:110px"></div>
+          <div class="bar peak" style="height:95px"></div>
+          <div class="bar" style="height:65px"></div>
+          <div class="bar" style="height:40px"></div>
+          <div class="bar" style="height:20px"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Top Familias</span>
+        </div>
+        <div class="cat-list">
+          <div>
+            <div class="cat-item-row"><span class="cat-name">Carnes</span><span class="cat-val">€842</span></div>
+            <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:68%;background:#FF8400"></div></div>
+          </div>
+          <div>
+            <div class="cat-item-row"><span class="cat-name">Bebidas</span><span class="cat-val">€521</span></div>
+            <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:42%;background:#3B82F6"></div></div>
+          </div>
+          <div>
+            <div class="cat-item-row"><span class="cat-name">Postres</span><span class="cat-val">€318</span></div>
+            <div class="cat-bar-bg"><div class="cat-bar-fill" style="width:26%;background:#8B5CF6"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Row -->
+    <div class="bottom-row">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Pedidos Recientes</span>
+          <a href="sales.html" class="orders-link">Ver todos →</a>
+        </div>
+        <div class="table-head">
+          <span class="th col-mesa">Mesa</span>
+          <span class="th col-hora">Hora</span>
+          <span class="th col-items">Artículos</span>
+          <span class="th col-importe">Importe</span>
+          <span class="th col-estado">Estado</span>
+        </div>
+        <div class="order-row">
+          <span class="td-mono col-mesa">Mesa 4</span>
+          <span class="td-mono col-hora" style="color:var(--text-secondary)">14:32</span>
+          <span class="td-text col-items">Chuletón · Ensalada · Vino</span>
+          <span class="td-bold col-importe">€48.50</span>
+          <span class="col-estado"><span class="status-pill pill-green">Cerrado</span></span>
+        </div>
+        <div class="order-row">
+          <span class="td-mono col-mesa">Mesa 7</span>
+          <span class="td-mono col-hora" style="color:var(--text-secondary)">14:45</span>
+          <span class="td-text col-items">Merluza · Postre del día</span>
+          <span class="td-bold col-importe">€32.00</span>
+          <span class="col-estado"><span class="status-pill pill-orange">Abierto</span></span>
+        </div>
+        <div class="order-row">
+          <span class="td-mono col-mesa">Barra 2</span>
+          <span class="td-mono col-hora" style="color:var(--text-secondary)">15:02</span>
+          <span class="td-text col-items">Café · Tarta · Agua</span>
+          <span class="td-bold col-importe">€14.80</span>
+          <span class="col-estado"><span class="status-pill pill-orange">Abierto</span></span>
+        </div>
+        <div class="order-row">
+          <span class="td-mono col-mesa">Mesa 11</span>
+          <span class="td-mono col-hora" style="color:var(--text-secondary)">15:18</span>
+          <span class="td-text col-items">Pizza · Cerveza · Tiramisu</span>
+          <span class="td-bold col-importe">€37.20</span>
+          <span class="col-estado"><span class="status-pill pill-blue">Pagando</span></span>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Estado Actual</span>
+        </div>
+        <div class="stat-list">
+          <div class="stat-item">
+            <div class="stat-icon-box" style="background:var(--orange-bg)">
+              <svg width="16" height="16" fill="none" stroke="#FF8400" stroke-width="2" viewBox="0 0 24 24"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">En cocina</div>
+              <div class="stat-value">7 pedidos</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-box" style="background:var(--blue-bg)">
+              <svg width="16" height="16" fill="none" stroke="#3B82F6" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Camareros activos</div>
+              <div class="stat-value">4 de 6</div>
+            </div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-icon-box" style="background:var(--green-bg)">
+              <svg width="16" height="16" fill="none" stroke="#22863A" stroke-width="2" viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Mejor día del mes</div>
+              <div class="stat-value">Martes 08 Abr</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+</body>
+</html>

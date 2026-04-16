@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YuRest TPV — Pago</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Funnel+Sans:wght@400;600;700&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;600&family=Newsreader:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #111827;
+    --surface: #1E2A3B;
+    --surface2: #243044;
+    --surface3: #2D3B52;
+    --border: #2D3B52;
+    --border-light: #374558;
+    --orange: #FF8400;
+    --orange-bg: rgba(255,132,0,.15);
+    --orange-border: rgba(255,132,0,.35);
+    --green: #22C55E;
+    --green-solid: #16A34A;
+    --green-bg: rgba(34,197,94,.15);
+    --red: #EF4444;
+    --red-bg: rgba(239,68,68,.12);
+    --blue: #3B82F6;
+    --blue-bg: rgba(59,130,246,.15);
+    --text-primary: #F1F5F9;
+    --text-secondary: #94A3B8;
+    --text-muted: #64748B;
+  }
+
+  body {
+    font-family: 'Geist', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  /* ── TOP BAR ── */
+  .topbar {
+    height: 52px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 16px;
+    flex-shrink: 0;
+  }
+  .back-btn {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text-secondary); font-size: 13px; cursor: pointer;
+    text-decoration: none; padding: 6px 10px; border-radius: 6px;
+    transition: background .15s;
+  }
+  .back-btn:hover { background: rgba(255,255,255,.06); color: var(--text-primary); }
+  .mesa-badge {
+    background: var(--orange); color: #111;
+    font-weight: 700; font-size: 13px;
+    padding: 4px 14px; border-radius: 20px;
+    font-family: 'Geist Mono', monospace;
+  }
+  .topbar-title {
+    font-family: 'Funnel Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    flex: 1;
+    text-align: center;
+  }
+  .split-btn {
+    display: flex; align-items: center; gap: 6px;
+    color: var(--text-secondary); font-size: 12px;
+    padding: 6px 12px; border-radius: 6px;
+    cursor: pointer; border: 1px solid var(--border);
+    background: transparent; transition: all .15s;
+  }
+  .split-btn:hover { border-color: var(--orange-border); color: var(--orange); }
+
+  /* ── LAYOUT ── */
+  .layout {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+
+  /* ── SUMMARY PANEL (left) ── */
+  .summary-panel {
+    width: 280px;
+    min-width: 280px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .summary-header {
+    padding: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .summary-title {
+    font-family: 'Funnel Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    font-size: 11px;
+  }
+  .summary-items {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+  }
+  .summary-item {
+    display: flex;
+    align-items: center;
+    padding: 9px 16px;
+    gap: 10px;
+  }
+  .s-qty {
+    font-family: 'Geist Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    width: 20px;
+    flex-shrink: 0;
+  }
+  .s-name {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .s-price {
+    font-family: 'Geist Mono', monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .summary-totals {
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+  }
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 3px 0;
+  }
+  .total-label { font-size: 12px; color: var(--text-secondary); }
+  .total-value { font-family: 'Geist Mono', monospace; font-size: 12px; color: var(--text-secondary); }
+  .total-discount { color: var(--green); }
+  .divider { border: none; border-top: 1px solid var(--border); margin: 8px 0; }
+  .total-cobrar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 8px;
+  }
+  .total-cobrar-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .total-cobrar-value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--orange);
+  }
+
+  /* ── PAYMENT AREA (right) ── */
+  .payment-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 20px;
+    overflow-y: auto;
+  }
+
+  /* Payment Method Tabs */
+  .method-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  .method-tab {
+    background: var(--surface);
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    transition: all .15s;
+  }
+  .method-tab:hover {
+    border-color: var(--orange-border);
+    background: var(--surface2);
+  }
+  .method-tab.active {
+    border-color: var(--orange);
+    background: var(--orange-bg);
+  }
+  .method-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .method-icon.cash { background: rgba(34,197,94,.2); }
+  .method-icon.card { background: rgba(59,130,246,.2); }
+  .method-icon.bizum { background: rgba(139,92,246,.2); }
+  .method-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .method-tab.active .method-name { color: var(--orange); }
+
+  /* Amount section */
+  .amount-section {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px 20px;
+  }
+  .amount-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .amount-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .amount-value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 36px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -.02em;
+  }
+  .amount-clear {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-secondary); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .amount-clear:hover { border-color: var(--red); color: var(--red); }
+
+  /* Quick amounts */
+  .quick-amounts {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+  .quick-btn {
+    height: 40px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-primary); font-family: 'Geist Mono', monospace;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    transition: all .15s;
+  }
+  .quick-btn:hover { border-color: var(--orange-border); color: var(--orange); }
+  .quick-btn.exact {
+    border-color: var(--orange-border);
+    background: var(--orange-bg);
+    color: var(--orange);
+  }
+
+  /* Numpad */
+  .numpad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+  }
+  .num-btn {
+    height: 52px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text-primary); font-family: 'Geist Mono', monospace;
+    font-size: 18px; font-weight: 600; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .num-btn:hover { background: var(--surface3); border-color: var(--border-light); }
+  .num-btn:active { transform: scale(.97); }
+  .num-btn.backspace { color: var(--text-secondary); }
+  .num-btn.backspace:hover { color: var(--red); border-color: rgba(239,68,68,.3); }
+
+  /* Change display */
+  .change-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 16px;
+    background: var(--green-bg);
+    border: 1px solid rgba(34,197,94,.2);
+    border-radius: 8px;
+  }
+  .change-label { font-size: 13px; color: var(--text-secondary); }
+  .change-value { font-family: 'Geist Mono', monospace; font-size: 16px; font-weight: 700; color: var(--green); }
+
+  /* Confirm button */
+  .confirm-btn {
+    width: 100%; height: 52px; border-radius: 10px;
+    background: var(--green-solid); border: none;
+    color: #fff; font-size: 15px; font-weight: 700;
+    font-family: 'Geist', sans-serif; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    transition: opacity .15s;
+  }
+  .confirm-btn:hover { opacity: .9; }
+
+  .print-note {
+    text-align: center;
+    font-family: 'Newsreader', serif;
+    font-style: italic;
+    font-size: 12px;
+    color: var(--text-muted);
+    cursor: pointer;
+  }
+  .print-note:hover { color: var(--text-secondary); }
+
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<header class="topbar">
+  <a href="tpv-order.html" class="back-btn">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    Pedido
+  </a>
+  <span class="mesa-badge">Mesa 38</span>
+  <div class="topbar-title">Método de Pago</div>
+  <button class="split-btn">
+    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    Dividir Cuenta
+  </button>
+</header>
+
+<!-- LAYOUT -->
+<div class="layout">
+
+  <!-- SUMMARY PANEL -->
+  <aside class="summary-panel">
+    <div class="summary-header">
+      <span class="summary-title">Resumen del Pedido</span>
+    </div>
+    <div class="summary-items">
+      <div class="summary-item"><span class="s-qty">2×</span><span class="s-name">Croquetas de jamón</span><span class="s-price">€15.00</span></div>
+      <div class="summary-item"><span class="s-qty">1×</span><span class="s-name">Ensalada mixta</span><span class="s-price">€8.50</span></div>
+      <div class="summary-item"><span class="s-qty">1×</span><span class="s-name">Solomillo ibérico</span><span class="s-price">€18.00</span></div>
+      <div class="summary-item"><span class="s-qty">1×</span><span class="s-name">Copa de vino tinto</span><span class="s-price">€6.00</span></div>
+      <div class="summary-item"><span class="s-qty">1×</span><span class="s-name">Tarta de queso</span><span class="s-price">€5.00</span></div>
+      <div class="summary-item"><span class="s-qty">1×</span><span class="s-name">Café solo</span><span class="s-price">€1.80</span></div>
+    </div>
+    <div class="summary-totals">
+      <div class="total-row"><span class="total-label">Subtotal</span><span class="total-value">€58.42</span></div>
+      <div class="total-row"><span class="total-label">IVA (10%)</span><span class="total-value">€5.84</span></div>
+      <div class="total-row"><span class="total-label">Descuento</span><span class="total-value total-discount">−€8.76</span></div>
+      <hr class="divider">
+      <div class="total-cobrar">
+        <span class="total-cobrar-label">Total a Cobrar</span>
+        <span class="total-cobrar-value">€55.50</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PAYMENT AREA -->
+  <main class="payment-area">
+
+    <!-- Method Tabs -->
+    <div class="method-tabs">
+      <div class="method-tab active">
+        <div class="method-icon cash">💵</div>
+        <span class="method-name">Efectivo</span>
+      </div>
+      <div class="method-tab">
+        <div class="method-icon card">💳</div>
+        <span class="method-name">Tarjeta</span>
+      </div>
+      <div class="method-tab">
+        <div class="method-icon bizum">📱</div>
+        <span class="method-name">Bizum</span>
+      </div>
+    </div>
+
+    <!-- Amount Display -->
+    <div class="amount-section">
+      <div class="amount-label">Importe a Cobrar</div>
+      <div class="amount-display">
+        <span class="amount-value">€60.00</span>
+        <button class="amount-clear">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Amounts -->
+    <div class="quick-amounts">
+      <button class="quick-btn">€55.00</button>
+      <button class="quick-btn exact">€60.00</button>
+      <button class="quick-btn">€70.00</button>
+      <button class="quick-btn">€100.00</button>
+    </div>
+
+    <!-- Numpad -->
+    <div class="numpad">
+      <button class="num-btn">1</button>
+      <button class="num-btn">2</button>
+      <button class="num-btn">3</button>
+      <button class="num-btn">4</button>
+      <button class="num-btn">5</button>
+      <button class="num-btn">6</button>
+      <button class="num-btn">7</button>
+      <button class="num-btn">8</button>
+      <button class="num-btn">9</button>
+      <button class="num-btn">.</button>
+      <button class="num-btn">0</button>
+      <button class="num-btn backspace">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+      </button>
+    </div>
+
+    <!-- Change -->
+    <div class="change-row">
+      <span class="change-label">Cambio</span>
+      <span class="change-value">€4.50</span>
+    </div>
+
+    <!-- Confirm -->
+    <button class="confirm-btn" onclick="location.href='tpv-floor.html'">
+      <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Confirmar Cobro
+    </button>
+
+    <span class="print-note">↓ Imprimir ticket también</span>
+
+  </main>
+</div>
+
+<script>
+  // Simple numpad interactivity
+  const amountEl = document.querySelector('.amount-value');
+  let currentAmount = '60.00';
+
+  document.querySelectorAll('.num-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.textContent.trim();
+      if (val === '⌫' || btn.classList.contains('backspace')) {
+        currentAmount = currentAmount.slice(0, -1) || '0';
+      } else if (val === '.') {
+        if (!currentAmount.includes('.')) currentAmount += '.';
+      } else {
+        if (currentAmount === '0') currentAmount = val;
+        else currentAmount += val;
+      }
+      const num = parseFloat(currentAmount) || 0;
+      amountEl.textContent = '€' + num.toFixed(currentAmount.endsWith('.') ? 0 : 2);
+      updateChange(num);
+    });
+  });
+
+  document.querySelectorAll('.quick-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const val = btn.textContent.replace('€', '').trim();
+      currentAmount = val;
+      amountEl.textContent = '€' + parseFloat(val).toFixed(2);
+      updateChange(parseFloat(val));
+    });
+  });
+
+  document.querySelector('.amount-clear').addEventListener('click', () => {
+    currentAmount = '55.50';
+    amountEl.textContent = '€55.50';
+    document.querySelector('.change-value').textContent = '€0.00';
+  });
+
+  function updateChange(paid) {
+    const total = 55.50;
+    const change = paid - total;
+    const changeEl = document.querySelector('.change-value');
+    if (change >= 0) {
+      changeEl.textContent = '€' + change.toFixed(2);
+      changeEl.style.color = 'var(--green)';
+    } else {
+      changeEl.textContent = '−€' + Math.abs(change).toFixed(2);
+      changeEl.style.color = 'var(--red)';
+    }
+  }
+</script>
+
+</body>
+</html>
