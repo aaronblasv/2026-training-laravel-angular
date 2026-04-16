@@ -5,32 +5,36 @@ declare(strict_types=1);
 namespace App\Dashboard\Infrastructure\Persistence\Repositories;
 
 use App\Dashboard\Domain\Interfaces\DashboardRepositoryInterface;
+use App\Dashboard\Domain\ReadModel\DashboardStats;
+use App\Dashboard\Domain\ReadModel\SaleByDay;
+use App\Dashboard\Domain\ReadModel\SaleThisMonth;
+use App\Dashboard\Domain\ReadModel\TopProduct;
 use Illuminate\Support\Facades\DB;
 
 class EloquentDashboardRepository implements DashboardRepositoryInterface
 {
-    public function getStats(int $restaurantId): array
+    public function getStats(int $restaurantId): DashboardStats
     {
         $now = now();
 
-        return [
-            'products'         => DB::table('products')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
-            'families'         => DB::table('families')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
-            'taxes'            => DB::table('taxes')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
-            'users'            => DB::table('users')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
-            'sales_this_month' => DB::table('sales')
+        return new DashboardStats(
+            products: DB::table('products')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
+            families: DB::table('families')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
+            taxes: DB::table('taxes')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
+            users: DB::table('users')->where('restaurant_id', $restaurantId)->whereNull('deleted_at')->count(),
+            salesThisMonth: (int) DB::table('sales')
                 ->where('restaurant_id', $restaurantId)
                 ->whereNull('deleted_at')
                 ->whereYear('value_date', $now->year)
                 ->whereMonth('value_date', $now->month)
                 ->count(),
-            'revenue_this_month' => (int) DB::table('sales')
+            revenueThisMonth: (int) DB::table('sales')
                 ->where('restaurant_id', $restaurantId)
                 ->whereNull('deleted_at')
                 ->whereYear('value_date', $now->year)
                 ->whereMonth('value_date', $now->month)
                 ->sum('total'),
-        ];
+        );
     }
 
     public function getSalesThisMonth(int $restaurantId, int $limit = 10): array
@@ -56,8 +60,15 @@ class EloquentDashboardRepository implements DashboardRepositoryInterface
                 'u.name as user_name',
             )
             ->get()
-            ->map(fn($row) => (array) $row)
-            ->toArray();
+            ->map(fn($row) => new SaleThisMonth(
+                uuid: $row->uuid,
+                ticketNumber: (string) $row->ticket_number,
+                total: (int) $row->total,
+                valueDate: $row->value_date,
+                tableName: $row->table_name,
+                userName: $row->user_name,
+            ))
+            ->all();
     }
 
     public function getTopProducts(int $restaurantId, int $limit = 5): array
@@ -76,8 +87,12 @@ class EloquentDashboardRepository implements DashboardRepositoryInterface
                 DB::raw('SUM(sl.quantity * sl.price) as total_revenue'),
             )
             ->get()
-            ->map(fn($row) => (array) $row)
-            ->toArray();
+            ->map(fn($row) => new TopProduct(
+                name: $row->name,
+                totalQuantity: (int) $row->total_quantity,
+                totalRevenue: (int) $row->total_revenue,
+            ))
+            ->all();
     }
 
     public function getSalesByDay(int $restaurantId, int $days = 30): array
@@ -94,7 +109,11 @@ class EloquentDashboardRepository implements DashboardRepositoryInterface
                 DB::raw('SUM(total) as total'),
             )
             ->get()
-            ->map(fn($row) => (array) $row)
-            ->toArray();
+            ->map(fn($row) => new SaleByDay(
+                day: $row->day,
+                count: (int) $row->count,
+                total: (int) $row->total,
+            ))
+            ->all();
     }
 }
