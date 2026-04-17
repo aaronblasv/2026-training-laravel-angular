@@ -37,12 +37,16 @@ use App\Order\Infrastructure\Entrypoint\Http\OpenOrderController;
 use App\Order\Infrastructure\Entrypoint\Http\GetOrderByTableController;
 use App\Order\Infrastructure\Entrypoint\Http\AddOrderLineController;
 use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderLineQuantityController;
+use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderLineDiscountController;
 use App\Order\Infrastructure\Entrypoint\Http\RemoveOrderLineController;
 use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderDinersController;
+use App\Order\Infrastructure\Entrypoint\Http\UpdateOrderDiscountController;
 use App\Order\Infrastructure\Entrypoint\Http\CloseOrderController;
 use App\Order\Infrastructure\Entrypoint\Http\CancelOrderController;
 use App\Order\Infrastructure\Entrypoint\Http\GetAllOpenOrdersController;
+use App\Order\Infrastructure\Entrypoint\Http\TransferOrderTableController;
 use App\User\Infrastructure\Entrypoint\Http\ValidatePinController;
+use App\User\Infrastructure\Entrypoint\Http\UpdateUserPhotoController;
 use App\Payment\Infrastructure\Entrypoint\Http\RegisterPaymentController;
 use App\Invoice\Infrastructure\Entrypoint\Http\GenerateInvoiceController;
 use App\Log\Infrastructure\Entrypoint\Http\GetLogsController;
@@ -50,12 +54,20 @@ use App\Sale\Infrastructure\Entrypoint\Http\GetAllSalesController;
 use App\Sale\Infrastructure\Entrypoint\Http\GetSaleLinesController;
 use App\Sale\Infrastructure\Entrypoint\Http\GetSalesReportController;
 use App\Dashboard\Infrastructure\Entrypoint\Http\DashboardController;
+use App\Refund\Infrastructure\Entrypoint\Http\CreateRefundController;
+use App\CashShift\Infrastructure\Entrypoint\Http\OpenCashShiftController;
+use App\CashShift\Infrastructure\Entrypoint\Http\GetCurrentCashShiftController;
+use App\CashShift\Infrastructure\Entrypoint\Http\CloseCashShiftController;
+use App\Table\Infrastructure\Entrypoint\Http\MergeTablesController;
+use App\Table\Infrastructure\Entrypoint\Http\UnmergeTablesController;
+use App\Shared\Infrastructure\Entrypoint\Http\UploadImageController;
 
 Route::post('/auth/login', LoginController::class);
 
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/auth/logout', LogoutController::class);
     Route::get('/auth/me', GetAuthenticatedUserController::class);
+    Route::post('/upload-image', UploadImageController::class);
 
     Route::post('/orders', OpenOrderController::class);
     Route::get('/tables/{tableUuid}/order', GetOrderByTableController::class);
@@ -64,8 +76,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/orders/{orderUuid}/payments', RegisterPaymentController::class);
     Route::post('/orders/{orderUuid}/generate-invoice', GenerateInvoiceController::class);
     Route::put('/orders/{orderUuid}/lines/{lineUuid}', UpdateOrderLineQuantityController::class);
+    Route::patch('/orders/{orderUuid}/lines/{lineUuid}/discount', UpdateOrderLineDiscountController::class);
     Route::delete('/orders/{orderUuid}/lines/{lineUuid}', RemoveOrderLineController::class);
     Route::patch('/orders/{orderUuid}/diners', UpdateOrderDinersController::class);
+    Route::patch('/orders/{orderUuid}/discount', UpdateOrderDiscountController::class);
+    Route::patch('/orders/{orderUuid}/transfer', TransferOrderTableController::class);
     Route::post('/orders/{orderUuid}/close', CloseOrderController::class);
     Route::delete('/orders/{orderUuid}', CancelOrderController::class);
 
@@ -76,6 +91,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/tpv/validate-pin', ValidatePinController::class);
     Route::get('/tpv/families', GetAllFamiliesController::class);
     Route::get('/tpv/taxes', GetAllTaxesController::class);
+    Route::post('/tpv/tables/{tableUuid}/merge', MergeTablesController::class);
+    Route::post('/tpv/tables/{tableUuid}/unmerge', UnmergeTablesController::class);
+    Route::patch('/tpv/users/{uuid}/photo', UpdateUserPhotoController::class);
 });
 
 Route::middleware(['auth:sanctum', 'backoffice'])->group(function () {
@@ -121,4 +139,9 @@ Route::middleware(['auth:sanctum', 'backoffice'])->group(function () {
     Route::get('/sales', GetAllSalesController::class);
     Route::get('/sales/report', GetSalesReportController::class);
     Route::get('/sales/{uuid}/lines', GetSaleLinesController::class);
+    Route::post('/sales/{saleUuid}/refunds', CreateRefundController::class);
+
+    Route::get('/cash-shifts/current', GetCurrentCashShiftController::class);
+    Route::post('/cash-shifts', OpenCashShiftController::class);
+    Route::post('/cash-shifts/{cashShiftUuid}/close', CloseCashShiftController::class);
 });

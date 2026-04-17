@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\CashShift\Domain\Interfaces\CashShiftRepositoryInterface;
+use App\CashShift\Infrastructure\Persistence\Repositories\EloquentCashShiftRepository;
 use App\Dashboard\Domain\Interfaces\DashboardRepositoryInterface;
 use App\Dashboard\Infrastructure\Persistence\Repositories\EloquentDashboardRepository;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
@@ -22,6 +24,8 @@ use App\Payment\Domain\Interfaces\PaymentRepositoryInterface;
 use App\Payment\Infrastructure\Persistence\Repositories\EloquentPaymentRepository;
 use App\Product\Domain\Interfaces\ProductRepositoryInterface;
 use App\Product\Infrastructure\Persistence\Repositories\EloquentProductRepository;
+use App\Refund\Domain\Interfaces\RefundRepositoryInterface;
+use App\Refund\Infrastructure\Persistence\Repositories\EloquentRefundRepository;
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
 use App\Restaurant\Infrastructure\Persistence\Repositories\EloquentRestaurantRepository;
 use App\Sale\Domain\Interfaces\SaleRepositoryInterface;
@@ -91,6 +95,12 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(GetLogs::class, fn($app) => new GetLogs(
             $app->make(LogRepositoryInterface::class),
         ));
+
+        // Refund
+        $this->app->bind(RefundRepositoryInterface::class, EloquentRefundRepository::class);
+
+        // Cash shift
+        $this->app->bind(CashShiftRepositoryInterface::class, EloquentCashShiftRepository::class);
     }
 
     public function boot(): void

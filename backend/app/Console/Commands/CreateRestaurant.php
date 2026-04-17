@@ -2,10 +2,8 @@
 
 namespace App\Console\Commands;
 
+use App\Restaurant\Application\CreateRestaurant\CreateRestaurant as CreateRestaurantUseCase;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Str;
 
 class CreateRestaurant extends Command
 {
@@ -20,31 +18,25 @@ class CreateRestaurant extends Command
 
     protected $description = 'Crea un restaurante y su usuario administrador';
 
+    public function __construct(
+        private CreateRestaurantUseCase $useCase,
+    ) {
+        parent::__construct();
+    }
+
     public function handle(): void
     {
-        $restaurantId = DB::table('restaurants')->insertGetId([
-            'uuid'       => Str::uuid(),
-            'name'       => $this->argument('name'),
-            'legal_name' => $this->argument('legal_name'),
-            'tax_id'     => $this->argument('tax_id'),
-            'email'      => $this->argument('restaurant_email'),
-            'password'   => Hash::make(Str::random(16)),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $response = ($this->useCase)(
+            $this->argument('name'),
+            $this->argument('legal_name'),
+            $this->argument('tax_id'),
+            $this->argument('restaurant_email'),
+            $this->argument('admin_name'),
+            $this->argument('admin_email'),
+            $this->argument('admin_password'),
+        );
 
-        DB::table('users')->insert([
-            'uuid'          => Str::uuid(),
-            'name'          => $this->argument('admin_name'),
-            'email'         => $this->argument('admin_email'),
-            'password'      => Hash::make($this->argument('admin_password')),
-            'role'          => 'admin',
-            'restaurant_id' => $restaurantId,
-            'created_at'    => now(),
-            'updated_at'    => now(),
-        ]);
-
-        $this->info("Restaurante '{$this->argument('name')}' creado correctamente.");
-        $this->info("Admin: {$this->argument('admin_email')}");
+        $this->info("Restaurante '{$response->restaurantName}' creado correctamente.");
+        $this->info("Admin: {$response->adminEmail}");
     }
 }
