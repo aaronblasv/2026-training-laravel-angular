@@ -1,7 +1,8 @@
 .table-card {
-  background: white;
+  background: var(--bo-surface, #1E2A3B);
+  border: 1px solid var(--bo-border, #2D3B52);
   border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  box-shadow: none;
   overflow: hidden;
 
   table {
@@ -13,14 +14,14 @@
       padding: 1rem 1.5rem;
       font-size: 0.875rem;
       font-weight: 600;
-      color: #6B7280;
-      border-bottom: 1px solid #E5E7EB;
+      color: var(--bo-text-3, #64748B);
+      border-bottom: 1px solid var(--bo-border, #2D3B52);
     }
 
     td {
       padding: 1rem 1.5rem;
-      color: #1F2937;
-      border-bottom: 1px solid #F3F4F6;
+      color: var(--bo-text-1, #F1F5F9);
+      border-bottom: 1px solid rgba(45,59,82,.5);
       font-size: 0.875rem;
     }
 
@@ -31,13 +32,13 @@
 }
 
 .date-cell {
-  color: #6B7280 !important;
+  color: var(--bo-text-3, #64748B) !important;
   white-space: nowrap;
 }
 
 .ip-cell {
   font-family: monospace;
-  color: #6B7280 !important;
+  color: var(--bo-text-3, #64748B) !important;
 }
 
 .badge {
@@ -49,33 +50,34 @@
 }
 
 .badge-green {
-  background: #D1FAE5;
-  color: #065F46;
+  background: var(--bo-green-bg, rgba(34,197,94,.15));
+  color: var(--bo-green, #22C55E);
 }
 
 .badge-blue {
-  background: #DBEAFE;
-  color: #1E40AF;
+  background: var(--bo-blue-bg, rgba(59,130,246,.15));
+  color: var(--bo-blue, #3B82F6);
 }
 
 .badge-red {
-  background: #FEE2E2;
-  color: #991B1B;
+  background: var(--bo-red-bg, rgba(239,68,68,.12));
+  color: var(--bo-red, #EF4444);
 }
 
 .badge-gray {
-  background: #F3F4F6;
-  color: #374151;
+  background: var(--bo-surface2, #243044);
+  color: var(--bo-text-2, #94A3B8);
+  border: 1px solid var(--bo-border, #2D3B52);
 }
 
 .entity-type {
   font-size: 0.8rem;
-  color: #6B7280;
+  color: var(--bo-text-2, #94A3B8);
 }
 
 .empty-state {
   padding: 3rem;
   text-align: center;
-  color: #6B7280;
+  color: var(--bo-text-3, #64748B);
   font-size: 0.875rem;
 }

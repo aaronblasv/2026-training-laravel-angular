@@ -14,9 +14,9 @@
 }
 
 .sidebar {
-  width: 260px;
+  width: 280px;
   height: 100vh;
-  background: #1F2937;
+  background: var(--bo-sidebar, #0F172A);
   display: flex;
   flex-direction: column;
   position: fixed;
@@ -25,20 +25,18 @@
   z-index: 51;
   transform: translateX(-100%);
   transition: transform 0.3s ease;
+  border-right: 1px solid var(--bo-border, #2D3B52);
 
   &.open {
     transform: translateX(0);
   }
 }
 
-.logo-icon {
-  color: white;
-  font-size: 1.5rem;
-}
+.logo-icon { color: var(--bo-text-1, #F1F5F9); font-size: 1.5rem; }
 
 .sidebar-header {
-  padding: 1.5rem;
-  border-bottom: 1px solid #374151;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--bo-border, #2D3B52);
   display: flex;
   flex-direction: column;
 
@@ -47,54 +45,75 @@
     align-items: center;
     gap: 0.75rem;
 
-    .logo-icon { font-size: 1.5rem; }
-    .logo-text { color: white; font-size: 1.25rem; font-weight: 700; }
+    .logo-icon { font-size: 1.5rem; color: var(--bo-blue, #3B82F6); }
+    .logo-text { color: var(--bo-text-1, #F1F5F9); font-size: 18px; font-weight: 700; font-family: 'Funnel Sans', sans-serif; }
   }
 
   .logo-subtitle {
-    color: #9CA3AF;
-    font-size: 0.75rem;
-    margin-top: 0.25rem;
+    color: var(--bo-text-3, #64748B);
+    font-size: 11px;
+    margin-top: 2px;
     margin-left: 2.25rem;
+    font-family: 'Newsreader', serif;
   }
 }
 
 .sidebar-nav {
   flex: 1;
-  padding: 1rem 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 
   .nav-item {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1.5rem;
-    color: #9CA3AF;
+    gap: 10px;
+    padding: 0 12px;
+    height: 40px;
+    border-radius: 8px;
+    color: var(--bo-text-2, #94A3B8);
     text-decoration: none;
     transition: all 0.2s;
+    border: 1px solid transparent;
 
-    &:hover { background: #374151; color: white; }
-    &.active { background: #2563EB; color: white; }
+    ion-icon { color: var(--bo-text-3, #64748B); }
 
-    .nav-label { font-size: 0.9rem; font-weight: 500; }
+    &:hover {
+      background: var(--bo-surface2, #243044);
+      color: var(--bo-text-1, #F1F5F9);
+    }
+
+    &:hover ion-icon { color: var(--bo-text-1, #F1F5F9); }
+
+    &.active {
+      background: var(--bo-blue-bg, rgba(59,130,246,.15));
+      border-color: var(--bo-blue-border, rgba(59,130,246,.35));
+      color: var(--bo-blue, #3B82F6);
+    }
+
+    &.active ion-icon { color: var(--bo-blue, #3B82F6); }
+
+    .nav-label { font-size: 13px; font-weight: 500; }
   }
 }
 
 .sidebar-footer {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #374151;
+  padding: 14px 20px;
+  border-top: 1px solid var(--bo-border, #2D3B52);
 
   .logout-btn {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    color: #9CA3AF;
+    gap: 10px;
+    color: var(--bo-text-2, #94A3B8);
     background: none;
     border: none;
     cursor: pointer;
     padding: 0.5rem 0;
     width: 100%;
 
-    &:hover { color: white; }
+    &:hover { color: var(--bo-text-1, #F1F5F9); }
   }
 }
 
@@ -106,9 +125,9 @@
   width: 40px;
   height: 40px;
   border-radius: 8px;
-  background: #1F2937;
-  border: none;
-  color: white;
+  background: var(--bo-surface, #1E2A3B);
+  border: 1px solid var(--bo-border, #2D3B52);
+  color: var(--bo-text-1, #F1F5F9);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -116,12 +135,12 @@
   font-size: 1.25rem;
   box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 
-  &:hover { background: #374151; }
+  &:hover { background: var(--bo-surface2, #243044); }
 }
 
 .sidebar-user {
-  padding: 1rem 1.5rem;
-  border-top: 1px solid #374151;
+  padding: 14px 20px;
+  border-top: 1px solid var(--bo-border, #2D3B52);
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -131,7 +150,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #2563EB;
+  background: var(--bo-blue, #3B82F6);
   color: white;
   display: flex;
   align-items: center;
@@ -148,7 +167,7 @@
 }
 
 .user-name {
-  color: white;
+  color: var(--bo-text-1, #F1F5F9);
   font-size: 0.875rem;
   font-weight: 600;
   white-space: nowrap;
@@ -157,6 +176,7 @@
 }
 
 .user-role {
-  color: #9CA3AF;
-  font-size: 0.75rem;
+  color: var(--bo-text-3, #64748B);
+  font-size: 11px;
+  font-family: 'Newsreader', serif;
 }
