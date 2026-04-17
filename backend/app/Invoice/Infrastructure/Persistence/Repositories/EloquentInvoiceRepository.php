@@ -48,8 +48,8 @@ class EloquentInvoiceRepository implements InvoiceRepositoryInterface
 
     public function getNextInvoiceNumber(): string
     {
-        $count = $this->model->newQuery()->count() + 1;
-        return 'INV-' . date('Ymd') . '-' . str_pad($count, 4, '0', STR_PAD_LEFT);
+        $count = $this->model->newQuery()->lockForUpdate()->count() + 1;
+        return 'INV-' . date('Ymd') . '-' . str_pad((string) $count, 4, '0', STR_PAD_LEFT);
     }
 
     private function toDomain(EloquentInvoice $invoice): Invoice

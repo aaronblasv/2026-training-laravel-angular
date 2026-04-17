@@ -5,7 +5,7 @@ namespace App\Zone\Domain\ValueObject;
 class ZoneName 
 {
     private function __construct(
-        public string $value,
+        private string $value,
     ) {
         $this->validate();
     }
@@ -18,7 +18,7 @@ class ZoneName
     private function validate(): void
     {
         if (empty($this->value)) {
-            throw new InvalidArgumentException('Zone name cannot be empty');
+            throw new \InvalidArgumentException('Zone name cannot be empty');
         }
     }
 

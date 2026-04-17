@@ -3,7 +3,6 @@
 namespace App\User\Application\LogoutUser;
 
 use App\User\Domain\Interfaces\TokenGeneratorInterface;
-use App\User\Domain\Entity\User;
 
 class LogoutUser
 {
@@ -11,8 +10,8 @@ class LogoutUser
         private TokenGeneratorInterface $tokenGenerator,
     ) {}
 
-    public function __invoke(User $user)
+    public function __invoke(string $userUuid): void
     {
-        $this->tokenGenerator->revokeTokens($user);
+        $this->tokenGenerator->revokeTokensByUuid($userUuid);
     }
 }

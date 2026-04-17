@@ -19,7 +19,7 @@ class ActivateFamily
             throw new FamilyNotFoundException($uuid);
         }
 
-        $family->dddUpdate($family->name(), true);
+        $family->activate();
 
         $this->repository->save($family);
     }

@@ -15,7 +15,7 @@ class EloquentUserRepository implements UserRepositoryInterface
     public function save(User $user): void
     {
         $this->model->newQuery()->updateOrCreate(
-            ['uuid' => $user->id()->getValue()],
+            ['uuid' => $user->uuid()->getValue()],
             [
                 'name' => $user->name()->getValue(),
                 'email' => $user->email()->getValue(),
@@ -23,6 +23,7 @@ class EloquentUserRepository implements UserRepositoryInterface
                 'role' => $user->role()->getValue(),
                 'restaurant_id' => $user->restaurantId(),
                 'pin' => $user->pin(),
+                'image_src' => $user->imageSrc(),
                 'created_at' => $user->createdAt()->getValue(),
                 'updated_at' => $user->updatedAt()->getValue(),
             ]
@@ -42,14 +43,21 @@ class EloquentUserRepository implements UserRepositoryInterface
                 $model->role,
                 $model->restaurant_id,
                 $model->pin,
+                $model->image_src,
                 $model->created_at->toDateTimeImmutable(),
                 $model->updated_at->toDateTimeImmutable(),
             ))->toArray();
     }
 
-    public function findById(string $id): ?User
+    public function findById(string $id, ?int $restaurantId = null): ?User
     {
-        $model = $this->model->newQuery()->where('uuid', $id)->first();
+        $query = $this->model->newQuery()->where('uuid', $id);
+
+        if ($restaurantId !== null) {
+            $query->where('restaurant_id', $restaurantId);
+        }
+
+        $model = $query->first();
 
         if ($model === null) {
             return null;
@@ -63,6 +71,7 @@ class EloquentUserRepository implements UserRepositoryInterface
             $model->role,
             $model->restaurant_id,
             $model->pin,
+            $model->image_src,
             $model->created_at->toDateTimeImmutable(),
             $model->updated_at->toDateTimeImmutable(),
         );
@@ -84,6 +93,7 @@ class EloquentUserRepository implements UserRepositoryInterface
             $model->role,
             $model->restaurant_id,
             $model->pin,
+            $model->image_src,
             $model->created_at->toDateTimeImmutable(),
             $model->updated_at->toDateTimeImmutable(),
         );
@@ -91,7 +101,7 @@ class EloquentUserRepository implements UserRepositoryInterface
 
     public function delete(User $user): void
     {
-        $this->model->newQuery()->where('uuid', $user->id()->getValue())->delete();
+        $this->model->newQuery()->where('uuid', $user->uuid()->getValue())->delete();
     }
 
     public function findByPin(string $pin, int $restaurantId): ?User
@@ -113,6 +123,7 @@ class EloquentUserRepository implements UserRepositoryInterface
             $model->role,
             $model->restaurant_id,
             $model->pin,
+            $model->image_src,
             $model->created_at->toDateTimeImmutable(),
             $model->updated_at->toDateTimeImmutable(),
         );

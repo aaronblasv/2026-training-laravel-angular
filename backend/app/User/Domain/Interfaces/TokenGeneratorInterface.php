@@ -8,4 +8,5 @@ interface TokenGeneratorInterface
 {
     public function generateToken(User $user): string;
     public function revokeTokens(User $user): void;
+    public function revokeTokensByUuid(string $uuid): void;
 }

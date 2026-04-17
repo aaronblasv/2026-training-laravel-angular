@@ -28,6 +28,7 @@ class EloquentUser extends Authenticatable
         'role',
         'restaurant_id',
         'pin',
+        'image_src',
     ];
 
     protected $hidden = [

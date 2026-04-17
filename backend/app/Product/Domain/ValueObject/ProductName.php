@@ -6,7 +6,7 @@ class ProductName
 {
 
     private function __construct(
-        public string $value,
+        private string $value,
     ) {
         $this->validate();
     }

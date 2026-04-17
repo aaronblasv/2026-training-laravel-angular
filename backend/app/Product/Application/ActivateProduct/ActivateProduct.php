@@ -19,15 +19,7 @@ class ActivateProduct
             throw new ProductNotFoundException($uuid);
         }
 
-        $product->dddUpdate(
-            $product->name(),
-            $product->price(),
-            $product->stock(),
-            true,
-            $product->familyId(),
-            $product->taxId(),
-            $product->imageSrc(),
-        );
+        $product->activate();
 
         $this->repository->save($product);
     }

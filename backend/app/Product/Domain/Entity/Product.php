@@ -86,4 +86,14 @@ class Product
     public function taxId(): Uuid { return $this->taxId; }
     public function restaurantId(): int { return $this->restaurantId; }
     public function imageSrc(): ?string { return $this->imageSrc; }
+
+    public function activate(): void
+    {
+        $this->active = true;
+    }
+
+    public function deactivate(): void
+    {
+        $this->active = false;
+    }
 }

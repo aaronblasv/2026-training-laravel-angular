@@ -15,7 +15,7 @@ final readonly class GetUserByIdResponse
     public static function create(User $user): self
     {
         return new self(
-            uuid: $user->id()->getValue(),
+            uuid: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
         );

@@ -19,7 +19,7 @@ class DeactivateFamily
             throw new FamilyNotFoundException($uuid);
         }
 
-        $family->dddUpdate($family->name(), false);
+        $family->deactivate();
 
         $this->repository->save($family);
     }

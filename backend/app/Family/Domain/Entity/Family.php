@@ -43,6 +43,16 @@ class Family
         $this->active = $active;
     }
 
+    public function activate(): void
+    {
+        $this->active = true;
+    }
+
+    public function deactivate(): void
+    {
+        $this->active = false;
+    }
+
     public function uuid(): Uuid
     {
         return $this->uuid;

@@ -12,9 +12,9 @@ class GetUserById
         private UserRepositoryInterface $userRepository,
     ) {}
 
-    public function __invoke(string $uuid): GetUserByIdResponse
+    public function __invoke(string $uuid, int $restaurantId): GetUserByIdResponse
     {
-        $user = $this->userRepository->findById($uuid);
+        $user = $this->userRepository->findById($uuid, $restaurantId);
 
         if ($user === null) {
             throw new UserNotFoundException($uuid);

@@ -10,13 +10,24 @@ class LaravelTokenGenerator implements TokenGeneratorInterface
 {
     public function generateToken(User $user): string
     {
-        $eloquentUser = EloquentUser::where('uuid', $user->id()->getValue())->firstOrFail();
+        $eloquentUser = EloquentUser::where('uuid', $user->uuid()->getValue())->firstOrFail();
         return $eloquentUser->createToken('auth-token')->plainTextToken;
     }
 
     public function revokeTokens(User $user): void
     {
-        $eloquentUser = EloquentUser::where('uuid', $user->id()->getValue())->first();
+        $eloquentUser = EloquentUser::where('uuid', $user->uuid()->getValue())->first();
+
+        if ($eloquentUser === null) {
+            return;
+        }
+
+        $eloquentUser->tokens()->delete();
+    }
+
+    public function revokeTokensByUuid(string $uuid): void
+    {
+        $eloquentUser = EloquentUser::where('uuid', $uuid)->first();
 
         if ($eloquentUser === null) {
             return;

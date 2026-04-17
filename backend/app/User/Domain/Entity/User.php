@@ -19,11 +19,12 @@ class User
         private UserRole $role,
         private int $restaurantId,
         private ?string $pin,
+        private ?string $imageSrc,
         private DomainDateTime $createdAt,
         private DomainDateTime $updatedAt,
     ) {}
 
-    public static function dddCreate(Email $email, UserName $name, PasswordHash $passwordHash, UserRole $role, int $restaurantId): self
+    public static function dddCreate(Email $email, UserName $name, PasswordHash $passwordHash, UserRole $role, int $restaurantId, ?string $imageSrc = null): self
     {
         $now = DomainDateTime::now();
 
@@ -35,15 +36,17 @@ class User
             $role,
             $restaurantId,
             str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT),
+            $imageSrc,
             $now,
             $now,
         );
     }
 
-    public function dddUpdate(UserName $name, Email $email): void
+    public function dddUpdate(UserName $name, Email $email, ?string $imageSrc = null): void
     {
         $this->name = $name;
         $this->email = $email;
+        $this->imageSrc = $imageSrc;
         $this->updatedAt = DomainDateTime::now();
     }
 
@@ -55,6 +58,7 @@ class User
         string $role,
         int $restaurantId,
         ?string $pin,
+        ?string $imageSrc,
         \DateTimeImmutable $createdAt,
         \DateTimeImmutable $updatedAt,
     ): self {
@@ -66,12 +70,13 @@ class User
             UserRole::create($role),
             $restaurantId,
             $pin,
+            $imageSrc,
             DomainDateTime::create($createdAt),
             DomainDateTime::create($updatedAt),
         );
     }
 
-    public function id(): Uuid { return $this->id; }
+    public function uuid(): Uuid { return $this->id; }
     public function name(): UserName { return $this->name; }
     public function email(): Email { return $this->email; }
     public function passwordHash(): PasswordHash { return $this->passwordHash; }
@@ -80,4 +85,5 @@ class User
     public function createdAt(): DomainDateTime { return $this->createdAt; }
     public function updatedAt(): DomainDateTime { return $this->updatedAt; }
     public function pin(): ?string { return $this->pin; }
+    public function imageSrc(): ?string { return $this->imageSrc; }
 }

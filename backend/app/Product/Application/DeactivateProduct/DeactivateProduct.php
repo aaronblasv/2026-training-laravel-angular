@@ -19,15 +19,7 @@ class DeactivateProduct
             throw new ProductNotFoundException($uuid);
         }
 
-        $product->dddUpdate(
-            $product->name(),
-            $product->price(),
-            $product->stock(),
-            false,
-            $product->familyId(),
-            $product->taxId(),
-            $product->imageSrc(),
-        );
+        $product->deactivate();
 
         $this->repository->save($product);
     }

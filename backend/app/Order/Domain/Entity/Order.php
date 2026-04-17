@@ -19,6 +19,9 @@ class Order
         private Uuid $openedByUserId,
         private ?Uuid $closedByUserId,
         private Diners $diners,
+        private ?string $discountType,
+        private int $discountValue,
+        private int $discountAmount,
         private DomainDateTime $openedAt,
         private ?DomainDateTime $closedAt,
     ) {}
@@ -38,6 +41,9 @@ class Order
             $openedByUserId,
             null,
             $diners,
+            null,
+            0,
+            0,
             DomainDateTime::now(),
             null,
         );
@@ -51,6 +57,9 @@ class Order
         string $openedByUserId,
         ?string $closedByUserId,
         int $diners,
+        ?string $discountType,
+        int $discountValue,
+        int $discountAmount,
         \DateTimeImmutable $openedAt,
         ?\DateTimeImmutable $closedAt,
     ): self {
@@ -62,6 +71,9 @@ class Order
             Uuid::create($openedByUserId),
             $closedByUserId ? Uuid::create($closedByUserId) : null,
             Diners::create($diners),
+            $discountType,
+            $discountValue,
+            $discountAmount,
             DomainDateTime::create($openedAt),
             $closedAt ? DomainDateTime::create($closedAt) : null,
         );
@@ -79,7 +91,34 @@ class Order
 
     public function updateDiners(Diners $diners): void
     {
+        if (!$this->status->isOpen()) {
+            throw new \App\Order\Domain\Exception\CannotUpdateDinersOnClosedOrderException($this->uuid->getValue());
+        }
         $this->diners = $diners;
+    }
+
+    public function applyDiscount(?string $discountType, int $discountValue, int $baseAmount): void
+    {
+        if ($discountType === null || $discountValue <= 0) {
+            $this->discountType = null;
+            $this->discountValue = 0;
+            $this->discountAmount = 0;
+
+            return;
+        }
+
+        $this->discountType = $discountType;
+        $this->discountValue = $discountValue;
+        $this->discountAmount = self::calculateDiscountAmount($discountType, $discountValue, $baseAmount);
+    }
+
+    public function moveToTable(Uuid $tableId): void
+    {
+        if (!$this->status->isOpen()) {
+            throw new \DomainException('Cannot move an order that is not open.');
+        }
+
+        $this->tableId = $tableId;
     }
 
     public function uuid(): Uuid { return $this->uuid; }
@@ -89,22 +128,62 @@ class Order
     public function openedByUserId(): Uuid { return $this->openedByUserId; }
     public function closedByUserId(): ?Uuid { return $this->closedByUserId; }
     public function diners(): Diners { return $this->diners; }
+    public function discountType(): ?string { return $this->discountType; }
+    public function discountValue(): int { return $this->discountValue; }
+    public function discountAmount(): int { return $this->discountAmount; }
     public function openedAt(): DomainDateTime { return $this->openedAt; }
     public function closedAt(): ?DomainDateTime { return $this->closedAt; }
 
     public function calculateSubtotal(array $lines): int
     {
-        return array_reduce($lines, function ($carry, $line) {
-            return $carry + ($line->price() * $line->quantity()->getValue());
-        }, 0);
+        return max(0, $this->calculateLinesSubtotalAfterDiscounts($lines) - $this->calculateOrderDiscountAmount($lines));
     }
 
     public function calculateTaxAmount(array $lines): int
     {
-        return array_reduce($lines, function ($carry, $line) {
-            $lineSubtotal = $line->price() * $line->quantity()->getValue();
-            $taxAmount = (int) round($lineSubtotal * $line->taxPercentage() / 100);
-            return $carry + $taxAmount;
+        $lineSubtotal = $this->calculateLinesSubtotalAfterDiscounts($lines);
+        if ($lineSubtotal <= 0) {
+            return 0;
+        }
+
+        $taxBeforeOrderDiscount = array_reduce($lines, function ($carry, $line) {
+            return $carry + $line->taxAmount();
         }, 0);
+
+        $ratio = max(0, ($lineSubtotal - $this->calculateOrderDiscountAmount($lines)) / $lineSubtotal);
+
+        return (int) round($taxBeforeOrderDiscount * $ratio);
+    }
+
+    public function calculateLineDiscountTotal(array $lines): int
+    {
+        return array_reduce($lines, fn ($carry, $line) => $carry + $line->discountAmount(), 0);
+    }
+
+    public function calculateOrderDiscountAmount(array $lines): int
+    {
+        if ($this->discountType === null || $this->discountValue <= 0) {
+            return 0;
+        }
+
+        return self::calculateDiscountAmount(
+            $this->discountType,
+            $this->discountValue,
+            $this->calculateLinesSubtotalAfterDiscounts($lines),
+        );
+    }
+
+    private function calculateLinesSubtotalAfterDiscounts(array $lines): int
+    {
+        return array_reduce($lines, fn ($carry, $line) => $carry + $line->subtotalAfterDiscount(), 0);
+    }
+
+    private static function calculateDiscountAmount(string $discountType, int $discountValue, int $baseAmount): int
+    {
+        $rawAmount = $discountType === 'percentage'
+            ? (int) round($baseAmount * $discountValue / 100)
+            : $discountValue;
+
+        return max(0, min($baseAmount, $rawAmount));
     }
 }

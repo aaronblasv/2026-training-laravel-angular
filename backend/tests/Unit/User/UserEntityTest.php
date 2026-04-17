@@ -26,7 +26,7 @@ class UserEntityTest extends TestCase
         $this->assertInstanceOf(User::class, $user);
         $this->assertMatchesRegularExpression(
             '/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i',
-            $user->id()->getValue()
+            $user->uuid()->getValue()
         );
         $this->assertSame('Test User', $user->name()->getValue());
         $this->assertSame('user@example.com', $user->email()->getValue());
