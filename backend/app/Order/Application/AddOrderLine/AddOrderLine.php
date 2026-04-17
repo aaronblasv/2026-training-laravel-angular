@@ -10,6 +10,8 @@ use App\Order\Domain\Exception\OrderNotFoundException;
 use App\Order\Domain\Interfaces\OrderRepositoryInterface;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Order\Domain\ValueObject\Quantity;
+use App\Product\Domain\Interfaces\ProductRepositoryInterface;
+use App\Tax\Domain\Interfaces\TaxRepositoryInterface;
 use App\Shared\Domain\ValueObject\Uuid;
 
 class AddOrderLine
@@ -17,6 +19,8 @@ class AddOrderLine
     public function __construct(
         private OrderRepositoryInterface $orderRepository,
         private OrderLineRepositoryInterface $lineRepository,
+        private ProductRepositoryInterface $productRepository,
+        private TaxRepositoryInterface $taxRepository,
     ) {}
 
     public function __invoke(
@@ -25,8 +29,6 @@ class AddOrderLine
         string $productUuid,
         string $userUuid,
         int $quantity,
-        int $price,
-        int $taxPercentage,
     ): AddOrderLineResponse {
         $order = $this->orderRepository->findById($orderUuid, $restaurantId);
         if (!$order) {
@@ -36,6 +38,16 @@ class AddOrderLine
             throw new CannotAddLinesToClosedOrderException($orderUuid);
         }
 
+        $product = $this->productRepository->findById($productUuid, $restaurantId);
+        if (!$product) {
+            throw new \DomainException("Product not found: {$productUuid}");
+        }
+
+        $tax = $this->taxRepository->findById($product->taxId()->getValue(), $restaurantId);
+        if (!$tax) {
+            throw new \DomainException("Tax not found for product: {$productUuid}");
+        }
+
         $line = OrderLine::dddCreate(
             Uuid::generate(),
             $restaurantId,
@@ -43,8 +55,8 @@ class AddOrderLine
             Uuid::create($productUuid),
             Uuid::create($userUuid),
             Quantity::create($quantity),
-            $price,
-            $taxPercentage,
+            $product->price()->getValue(),
+            $tax->percentage()->getValue(),
         );
 
         $this->lineRepository->save($line);

@@ -14,6 +14,9 @@ final readonly class OpenOrderResponse
         public string $tableId,
         public string $openedByUserId,
         public int $diners,
+        public ?string $discountType,
+        public int $discountValue,
+        public int $discountAmount,
         public string $openedAt,
     ) {}
 
@@ -25,6 +28,9 @@ final readonly class OpenOrderResponse
             $order->tableId()->getValue(),
             $order->openedByUserId()->getValue(),
             $order->diners()->getValue(),
+            $order->discountType(),
+            $order->discountValue(),
+            $order->discountAmount(),
             $order->openedAt()->format('Y-m-d H:i:s'),
         );
     }
@@ -40,6 +46,9 @@ final readonly class OpenOrderResponse
             'table_id' => $this->tableId,
             'opened_by_user_id' => $this->openedByUserId,
             'diners' => $this->diners,
+            'discount_type' => $this->discountType,
+            'discount_value' => $this->discountValue,
+            'discount_amount' => $this->discountAmount,
             'opened_at' => $this->openedAt,
         ];
     }

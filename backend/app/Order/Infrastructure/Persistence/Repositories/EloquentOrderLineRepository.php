@@ -35,6 +35,9 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             'quantity'       => $line->quantity()->getValue(),
             'price'          => $line->price(),
             'tax_percentage' => $line->taxPercentage(),
+            'discount_type'  => $line->discountType(),
+            'discount_value' => $line->discountValue(),
+            'discount_amount' => $line->discountAmount(),
         ]);
     }
 
@@ -65,7 +68,12 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
         $this->model->newQuery()
             ->where('uuid', $line->uuid()->getValue())
             ->firstOrFail()
-            ->update(['quantity' => $line->quantity()->getValue()]);
+            ->update([
+                'quantity' => $line->quantity()->getValue(),
+                'discount_type' => $line->discountType(),
+                'discount_value' => $line->discountValue(),
+                'discount_amount' => $line->discountAmount(),
+            ]);
     }
 
     public function delete(string $uuid, int $restaurantId): void
@@ -92,6 +100,9 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             $model->quantity,
             $model->price,
             $model->tax_percentage,
+            $model->discount_type,
+            (int) $model->discount_value,
+            (int) $model->discount_amount,
         );
     }
 }

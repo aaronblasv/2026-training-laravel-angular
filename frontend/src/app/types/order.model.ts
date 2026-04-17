@@ -4,6 +4,9 @@ export interface OrderLine {
   quantity: number;
   price: number;
   tax_percentage: number;
+  discount_type: 'amount' | 'percentage' | null;
+  discount_value: number;
+  discount_amount: number;
 }
 
 export interface Order {
@@ -11,5 +14,8 @@ export interface Order {
   table_id: string;
   diners: number;
   status: string;
+  discount_type: 'amount' | 'percentage' | null;
+  discount_value: number;
+  discount_amount: number;
   lines: OrderLine[];
 }

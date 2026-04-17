@@ -24,13 +24,11 @@ export class OrderService {
     });
   }
 
-  addLine(orderUuid: string, productId: string, userId: number, quantity: number, price: number, taxPercentage: number): Observable<OrderLine> {
+  addLine(orderUuid: string, productId: string, userId: number, quantity: number): Observable<OrderLine> {
     return this.http.post<OrderLine>(`${this.apiUrl}/orders/${orderUuid}/lines`, {
       product_id: productId,
       user_id: String(userId),
       quantity,
-      price,
-      tax_percentage: taxPercentage,
     });
   }
 
@@ -44,6 +42,26 @@ export class OrderService {
 
   updateDiners(orderUuid: string, diners: number): Observable<void> {
     return this.http.patch<void>(`${this.apiUrl}/orders/${orderUuid}/diners`, { diners });
+  }
+
+  updateOrderDiscount(orderUuid: string, discountType: 'amount' | 'percentage' | null, discountValue: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/orders/${orderUuid}/discount`, {
+      discount_type: discountType,
+      discount_value: discountValue,
+    });
+  }
+
+  updateLineDiscount(orderUuid: string, lineUuid: string, discountType: 'amount' | 'percentage' | null, discountValue: number): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/orders/${orderUuid}/lines/${lineUuid}/discount`, {
+      discount_type: discountType,
+      discount_value: discountValue,
+    });
+  }
+
+  transferOrder(orderUuid: string, targetTableId: string): Observable<void> {
+    return this.http.patch<void>(`${this.apiUrl}/orders/${orderUuid}/transfer`, {
+      target_table_id: targetTableId,
+    });
   }
 
   closeOrder(orderUuid: string, closedByUserId: string): Observable<void> {

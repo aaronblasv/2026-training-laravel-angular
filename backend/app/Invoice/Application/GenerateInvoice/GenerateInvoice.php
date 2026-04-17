@@ -8,6 +8,7 @@ use App\Order\Domain\Exception\OrderNotFoundException;
 use App\Order\Domain\Interfaces\OrderRepositoryInterface;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Shared\Domain\ValueObject\Uuid;
+use Illuminate\Support\Facades\DB;
 
 class GenerateInvoice
 {
@@ -19,31 +20,33 @@ class GenerateInvoice
 
     public function __invoke(string $orderUuid, int $restaurantId): GenerateInvoiceResponse
     {
-        $order = $this->orderRepository->findById($orderUuid, $restaurantId);
+        return DB::transaction(function () use ($orderUuid, $restaurantId) {
+            $order = $this->orderRepository->findById($orderUuid, $restaurantId);
 
-        if (!$order) {
-            throw new OrderNotFoundException($orderUuid);
-        }
+            if (!$order) {
+                throw new OrderNotFoundException($orderUuid);
+            }
 
-        $lines = $this->lineRepository->findAllByOrderId($orderUuid, $restaurantId);
+            $lines = $this->lineRepository->findAllByOrderId($orderUuid, $restaurantId);
 
-        $subtotal = $order->calculateSubtotal($lines);
-        $taxAmount = $order->calculateTaxAmount($lines);
-        $total = $subtotal + $taxAmount;
+            $subtotal = $order->calculateSubtotal($lines);
+            $taxAmount = $order->calculateTaxAmount($lines);
+            $total = $subtotal + $taxAmount;
 
-        $invoiceNumber = $this->invoiceRepository->getNextInvoiceNumber();
+            $invoiceNumber = $this->invoiceRepository->getNextInvoiceNumber();
 
-        $invoice = Invoice::dddCreate(
-            Uuid::generate(),
-            $order->uuid(),
-            $invoiceNumber,
-            $subtotal,
-            $taxAmount,
-            $total,
-        );
+            $invoice = Invoice::dddCreate(
+                Uuid::generate(),
+                $order->uuid(),
+                $invoiceNumber,
+                $subtotal,
+                $taxAmount,
+                $total,
+            );
 
-        $this->invoiceRepository->save($invoice);
+            $this->invoiceRepository->save($invoice);
 
-        return GenerateInvoiceResponse::create($invoice);
+            return GenerateInvoiceResponse::create($invoice);
+        });
     }
 }

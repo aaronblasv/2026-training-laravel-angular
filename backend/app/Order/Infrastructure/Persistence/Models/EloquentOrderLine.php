@@ -22,5 +22,8 @@ class EloquentOrderLine extends Model
         'quantity',
         'price',
         'tax_percentage',
+        'discount_type',
+        'discount_value',
+        'discount_amount',
     ];
 }

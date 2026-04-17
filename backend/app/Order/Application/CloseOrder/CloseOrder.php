@@ -33,12 +33,11 @@ class CloseOrder
             throw new CannotCloseOrderWithNoLinesException($orderUuid);
         }
 
-        $total = 0;
-        foreach ($lines as $line) {
-            $lineSubtotal = $line->price() * $line->quantity()->getValue();
-            $lineTotal = $lineSubtotal + (int) round($lineSubtotal * $line->taxPercentage() / 100);
-            $total += $lineTotal;
-        }
+        $subtotal = $order->calculateSubtotal($lines);
+        $taxAmount = $order->calculateTaxAmount($lines);
+        $lineDiscountTotal = $order->calculateLineDiscountTotal($lines);
+        $orderDiscountTotal = $order->calculateOrderDiscountAmount($lines);
+        $total = $subtotal + $taxAmount;
 
         $order->close(Uuid::create($closedByUserUuid));
 
@@ -53,6 +52,10 @@ class CloseOrder
             $order->uuid(),
             Uuid::create($closedByUserUuid),
             $ticketNumber,
+            $subtotal,
+            $taxAmount,
+            $lineDiscountTotal,
+            $orderDiscountTotal,
             $total,
         );
         $this->saleRepository->save($sale);
@@ -67,6 +70,12 @@ class CloseOrder
                 $line->quantity()->getValue(),
                 $line->price(),
                 $line->taxPercentage(),
+                $line->subtotal(),
+                $line->taxAmount(),
+                $line->discountType(),
+                $line->discountValue(),
+                $line->discountAmount(),
+                $line->total(),
             );
             $this->saleRepository->saveLine($saleLine);
         }

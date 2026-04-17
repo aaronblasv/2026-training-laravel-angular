@@ -21,6 +21,9 @@ class EloquentOrder extends Model
         'opened_by_user_id',
         'closed_by_user_id',
         'diners',
+        'discount_type',
+        'discount_value',
+        'discount_amount',
         'opened_at',
         'closed_at',
     ];

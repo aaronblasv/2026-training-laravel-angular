@@ -31,6 +31,9 @@ class EloquentOrderRepository implements OrderRepositoryInterface
             'opened_by_user_id' => $openedByUserId,
             'closed_by_user_id' => null,
             'diners'            => $order->diners()->getValue(),
+            'discount_type'     => $order->discountType(),
+            'discount_value'    => $order->discountValue(),
+            'discount_amount'   => $order->discountAmount(),
             'opened_at'         => $order->openedAt()->format('Y-m-d H:i:s'),
             'closed_at'         => null,
         ]);
@@ -66,9 +69,18 @@ class EloquentOrderRepository implements OrderRepositoryInterface
     {
         $model = $this->model->newQuery()->where('uuid', $order->uuid()->getValue())->firstOrFail();
 
+        $tableId = $this->tableModel->newQuery()
+            ->where('uuid', $order->tableId()->getValue())
+            ->firstOrFail()
+            ->id;
+
         $data = [
+            'table_id' => $tableId,
             'status' => $order->status()->getValue(),
             'diners' => $order->diners()->getValue(),
+            'discount_type' => $order->discountType(),
+            'discount_value' => $order->discountValue(),
+            'discount_amount' => $order->discountAmount(),
         ];
 
         if ($order->closedByUserId()) {
@@ -116,6 +128,9 @@ class EloquentOrderRepository implements OrderRepositoryInterface
             $openedByUuid,
             $closedByUuid,
             $model->diners,
+            $model->discount_type,
+            (int) $model->discount_value,
+            (int) $model->discount_amount,
             new \DateTimeImmutable($model->opened_at),
             $model->closed_at ? new \DateTimeImmutable($model->closed_at) : null,
         );

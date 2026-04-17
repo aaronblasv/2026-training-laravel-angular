@@ -15,6 +15,9 @@ final readonly class AddOrderLineResponse
         public int $quantity,
         public int $price,
         public int $taxPercentage,
+        public ?string $discountType,
+        public int $discountValue,
+        public int $discountAmount,
     ) {}
 
     public static function create(OrderLine $line): self
@@ -26,6 +29,9 @@ final readonly class AddOrderLineResponse
             $line->quantity()->getValue(),
             $line->price(),
             $line->taxPercentage(),
+            $line->discountType(),
+            $line->discountValue(),
+            $line->discountAmount(),
         );
     }
 
@@ -41,6 +47,9 @@ final readonly class AddOrderLineResponse
             'quantity' => $this->quantity,
             'price' => $this->price,
             'tax_percentage' => $this->taxPercentage,
+            'discount_type' => $this->discountType,
+            'discount_value' => $this->discountValue,
+            'discount_amount' => $this->discountAmount,
         ];
     }
 }

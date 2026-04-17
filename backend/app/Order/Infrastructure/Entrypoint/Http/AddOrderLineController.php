@@ -18,8 +18,6 @@ class AddOrderLineController
             'product_id'     => 'required|string',
             'user_id'        => 'required|string',
             'quantity'       => 'required|integer|min:1',
-            'price'          => 'required|integer|min:0',
-            'tax_percentage' => 'required|integer|min:0|max:100',
         ]);
 
         $response = ($this->useCase)(
@@ -28,8 +26,6 @@ class AddOrderLineController
             $validated['product_id'],
             $validated['user_id'],
             $validated['quantity'],
-            $validated['price'],
-            $validated['tax_percentage'],
         );
 
         return new JsonResponse($response->toArray(), 201);
