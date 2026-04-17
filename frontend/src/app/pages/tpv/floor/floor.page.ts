@@ -1,8 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, inject, ViewEncapsulation } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { IonicModule } from '@ionic/angular';
 import { forkJoin } from 'rxjs';
+import { AuthService } from '../../../services/api/auth.service';
 import { ZoneService } from '../../../services/api/zone.service';
 import { TableService } from '../../../services/api/table.service';
 import { OrderService } from '../../../services/api/order.service';
@@ -10,6 +11,7 @@ import { LoggerService } from '../../../services/logger.service';
 import { PinModalComponent } from '../../../components/pin-modal/pin-modal.component';
 import { DinersModalComponent } from '../../../components/diners-modal/diners-modal.component';
 import { WaiterModalComponent } from '../../../components/waiter-modal/waiter-modal.component';
+import { ProfileModalComponent } from '../../../components/profile-modal/profile-modal.component';
 import { Zone } from '../../../types/zone.model';
 import { Table } from '../../../types/table.model';
 import { Order } from '../../../types/order.model';
@@ -18,12 +20,14 @@ import { User } from '../../../types/user.model';
 @Component({
   selector: 'app-floor',
   standalone: true,
-  imports: [CommonModule, IonicModule, PinModalComponent, DinersModalComponent, WaiterModalComponent],
+  imports: [CommonModule, IonicModule, PinModalComponent, DinersModalComponent, WaiterModalComponent, ProfileModalComponent],
   templateUrl: './floor.page.html',
   styleUrls: ['./floor.page.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
-export class FloorPage implements OnInit {
+export class FloorPage implements OnInit, OnDestroy {
   private router = inject(Router);
+  private authService = inject(AuthService);
   private zoneService = inject(ZoneService);
   private tableService = inject(TableService);
   private orderService = inject(OrderService);
@@ -41,13 +45,97 @@ export class FloorPage implements OnInit {
   selectedWaiter: User | null = null;
   validatedUser: User | null = null;
 
+  // Merge tables state
+  mergeMode = false;
+  mergeParent: Table | null = null;
+  mergeSelected: Set<string> = new Set();
+
+  // Clock
+  currentTime = '';
+  today = '';
+  private clockInterval: ReturnType<typeof setInterval> | null = null;
+
+  canGoBackoffice = false;
+
+  // Profile modal state
+  showProfileWaiterModal = false;
+  showProfilePinModal = false;
+  showProfileModal = false;
+  profileUser: User | null = null;
+  profileWaiter: User | null = null;
+  restaurantName = '';
+
   ngOnInit() {
+    this.syncRoleFlags();
     this.loadData();
+    this.updateClock();
+    this.clockInterval = setInterval(() => this.updateClock(), 1000);
+  }
+
+  ngOnDestroy() {
+    if (this.clockInterval) clearInterval(this.clockInterval);
+  }
+
+  private updateClock() {
+    const now = new Date();
+    this.currentTime = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+    this.today = now.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
   }
 
   ionViewWillEnter() {
+    this.syncRoleFlags();
     this.logger.log('ionViewWillEnter triggered - reloading data');
     this.loadData();
+  }
+
+  private syncRoleFlags() {
+    const role = this.authService.getRole();
+    this.canGoBackoffice = role === 'admin' || role === 'supervisor';
+  }
+
+  goToBackoffice() {
+    if (!this.canGoBackoffice) return;
+    this.router.navigate(['/dashboard']);
+  }
+
+  // ─── Profile flow (avatar click) ───
+  onAvatarClick() {
+    this.showProfileWaiterModal = true;
+  }
+
+  onProfileWaiterSelected(waiter: User) {
+    this.profileWaiter = waiter;
+    this.showProfileWaiterModal = false;
+    this.showProfilePinModal = true;
+  }
+
+  onProfileWaiterCancelled() {
+    this.showProfileWaiterModal = false;
+    this.profileWaiter = null;
+  }
+
+  onProfilePinValidated(user: User) {
+    this.profileUser = user;
+    this.showProfilePinModal = false;
+    // Fetch full user info (with restaurant name)
+    this.authService.me().subscribe({
+      next: (me: any) => {
+        this.restaurantName = me.restaurant_name ?? '';
+      },
+      error: () => {},
+    });
+    this.showProfileModal = true;
+  }
+
+  onProfilePinCancelled() {
+    this.showProfilePinModal = false;
+    this.profileWaiter = null;
+  }
+
+  onProfileClosed() {
+    this.showProfileModal = false;
+    this.profileUser = null;
+    this.profileWaiter = null;
   }
 
   ionViewDidLoad() {
@@ -77,8 +165,28 @@ export class FloorPage implements OnInit {
   }
 
   get filteredTables(): Table[] {
-    if (!this.selectedZoneUuid) return this.tables;
-    return this.tables.filter(t => t.zone_id === this.selectedZoneUuid);
+    let tables = this.tables.filter(t => !t.merged_with);
+    if (this.selectedZoneUuid) {
+      tables = tables.filter(t => t.zone_id === this.selectedZoneUuid);
+    }
+    return tables;
+  }
+
+  getMergedChildren(parentUuid: string): Table[] {
+    return this.tables.filter(t => t.merged_with === parentUuid);
+  }
+
+  getMergedNames(parentUuid: string): string {
+    const children = this.getMergedChildren(parentUuid);
+    return children.map(c => c.name).join(', ');
+  }
+
+  isParentMerged(tableUuid: string): boolean {
+    return this.tables.some(t => t.merged_with === tableUuid);
+  }
+
+  getMergedCount(tableUuid: string): number {
+    return this.getMergedChildren(tableUuid).length;
   }
 
   selectZone(uuid: string | null) {
@@ -97,7 +205,56 @@ export class FloorPage implements OnInit {
     return this.zones.find(z => z.uuid === zoneId)?.name ?? '';
   }
 
+  getTablesInZone(zoneId: string): number {
+    return this.tables.filter(t => t.zone_id === zoneId && !t.merged_with).length;
+  }
+
+  get freeTables(): number {
+    return this.filteredTables.filter(t => !this.isOccupied(t.uuid)).length;
+  }
+
+  get occupiedTables(): number {
+    return this.filteredTables.filter(t => this.isOccupied(t.uuid)).length;
+  }
+
+  get allVisibleTables(): number {
+    return this.tables.filter(t => !t.merged_with).length;
+  }
+
+  get totalDiners(): number {
+    return this.openOrders.reduce((sum, o) => sum + (o.diners ?? 0), 0);
+  }
+
+  get totalSales(): number {
+    return this.openOrders.reduce((sum, o) => {
+      const lines = o.lines ?? [];
+      const orderTotal = lines.reduce((s, l) => s + l.price * l.quantity - (l.discount_amount ?? 0), 0) - (o.discount_amount ?? 0);
+      return sum + orderTotal;
+    }, 0);
+  }
+
+  onNewOrder() {
+    const freeTable = this.filteredTables.find(t => !this.isOccupied(t.uuid));
+    if (freeTable) {
+      this.onTableClick(freeTable);
+    }
+  }
+
+  getOrderTotal(tableUuid: string): number {
+    const order = this.getOrder(tableUuid);
+    if (!order) return 0;
+    const lines = order.lines ?? [];
+    return lines.reduce((sum, l) => {
+      const lineTotal = l.price * l.quantity - (l.discount_amount ?? 0);
+      return sum + lineTotal;
+    }, 0) - (order.discount_amount ?? 0);
+  }
+
   onTableClick(table: Table) {
+    if (this.mergeMode) {
+      this.onMergeTableClick(table);
+      return;
+    }
     this.selectedTable = table;
     this.showWaiterModal = true;
   }
@@ -151,5 +308,56 @@ export class FloorPage implements OnInit {
     this.selectedTable = null;
     this.selectedWaiter = null;
     this.validatedUser = null;
+  }
+
+  // === Merge tables ===
+
+  startMergeMode() {
+    this.mergeMode = true;
+    this.mergeParent = null;
+    this.mergeSelected = new Set();
+  }
+
+  cancelMergeMode() {
+    this.mergeMode = false;
+    this.mergeParent = null;
+    this.mergeSelected = new Set();
+  }
+
+  onMergeTableClick(table: Table) {
+    if (!this.mergeParent) {
+      this.mergeParent = table;
+      return;
+    }
+    if (table.uuid === this.mergeParent.uuid) return;
+
+    if (this.mergeSelected.has(table.uuid)) {
+      this.mergeSelected.delete(table.uuid);
+    } else {
+      this.mergeSelected.add(table.uuid);
+    }
+  }
+
+  isMergeSelected(tableUuid: string): boolean {
+    return this.mergeSelected.has(tableUuid) || this.mergeParent?.uuid === tableUuid;
+  }
+
+  confirmMerge() {
+    if (!this.mergeParent || this.mergeSelected.size === 0) return;
+    const childUuids = Array.from(this.mergeSelected);
+    this.tableService.mergeTables(this.mergeParent.uuid, childUuids).subscribe({
+      next: () => {
+        this.cancelMergeMode();
+        this.loadData();
+      },
+      error: (err) => this.logger.error('Error merging tables:', err),
+    });
+  }
+
+  unmergeTable(parentUuid: string) {
+    this.tableService.unmergeTables(parentUuid).subscribe({
+      next: () => this.loadData(),
+      error: (err) => this.logger.error('Error unmerging tables:', err),
+    });
   }
 }

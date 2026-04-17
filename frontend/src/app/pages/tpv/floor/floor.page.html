@@ -1,47 +1,130 @@
-<div class="floor-layout">
-  <div class="floor-header">
-    <h1>Sala</h1>
-  </div>
+<div class="app">
+  <!-- ─── TOP BAR ─── -->
+  <header class="topbar">
+    <div class="topbar-logo">
+      <div class="logo-icon">T</div>
+      <span class="logo-text">TPV Pro</span>
+    </div>
 
-  <div class="zone-tabs">
-    <button
-      class="zone-tab"
-      [class.active]="selectedZoneUuid === null"
-      (click)="selectZone(null)"
-    >
-      Todas
-    </button>
-    @for (zone of zones; track zone.uuid) {
+    <div class="topbar-center">
+      @if (!mergeMode) {
+        <button class="btn-merge-start" (click)="startMergeMode()">🔗 Juntar mesas</button>
+      } @else {
+        <span class="merge-hint">
+          @if (!mergeParent) {
+            Selecciona la mesa principal
+          } @else {
+            Mesa principal: <strong>{{ mergeParent.name }}</strong> — selecciona mesas a unir
+          }
+        </span>
+        <button class="btn-merge-confirm" (click)="confirmMerge()" [disabled]="!mergeParent || mergeSelected.size === 0">✓ Confirmar</button>
+        <button class="btn-merge-cancel" (click)="cancelMergeMode()">✕ Cancelar</button>
+      }
+    </div>
+
+    <div class="topbar-right">
+      @if (canGoBackoffice) {
+        <button class="btn-backoffice" (click)="goToBackoffice()">Backoffice</button>
+      }
+      <span class="topbar-date">{{ today }}</span>
+      <span class="topbar-time">{{ currentTime }}</span>
+      <div class="avatar" (click)="onAvatarClick()" style="cursor:pointer">👤</div>
+    </div>
+  </header>
+
+  <!-- ─── BODY ─── -->
+  <div class="body-row">
+    <!-- ─── SIDEBAR: ZONES ─── -->
+    <aside class="sidebar">
+      <div class="sidebar-title">Zonas</div>
       <button
-        class="zone-tab"
-        [class.active]="selectedZoneUuid === zone.uuid"
-        (click)="selectZone(zone.uuid)"
+        class="zone-item"
+        [class.active]="selectedZoneUuid === null"
+        (click)="selectZone(null)"
       >
-        {{ zone.name }}
+        <span class="zone-name">Todas</span>
+        <span class="zone-badge">{{ allVisibleTables }}</span>
       </button>
-    }
-  </div>
+      @for (zone of zones; track zone.uuid) {
+        <button
+          class="zone-item"
+          [class.active]="selectedZoneUuid === zone.uuid"
+          (click)="selectZone(zone.uuid)"
+        >
+          <span class="zone-name">{{ zone.name }}</span>
+          <span class="zone-badge">{{ getTablesInZone(zone.uuid) }}</span>
+        </button>
+      }
+    </aside>
 
-  <div class="tables-grid">
-    @for (table of filteredTables; track table.uuid) {
-      <div
-        class="table-card"
-        [class.occupied]="isOccupied(table.uuid)"
-        [class.free]="!isOccupied(table.uuid)"
-        (click)="onTableClick(table)"
-      >
-        <div class="table-name">{{ table.name }}</div>
-        <div class="table-zone">{{ getZoneName(table.zone_id) }}</div>
-        @if (isOccupied(table.uuid)) {
-          <div class="table-info">
-            <span class="table-diners">{{ getOrder(table.uuid)?.diners }} 👤</span>
-          </div>
-          <div class="table-status">Ocupada</div>
-        } @else {
-          <div class="table-status">Libre</div>
-        }
+    <!-- ─── FLOOR AREA ─── -->
+    <main class="floor-area">
+      <div class="floor-header">
+        <h2 class="floor-title">{{ selectedZoneUuid ? getZoneName(selectedZoneUuid) : 'Todas las mesas' }}</h2>
+        <div class="legend">
+          <div class="legend-item"><span class="legend-dot dot-green"></span> Libre</div>
+          <div class="legend-item"><span class="legend-dot dot-orange"></span> Ocupada</div>
+          <div class="legend-item"><span class="legend-dot dot-blue"></span> Cobro</div>
+          <div class="legend-item"><span class="legend-dot dot-amber"></span> Fusionada</div>
+        </div>
       </div>
-    }
+
+      <div class="table-grid-wrap">
+        <div class="table-grid">
+          @for (table of filteredTables; track table.uuid) {
+            <div
+              class="table-card"
+              [class.ocupada]="isOccupied(table.uuid)"
+              [class.libre]="!isOccupied(table.uuid)"
+              [class.merged-parent]="isParentMerged(table.uuid)"
+              [class.merge-mode]="mergeMode"
+              [class.merge-selected]="isMergeSelected(table.uuid)"
+              (click)="onTableClick(table)"
+            >
+              @if (isParentMerged(table.uuid) && !mergeMode) {
+                <button class="btn-unmerge" (click)="$event.stopPropagation(); unmergeTable(table.uuid)">Separar</button>
+              }
+              <div class="table-card-head">
+                <span class="table-name">{{ table.name }}</span>
+                @if (isOccupied(table.uuid)) {
+                  <span class="status-badge badge-ocupada">Ocupada</span>
+                } @else {
+                  <span class="status-badge badge-libre">Libre</span>
+                }
+              </div>
+              @if (isParentMerged(table.uuid)) {
+                <span class="status-badge badge-merged">🔗 {{ getMergedNames(table.uuid) }}</span>
+              }
+              @if (isOccupied(table.uuid)) {
+                <span class="table-amount">€{{ getOrderTotal(table.uuid) / 100 | number:'1.2-2' }}</span>
+              } @else {
+                <span class="table-amount empty">Sin pedido</span>
+              }
+              <div class="table-meta">
+                @if (isOccupied(table.uuid)) {
+                  <span>{{ getZoneName(table.zone_id) }}</span>
+                  <span class="table-persons">👥 {{ getOrder(table.uuid)?.diners }}</span>
+                } @else {
+                  <span>—</span>
+                  <span>{{ getZoneName(table.zone_id) }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ─── BOTTOM STATUS BAR ─── -->
+      <footer class="statusbar">
+        <div class="statusbar-stats">
+          <div class="stat-item">Mesas ocupadas <span class="stat-value">{{ occupiedTables }}/{{ filteredTables.length }}</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">Venta acumulada <span class="stat-value orange">{{ totalSales / 100 | number:'1.2-2' }} €</span></div>
+          <div class="stat-divider"></div>
+          <div class="stat-item">Comensales <span class="stat-value">{{ totalDiners }}</span></div>
+        </div>
+      </footer>
+    </main>
   </div>
 </div>
 
@@ -63,3 +146,24 @@
   (onConfirm)="onDinersConfirmed($event)"
   (onCancel)="onDinersCancelled()"
 ></app-diners-modal>
+
+<!-- Profile flow modals -->
+<app-waiter-modal
+  [visible]="showProfileWaiterModal"
+  (onSelected)="onProfileWaiterSelected($event)"
+  (onCancel)="onProfileWaiterCancelled()"
+></app-waiter-modal>
+
+<app-pin-modal
+  [visible]="showProfilePinModal"
+  [selectedWaiter]="profileWaiter"
+  (onValidated)="onProfilePinValidated($event)"
+  (onCancel)="onProfilePinCancelled()"
+></app-pin-modal>
+
+<app-profile-modal
+  [visible]="showProfileModal"
+  [user]="profileUser"
+  [restaurantName]="restaurantName"
+  (onClose)="onProfileClosed()"
+></app-profile-modal>
