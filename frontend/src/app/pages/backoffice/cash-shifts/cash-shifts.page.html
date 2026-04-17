@@ -1,0 +1,90 @@
+<ion-content>
+  <div class="layout">
+    <app-sidebar></app-sidebar>
+
+    <div class="main-content">
+      <div class="page-header">
+        <div>
+          <h1>Caja</h1>
+          <p>Gestión profesional de apertura y cierre por turno</p>
+        </div>
+      </div>
+
+      @if (loading) {
+        <div class="cash-card">Cargando estado de caja...</div>
+      } @else if (currentShift) {
+        <div class="cash-card status-open">
+          <div class="cash-header">
+            <div>
+              <h2>Turno abierto</h2>
+              <p>Abierto el {{ formatDate(currentShift.opened_at) }}</p>
+            </div>
+            <span class="status-pill">Abierto</span>
+          </div>
+
+          <div class="cash-grid">
+            <div class="cash-metric"><span>Fondo inicial</span><strong>{{ formatCurrency(currentShift.opening_cash) }}</strong></div>
+            <div class="cash-metric"><span>Efectivo neto</span><strong>{{ formatCurrency(currentShift.cash_total) }}</strong></div>
+            <div class="cash-metric"><span>Tarjeta neto</span><strong>{{ formatCurrency(currentShift.card_total) }}</strong></div>
+            <div class="cash-metric"><span>Bizum neto</span><strong>{{ formatCurrency(currentShift.bizum_total) }}</strong></div>
+            <div class="cash-metric"><span>Devoluciones</span><strong>{{ formatCurrency(currentShift.refund_total) }}</strong></div>
+            <div class="cash-metric"><span>Efectivo esperado</span><strong>{{ formatCurrency(currentShift.expected_cash) }}</strong></div>
+          </div>
+
+          <div class="cash-form">
+            <div class="form-group">
+              <label>Efectivo contado</label>
+              <input type="number" min="0" [(ngModel)]="countedCash" />
+            </div>
+            <div class="form-group">
+              <label>Notas de cierre</label>
+              <textarea rows="3" [(ngModel)]="closingNotes"></textarea>
+            </div>
+            <button class="btn-primary" (click)="closeShift()">Cerrar caja</button>
+          </div>
+        </div>
+      } @else {
+        <div class="cash-card">
+          <div class="cash-header">
+            <div>
+              <h2>Sin turno abierto</h2>
+              <p>Abre una caja para empezar a registrar el turno actual</p>
+            </div>
+            <span class="status-pill closed">Cerrada</span>
+          </div>
+
+          <div class="cash-form compact">
+            <div class="form-group">
+              <label>Fondo inicial</label>
+              <input type="number" min="0" [(ngModel)]="openingCash" />
+            </div>
+            <div class="form-group">
+              <label>Notas de apertura</label>
+              <textarea rows="3" [(ngModel)]="openingNotes"></textarea>
+            </div>
+            <button class="btn-primary" (click)="openShift()">Abrir caja</button>
+          </div>
+        </div>
+      }
+
+      @if (lastClosedShift) {
+        <div class="cash-card">
+          <div class="cash-header">
+            <div>
+              <h2>Último cierre</h2>
+              <p>Cerrado el {{ formatDate(lastClosedShift.closed_at) }}</p>
+            </div>
+          </div>
+
+          <div class="cash-grid">
+            <div class="cash-metric"><span>Efectivo neto</span><strong>{{ formatCurrency(lastClosedShift.cash_total) }}</strong></div>
+            <div class="cash-metric"><span>Tarjeta neto</span><strong>{{ formatCurrency(lastClosedShift.card_total) }}</strong></div>
+            <div class="cash-metric"><span>Bizum neto</span><strong>{{ formatCurrency(lastClosedShift.bizum_total) }}</strong></div>
+            <div class="cash-metric"><span>Contado</span><strong>{{ formatCurrency(lastClosedShift.counted_cash) }}</strong></div>
+            <div class="cash-metric"><span>Diferencia</span><strong>{{ formatCurrency(lastClosedShift.cash_difference) }}</strong></div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</ion-content>
