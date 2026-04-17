@@ -4,7 +4,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,19 +13,22 @@
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
+  background: var(--tpv-card, #1E2A3B);
+  border: 1px solid var(--tpv-border, #1E293B);
+  border-radius: 14px;
   padding: 2rem;
-  width: 420px;
+  width: 440px;
   max-height: 80vh;
   overflow-y: auto;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   text-align: center;
 
   h2 {
     margin: 0 0 1.5rem;
-    color: #1F2937;
+    color: var(--tpv-text-primary, #F1F5F9);
+    font-family: 'Funnel Sans', sans-serif;
     font-size: 1.25rem;
+    font-weight: 700;
   }
 }
 
@@ -41,17 +45,21 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1rem;
-  border-radius: 12px;
-  border: 2px solid #E5E7EB;
-  background: white;
+  border-radius: 10px;
+  border: 1px solid var(--tpv-border-light, #263347);
+  background: var(--tpv-sidebar, #0F172A);
   cursor: pointer;
   transition: all 0.15s;
   min-height: 80px;
 
+  &:hover {
+    border-color: var(--tpv-orange-border, rgba(255,132,0,.35));
+    background: rgba(255, 132, 0, 0.08);
+  }
+
   &:active {
     transform: scale(0.95);
-    border-color: #4F46E5;
-    background: #EEF2FF;
+    border-color: var(--tpv-orange, #FF8400);
   }
 }
 
@@ -59,23 +67,25 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #4F46E5;
+  background: var(--tpv-orange, #FF8400);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
   font-weight: 700;
+  font-family: 'Funnel Sans', sans-serif;
 }
 
 .waiter-name {
   font-size: 0.875rem;
   font-weight: 600;
-  color: #1F2937;
+  color: var(--tpv-text-primary, #F1F5F9);
+  font-family: 'Geist', sans-serif;
 }
 
 .empty-message {
-  color: #6B7280;
+  color: var(--tpv-text-muted, #64748B);
   font-size: 0.875rem;
   margin-bottom: 1.5rem;
 }
@@ -83,15 +93,17 @@
 .btn-cancel {
   width: 100%;
   height: 48px;
-  border-radius: 12px;
-  border: 2px solid #EF4444;
-  background: white;
-  color: #EF4444;
+  border-radius: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  background: var(--tpv-red-dim, rgba(239,68,68,.12));
+  color: var(--tpv-red, #EF4444);
   font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
+  font-family: 'Geist', sans-serif;
+  transition: all 0.15s;
 
-  &:active {
-    background: #FEE2E2;
+  &:hover {
+    background: rgba(239, 68, 68, 0.2);
   }
 }

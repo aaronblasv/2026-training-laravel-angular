@@ -1,0 +1,189 @@
+.split-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.split-modal {
+  background: white;
+  border-radius: 20px;
+  width: min(520px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2);
+}
+
+.split-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #E5E7EB;
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #111827;
+  }
+
+  .close-btn {
+    width: 36px;
+    height: 36px;
+    border: none;
+    border-radius: 10px;
+    background: #F3F4F6;
+    color: #374151;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+}
+
+.split-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #F9FAFB;
+
+  .summary-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+
+    span {
+      font-size: 0.75rem;
+      color: #6B7280;
+    }
+
+    strong {
+      font-size: 1rem;
+      color: #111827;
+
+      &.paid { color: #10B981; }
+      &.pending { color: #F59E0B; }
+    }
+  }
+}
+
+.shares-list {
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.share-card {
+  border: 2px solid #E5E7EB;
+  border-radius: 14px;
+  padding: 1rem;
+  transition: all 0.2s;
+
+  &.paid {
+    border-color: #A7F3D0;
+    background: #ECFDF5;
+  }
+}
+
+.share-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+
+  .share-label {
+    font-weight: 600;
+    color: #1F2937;
+    font-size: 0.95rem;
+  }
+
+  .share-amount {
+    font-weight: 700;
+    color: #4F46E5;
+    font-size: 1.05rem;
+  }
+}
+
+.share-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  .method-select {
+    flex: 0 0 auto;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    background: white;
+    color: #1F2937;
+  }
+
+  .amount-input {
+    flex: 1;
+    padding: 0.5rem 0.75rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    text-align: right;
+    min-width: 80px;
+  }
+
+  .btn-pay-share {
+    padding: 0.5rem 1.25rem;
+    border: none;
+    border-radius: 10px;
+    background: #4F46E5;
+    color: white;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:active {
+      background: #4338CA;
+    }
+  }
+}
+
+.share-paid-badge {
+  font-size: 0.85rem;
+  color: #059669;
+  font-weight: 600;
+}
+
+.all-paid-banner {
+  text-align: center;
+  padding: 1rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: #059669;
+  background: #ECFDF5;
+  border-top: 1px solid #A7F3D0;
+}
+
+.split-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #E5E7EB;
+  display: flex;
+  justify-content: flex-end;
+
+  .btn-cancel {
+    padding: 0.6rem 1.5rem;
+    border: 2px solid #E5E7EB;
+    border-radius: 10px;
+    background: white;
+    color: #374151;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:active {
+      background: #F3F4F6;
+    }
+  }
+}

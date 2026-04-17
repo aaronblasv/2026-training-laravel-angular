@@ -21,6 +21,7 @@ export class PaymentModalComponent implements OnInit, OnChanges {
   @Input() visible = false;
   @Input() totalAmount = 0;
   @Input() paidAmount = 0;
+  @Input() diners = 1;
   @Output() onPayment = new EventEmitter<PaymentData>();
   @Output() onCancel = new EventEmitter<void>();
   @Output() onComplete = new EventEmitter<void>();
@@ -44,7 +45,7 @@ export class PaymentModalComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['paidAmount'] || changes['totalAmount']) {
+    if (changes['paidAmount'] || changes['totalAmount'] || changes['diners'] || changes['visible']) {
       this.updatePendingAmount();
     }
   }

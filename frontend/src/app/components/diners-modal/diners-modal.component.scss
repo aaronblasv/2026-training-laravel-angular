@@ -4,7 +4,8 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,31 +13,36 @@
 }
 
 .modal-content {
-  background: white;
-  border-radius: 16px;
+  background: var(--tpv-card, #1E2A3B);
+  border: 1px solid var(--tpv-border, #1E293B);
+  border-radius: 14px;
   padding: 2rem;
   width: 340px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
   text-align: center;
 
   h2 {
     margin: 0 0 1.5rem;
-    color: #1F2937;
+    color: var(--tpv-text-primary, #F1F5F9);
+    font-family: 'Funnel Sans', sans-serif;
     font-size: 1.25rem;
+    font-weight: 700;
   }
 }
 
 .diners-display {
   font-size: 3rem;
   font-weight: 700;
-  color: #1F2937;
+  font-family: 'Geist Mono', monospace;
+  color: var(--tpv-orange, #FF8400);
   margin-bottom: 1.5rem;
   min-height: 4rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #F3F4F6;
-  border-radius: 12px;
+  background: var(--tpv-sidebar, #0F172A);
+  border: 1px solid var(--tpv-border-light, #263347);
+  border-radius: 10px;
 }
 
 .keypad {
@@ -49,50 +55,62 @@
 .key {
   height: 64px;
   min-width: 64px;
-  border-radius: 12px;
-  border: 2px solid #E5E7EB;
-  background: white;
+  border-radius: 10px;
+  border: 1px solid var(--tpv-border-light, #263347);
+  background: var(--tpv-sidebar, #0F172A);
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1F2937;
+  color: var(--tpv-text-primary, #F1F5F9);
+  font-family: 'Geist Mono', monospace;
   cursor: pointer;
   transition: all 0.15s;
 
+  &:hover {
+    border-color: var(--tpv-orange-border, rgba(255,132,0,.35));
+  }
+
   &:active {
-    background: #F3F4F6;
+    background: rgba(255, 132, 0, 0.1);
     transform: scale(0.95);
   }
 
   &.key-delete {
-    color: #6B7280;
+    color: var(--tpv-text-muted, #64748B);
     font-size: 1.25rem;
+    font-family: 'Geist', sans-serif;
   }
 
   &.key-cancel {
     font-size: 0.75rem;
-    color: #EF4444;
-    border-color: #FEE2E2;
+    color: var(--tpv-red, #EF4444);
+    border-color: rgba(239, 68, 68, 0.2);
+    font-family: 'Geist', sans-serif;
   }
 }
 
 .btn-confirm {
   width: 100%;
   height: 52px;
-  border-radius: 12px;
+  border-radius: 10px;
   border: none;
-  background: #4F46E5;
-  color: white;
+  background: var(--tpv-orange, #FF8400);
+  color: #fff;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: 'Funnel Sans', sans-serif;
   cursor: pointer;
   transition: all 0.15s;
+
+  &:hover {
+    background: #ea6c0a;
+  }
 
   &:active {
     transform: scale(0.98);
   }
 
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.4;
     cursor: not-allowed;
   }
 }

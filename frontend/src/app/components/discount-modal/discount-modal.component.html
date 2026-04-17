@@ -1,0 +1,43 @@
+@if (visible) {
+  <div class="modal-overlay" (click)="cancel()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ title }}</h2>
+        <button class="close-btn" (click)="cancel()">✕</button>
+      </div>
+
+      <div class="mode-tabs">
+        <button class="mode-tab" [class.active]="mode === 'percentage'" (click)="setMode('percentage')">
+          % Porcentaje
+        </button>
+        <button class="mode-tab" [class.active]="mode === 'amount'" (click)="setMode('amount')">
+          € Importe
+        </button>
+      </div>
+
+      <div class="input-group">
+        <label>{{ mode === 'percentage' ? 'Porcentaje de descuento' : 'Importe en euros' }}</label>
+        <div class="input-wrapper">
+          <input
+            type="number"
+            min="0"
+            [max]="mode === 'percentage' ? 100 : 99999"
+            [(ngModel)]="inputValue"
+            [placeholder]="mode === 'percentage' ? 'Ej: 10' : 'Ej: 2.50'"
+            class="discount-input"
+            autofocus
+          />
+          <span class="input-suffix">{{ mode === 'percentage' ? '%' : '€' }}</span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="btn-remove" (click)="removeDiscount()">Quitar descuento</button>
+        <div class="actions-right">
+          <button class="btn-cancel" (click)="cancel()">Cancelar</button>
+          <button class="btn-confirm" (click)="confirm()" [disabled]="!inputValue">Aplicar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,69 @@
+@if (visible) {
+  <div class="split-overlay" (click)="cancel()">
+    <div class="split-modal" (click)="$event.stopPropagation()">
+      <div class="split-header">
+        <h2>Dividir cuenta</h2>
+        <button class="close-btn" (click)="cancel()">✕</button>
+      </div>
+
+      <div class="split-summary">
+        <div class="summary-item">
+          <span>Total</span>
+          <strong>{{ formatCents(totalAmount) }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Comensales</span>
+          <strong>{{ diners }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Pagado</span>
+          <strong class="paid">{{ formatCents(totalPaid) }}</strong>
+        </div>
+        <div class="summary-item">
+          <span>Pendiente</span>
+          <strong class="pending">{{ formatCents(pendingAmount) }}</strong>
+        </div>
+      </div>
+
+      <div class="shares-list">
+        @for (share of shares; track share.index) {
+          <div class="share-card" [class.paid]="share.paid">
+            <div class="share-header">
+              <span class="share-label">🧑 Comensal {{ share.index + 1 }}</span>
+              <span class="share-amount">{{ formatCents(share.amount) }}</span>
+            </div>
+
+            @if (!share.paid) {
+              <div class="share-actions">
+                <select [(ngModel)]="share.method" class="method-select">
+                  <option value="cash">Efectivo</option>
+                  <option value="card">Tarjeta</option>
+                  <option value="bizum">Bizum</option>
+                </select>
+                <input
+                  type="number"
+                  min="0"
+                  [(ngModel)]="share.amount"
+                  class="amount-input"
+                />
+                <button class="btn-pay-share" (click)="payShare(share)">Pagar</button>
+              </div>
+            } @else {
+              <div class="share-paid-badge">
+                ✓ Pagado · {{ share.method === 'cash' ? 'Efectivo' : share.method === 'card' ? 'Tarjeta' : 'Bizum' }}
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      @if (allPaid) {
+        <div class="all-paid-banner">✅ Todos los comensales han pagado</div>
+      }
+
+      <div class="split-footer">
+        <button class="btn-cancel" (click)="cancel()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
