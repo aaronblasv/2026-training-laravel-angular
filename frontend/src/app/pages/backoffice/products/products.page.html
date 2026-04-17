@@ -122,6 +122,27 @@
             <span class="error-msg">{{ errors['tax_id'] }}</span>
           }
         </div>
+
+        <div class="form-group">
+          <label>Imagen</label>
+          <div class="image-input-row">
+            <input
+              type="url"
+              [(ngModel)]="form.image_src"
+              placeholder="https://ejemplo.com/producto.jpg"
+            />
+            <button type="button" class="btn-attach" (click)="fileInput.click()" title="Subir archivo">
+              <ion-icon name="attach-outline"></ion-icon>
+            </button>
+            <input #fileInput type="file" accept="image/*" hidden (change)="onFileSelected($event)" />
+          </div>
+          @if (form.image_src) {
+            <div class="image-preview">
+              <img [src]="form.image_src" alt="Preview" />
+              <button type="button" class="btn-remove-img" (click)="form.image_src = null">✕ Quitar</button>
+            </div>
+          }
+        </div>
       </app-form-modal>
       <app-confirm-modal
           [visible]="showConfirm"

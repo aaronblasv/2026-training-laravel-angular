@@ -1,9 +1,10 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from '@ionic/angular/standalone';
 import { SidebarComponent } from '../../../components/sidebar/sidebar.component';
 import { UserService } from '../../../services/api/user.service';
+import { UploadService } from '../../../services/api/upload.service';
 import { ConfirmModalComponent } from '../../../components/confirm-modal/confirm-modal.component';
 import { ActionButtonsComponent } from '../../../components/action-buttons/action-buttons.component';
 import { FormModalComponent } from '../../../components/form-modal/form-modal.component';
@@ -13,11 +14,13 @@ import { FormModalComponent } from '../../../components/form-modal/form-modal.co
   templateUrl: './users.page.html',
   styleUrls: ['./users.page.scss'],
   standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [IonContent, CommonModule, FormsModule, SidebarComponent, ConfirmModalComponent, ActionButtonsComponent, FormModalComponent]
 })
 export class UsersPage implements OnInit {
 
   private userService = inject(UserService);
+  private uploadService = inject(UploadService);
 
   users: any[] = [];
   showForm = false;
@@ -31,6 +34,7 @@ export class UsersPage implements OnInit {
     email: '',
     password: '',
     role: 'waiter',
+    image_src: '' as string | null,
   };
 
   roles = [
@@ -57,6 +61,7 @@ export class UsersPage implements OnInit {
       email: user?.email ?? '',
       password: '',
       role: user?.role ?? 'waiter',
+      image_src: user?.image_src ?? '',
     };
     this.showForm = true;
   }
@@ -85,6 +90,15 @@ export class UsersPage implements OnInit {
     });
   }
 
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadService.uploadImage(file).subscribe({
+      next: (url) => this.form.image_src = url,
+      error: (err: any) => console.error('Upload error:', err),
+    });
+  }
 
   requestDelete(uuid: string) {
     this.pendingDeleteUuid = uuid;

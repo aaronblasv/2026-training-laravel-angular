@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent } from '@ionic/angular/standalone';
@@ -6,6 +6,7 @@ import { SidebarComponent } from '../../../components/sidebar/sidebar.component'
 import { ProductService } from '../../../services/api/product.service';
 import { FamilyService } from '../../../services/api/family.service';
 import { TaxService } from '../../../services/api/tax.service';
+import { UploadService } from '../../../services/api/upload.service';
 import { forkJoin } from 'rxjs';
 import { FormModalComponent } from '../../../components/form-modal/form-modal.component';
 import { ConfirmModalComponent } from '../../../components/confirm-modal/confirm-modal.component';
@@ -16,6 +17,7 @@ import { ActionButtonsComponent } from '../../../components/action-buttons/actio
   templateUrl: './products.page.html',
   styleUrls: ['./products.page.scss'],
   standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [IonContent, CommonModule, FormsModule, SidebarComponent, FormModalComponent, ConfirmModalComponent, ActionButtonsComponent]
 })
 export class ProductsPage implements OnInit {
@@ -23,6 +25,7 @@ export class ProductsPage implements OnInit {
   private productService = inject(ProductService);
   private familyService = inject(FamilyService);
   private taxService = inject(TaxService);
+  private uploadService = inject(UploadService);
 
   products: any[] = [];
   families: any[] = [];
@@ -39,6 +42,7 @@ export class ProductsPage implements OnInit {
     stock: 0,
     family_id: '',
     tax_id: '',
+    image_src: '' as string | null,
   };
 
   ngOnInit() {
@@ -84,6 +88,7 @@ export class ProductsPage implements OnInit {
       stock: product?.stock ?? 0,
       family_id: product?.familyId ?? '',
       tax_id: product?.taxId ?? '',
+      image_src: product?.image_src ?? '',
     };
         this.showForm = true;
   }
@@ -112,6 +117,15 @@ export class ProductsPage implements OnInit {
     });
   }
 
+
+  onFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    this.uploadService.uploadImage(file).subscribe({
+      next: (url) => this.form.image_src = url,
+      error: (err: any) => console.error('Upload error:', err),
+    });
+  }
 
   toggle(uuid: string) {
     const product = this.products.find(p => p.uuid === uuid);
