@@ -14,7 +14,7 @@ class UpdateUser
         private UserRepositoryInterface $userRepository,
     ) {}
 
-    public function __invoke(string $uuid, string $email, string $name, int $restaurantId): UpdateUserResponse
+    public function __invoke(string $uuid, string $email, string $name, int $restaurantId, ?string $imageSrc = null): UpdateUserResponse
     {
         $user = $this->userRepository->findById($uuid);
 
@@ -22,7 +22,7 @@ class UpdateUser
             throw new UserNotFoundException($uuid);
         }
 
-        $user->dddUpdate(UserName::create($name), Email::create($email));
+        $user->dddUpdate(UserName::create($name), Email::create($email), $imageSrc);
 
         $this->userRepository->save($user);
 

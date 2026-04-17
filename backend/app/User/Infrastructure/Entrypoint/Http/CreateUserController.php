@@ -19,6 +19,7 @@ class CreateUserController
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
             'role' => 'sometimes|in:admin,supervisor,waiter',
+            'image_src' => 'nullable|string',
         ]);
         $user = ($this->useCase)(
             $validated['email'],
@@ -26,6 +27,7 @@ class CreateUserController
             $validated['password'],
             $validated['role'] ?? 'waiter',
             auth()->user()->restaurant_id,
+            $validated['image_src'] ?? null,
         );
 
         return new JsonResponse($user->toArray(), 201);

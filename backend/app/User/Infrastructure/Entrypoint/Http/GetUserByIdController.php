@@ -14,7 +14,7 @@ class GetUserByIdController
 
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
-        $response = ($this->getUserById)($uuid);
+        $response = ($this->getUserById)($uuid, $request->user()->restaurant_id);
 
         return new JsonResponse($response->toArray());
     }

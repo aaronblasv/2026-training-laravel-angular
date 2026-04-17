@@ -17,13 +17,13 @@ class CreateUser
         private PasswordHasherInterface $passwordHasher,
     ) {}
 
-    public function __invoke(string $email, string $name, string $plainPassword, string $role, int $restaurantId): CreateUserResponse
+    public function __invoke(string $email, string $name, string $plainPassword, string $role, int $restaurantId, ?string $imageSrc = null): CreateUserResponse
     {
         $emailVO = Email::create($email);
         $nameVO = UserName::create($name);
         $passwordHashVO = PasswordHash::create($this->passwordHasher->hash($plainPassword));
         $roleVO = UserRole::create($role);
-        $user = User::dddCreate($emailVO, $nameVO, $passwordHashVO, $roleVO, $restaurantId);
+        $user = User::dddCreate($emailVO, $nameVO, $passwordHashVO, $roleVO, $restaurantId, $imageSrc);
         $this->userRepository->save($user);
 
         return CreateUserResponse::create($user);

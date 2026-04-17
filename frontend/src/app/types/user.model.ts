@@ -5,4 +5,5 @@ export interface User {
   email: string;
   role: string;
   active: boolean;
+  image_src: string | null;
 }

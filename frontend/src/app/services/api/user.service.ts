@@ -31,4 +31,8 @@ export class UserService {
   delete(uuid: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${uuid}`);
   }
+
+  updatePhoto(uuid: string, imageSrc: string | null): Observable<User> {
+    return this.http.patch<User>(`${environment.apiUrl}/tpv/users/${uuid}/photo`, { image_src: imageSrc });
+  }
 }

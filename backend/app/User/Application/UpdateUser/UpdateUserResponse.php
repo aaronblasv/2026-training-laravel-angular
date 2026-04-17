@@ -10,14 +10,16 @@ final readonly class UpdateUserResponse
         public string $uuid,
         public string $name,
         public string $email,
+        public ?string $imageSrc,
     ) {}
 
     public static function create(User $user): self
     {
         return new self(
-            uuid: $user->id()->getValue(),
+            uuid: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
+            imageSrc: $user->imageSrc(),
         );
     }
 
@@ -30,6 +32,7 @@ final readonly class UpdateUserResponse
             'uuid' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
+            'image_src' => $this->imageSrc,
         ];
     }
 }

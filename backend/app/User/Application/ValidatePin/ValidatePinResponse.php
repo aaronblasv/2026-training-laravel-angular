@@ -13,15 +13,17 @@ final readonly class ValidatePinResponse
         public string $id,
         public string $name,
         public string $role,
+        public ?string $imageSrc,
     ) {}
 
     public static function create(User $user): self
     {
         return new self(
-            uuid: $user->id()->getValue(),
-            id: $user->id()->getValue(),
+            uuid: $user->uuid()->getValue(),
+            id: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             role: $user->role()->getValue(),
+            imageSrc: $user->imageSrc(),
         );
     }
 
@@ -35,6 +37,7 @@ final readonly class ValidatePinResponse
             'id' => $this->id,
             'name' => $this->name,
             'role' => $this->role,
+            'image_src' => $this->imageSrc,
         ];
     }
 }

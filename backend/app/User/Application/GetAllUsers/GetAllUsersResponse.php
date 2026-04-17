@@ -11,6 +11,7 @@ final readonly class GetAllUsersResponse
         public string $name,
         public string $email,
         public string $role,
+        public ?string $imageSrc,
         public string $createdAt,
         public string $updatedAt,
     ) {}
@@ -18,10 +19,11 @@ final readonly class GetAllUsersResponse
     public static function create(User $user): self
     {
         return new self(
-            id: $user->id()->getValue(),
+            id: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
             role: $user->role()->getValue(),
+            imageSrc: $user->imageSrc(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );
@@ -37,6 +39,7 @@ final readonly class GetAllUsersResponse
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,
+            'image_src' => $this->imageSrc,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

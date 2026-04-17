@@ -13,6 +13,7 @@ final readonly class GetAuthenticatedUserResponse
         public string $role,
         public int $restaurantId,
         public string $restaurantName,
+        public ?string $imageSrc,
         public string $createdAt,
         public string $updatedAt,
     ) {}
@@ -20,12 +21,13 @@ final readonly class GetAuthenticatedUserResponse
     public static function create(User $user, ?string $restaurantName = null): self
     {
         return new self(
-            id: $user->id()->getValue(),
+            id: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
             role: $user->role()->getValue(),
             restaurantId: $user->restaurantId(),
             restaurantName: $restaurantName ?? '',
+            imageSrc: $user->imageSrc(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),
         );
@@ -43,6 +45,7 @@ final readonly class GetAuthenticatedUserResponse
             'role' => $this->role,
             'restaurant_id' => $this->restaurantId,
             'restaurant_name' => $this->restaurantName,
+            'image_src' => $this->imageSrc,
             'created_at' => $this->createdAt,
             'updated_at' => $this->updatedAt,
         ];

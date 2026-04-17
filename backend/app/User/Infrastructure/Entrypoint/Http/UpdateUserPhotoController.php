@@ -5,9 +5,8 @@ namespace App\User\Infrastructure\Entrypoint\Http;
 use App\User\Application\UpdateUser\UpdateUser;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
-class UpdateUserController
+class UpdateUserPhotoController
 {
     public function __construct(
         private UpdateUser $updateUser,
@@ -16,16 +15,17 @@ class UpdateUserController
     public function __invoke(Request $request, string $uuid): JsonResponse
     {
         $validated = $request->validate([
-            'name'  => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')->ignore($uuid, 'uuid')],
-            'image_src' => ['nullable', 'string'],
+            'image_src' => 'nullable|string',
         ]);
+
+        // Get the user's data first to preserve name/email
+        $user = \App\User\Infrastructure\Persistence\Models\EloquentUser::where('uuid', $uuid)->firstOrFail();
 
         $response = ($this->updateUser)(
             $uuid,
-            $validated['email'],
-            $validated['name'],
-            $request->user()->restaurant_id,
+            $user->email,
+            $user->name,
+            $user->restaurant_id,
             $validated['image_src'] ?? null,
         );
 
