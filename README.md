@@ -9,6 +9,7 @@ Este repositorio sirve como proyecto base para prácticas de desarrollo backend 
 
 - [Prerrequisitos](#prerrequisitos)
 - [Cómo empezar](#cómo-empezar)
+- [Checklist manual Hito 6](#checklist-manual-hito-6)
 - [Estructura del proyecto](#estructura-del-proyecto)
   - [Backend (`backend/`)](#backend-backend)
   - [Frontend (`frontend/`)](#frontend-frontend)
@@ -66,6 +67,12 @@ Tras seguir estos pasos tendrás:
 - **API (Laravel):** [http://localhost:8000](http://localhost:8000)
 - **Frontend (Angular):** [http://localhost:4200](http://localhost:4200)
 - **DbGate (MySQL):** [http://localhost:9051](http://localhost:9051) (conexión **Training MySQL** preconfigurada)
+
+## Checklist manual Hito 6
+
+Para validar manualmente descuentos, división de cuenta, devoluciones, caja, ticket provisional y traslado de mesa, consulta:
+
+- [`docs/manual-qa-hito6.md`](./docs/manual-qa-hito6.md)
 
 ---
 
