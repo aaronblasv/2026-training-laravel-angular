@@ -86,8 +86,8 @@ export class ProductsPage implements OnInit {
       name: product?.name ?? '',
       price: product?.price ?? 0,
       stock: product?.stock ?? 0,
-      family_id: product?.familyId ?? '',
-      tax_id: product?.taxId ?? '',
+      family_id: product?.family_id ?? '',
+      tax_id: product?.tax_id ?? '',
       image_src: product?.image_src ?? '',
     };
         this.showForm = true;
