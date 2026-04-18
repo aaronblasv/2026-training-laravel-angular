@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Payment\Infrastructure\Persistence\Repositories;
 
 use App\Payment\Domain\Entity\Payment;
@@ -48,6 +50,7 @@ class EloquentPaymentRepository implements PaymentRepositoryInterface
         }
 
         return $this->model->newQuery()
+            ->with(['order', 'user'])
             ->where('order_id', $order->id)
             ->get()
             ->map(fn(EloquentPayment $payment) => $this->toDomain($payment))
@@ -67,8 +70,12 @@ class EloquentPaymentRepository implements PaymentRepositoryInterface
 
     private function toDomain(EloquentPayment $payment): Payment
     {
-        $orderUuid = $this->orderModel->newQuery()->find($payment->order_id)->uuid;
-        $userUuid = $this->userModel->newQuery()->find($payment->user_id)->uuid;
+        $orderUuid = $payment->relationLoaded('order')
+            ? $payment->order->uuid
+            : $this->orderModel->newQuery()->find($payment->order_id)->uuid;
+        $userUuid = $payment->relationLoaded('user')
+            ? $payment->user->uuid
+            : $this->userModel->newQuery()->find($payment->user_id)->uuid;
 
         return Payment::fromPersistence(
             $payment->uuid,

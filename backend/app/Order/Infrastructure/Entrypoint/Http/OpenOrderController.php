@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\OpenOrder\OpenOrder;
-use App\Log\Application\CreateLog\CreateLog;
+use App\Shared\Infrastructure\Http\DispatchesActionLogged;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OpenOrderController
 {
+    use DispatchesActionLogged;
+
     public function __construct(
         private OpenOrder $useCase,
-        private CreateLog $createLog,
     ) {}
 
     public function __invoke(Request $request): JsonResponse
@@ -31,8 +32,7 @@ class OpenOrderController
             $validated['diners'],
         );
 
-        // Log the action
-        ($this->createLog)(
+        $this->logAction(
             $request->user()->restaurant_id,
             $request->user()->uuid,
             'order.opened',

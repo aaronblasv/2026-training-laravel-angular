@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Product\Infrastructure\Persistence\Repositories;
 
 use App\Product\Domain\Entity\Product;
@@ -19,6 +21,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
     public function findAll(int $restaurantId): array
     {
         return $this->model->newQuery()
+            ->with(['family', 'tax'])
             ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentProduct $product) => $this->toDomain($product))
@@ -55,6 +58,7 @@ class EloquentProductRepository implements ProductRepositoryInterface
     public function findById(string $uuid, int $restaurantId): ?Product
     {
         $product = $this->model->newQuery()
+            ->with(['family', 'tax'])
             ->where('uuid', $uuid)
             ->where('restaurant_id', $restaurantId)
             ->first();
@@ -72,8 +76,12 @@ class EloquentProductRepository implements ProductRepositoryInterface
 
     private function toDomain(EloquentProduct $product): Product
     {
-        $family = $this->familyModel->newQuery()->withTrashed()->find($product->family_id);
-        $tax = $this->taxModel->newQuery()->withTrashed()->find($product->tax_id);
+        $family = $product->relationLoaded('family')
+            ? $product->family
+            : $this->familyModel->newQuery()->withTrashed()->find($product->family_id);
+        $tax = $product->relationLoaded('tax')
+            ? $product->tax
+            : $this->taxModel->newQuery()->withTrashed()->find($product->tax_id);
 
         return Product::fromPersistence(
             $product->uuid,

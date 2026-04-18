@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Payment\Infrastructure\Entrypoint\Http;
 
 use App\Payment\Application\RegisterPayment\RegisterPayment;
-use App\Log\Application\CreateLog\CreateLog;
+use App\Shared\Infrastructure\Http\DispatchesActionLogged;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class RegisterPaymentController
 {
+    use DispatchesActionLogged;
+
     public function __construct(
         private RegisterPayment $useCase,
-        private CreateLog $createLog,
     ) {}
 
     public function __invoke(Request $request, string $orderUuid): JsonResponse
@@ -30,7 +33,7 @@ class RegisterPaymentController
             $validated['description'] ?? null,
         );
 
-        ($this->createLog)(
+        $this->logAction(
             $request->user()->restaurant_id,
             $request->user()->uuid,
             'payment.registered',

@@ -25,6 +25,6 @@ class GetSalesReportController
             is_string($to)   ? $to   : null,
         );
 
-        return new JsonResponse($report);
+        return new JsonResponse($report->toArray());
     }
 }

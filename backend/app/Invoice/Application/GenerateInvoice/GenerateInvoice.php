@@ -1,12 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Invoice\Application\GenerateInvoice;
 
 use App\Invoice\Domain\Entity\Invoice;
+use App\Invoice\Domain\Interfaces\InvoiceOrderDataProviderInterface;
 use App\Invoice\Domain\Interfaces\InvoiceRepositoryInterface;
-use App\Order\Domain\Exception\OrderNotFoundException;
-use App\Order\Domain\Interfaces\OrderRepositoryInterface;
-use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Shared\Domain\ValueObject\Uuid;
 use Illuminate\Support\Facades\DB;
 
@@ -14,34 +14,27 @@ class GenerateInvoice
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
-        private OrderRepositoryInterface $orderRepository,
-        private OrderLineRepositoryInterface $lineRepository,
+        private InvoiceOrderDataProviderInterface $orderDataProvider,
     ) {}
 
     public function __invoke(string $orderUuid, int $restaurantId): GenerateInvoiceResponse
     {
         return DB::transaction(function () use ($orderUuid, $restaurantId) {
-            $order = $this->orderRepository->findById($orderUuid, $restaurantId);
+            $orderData = $this->orderDataProvider->getOrderForInvoice($orderUuid, $restaurantId);
 
-            if (!$order) {
-                throw new OrderNotFoundException($orderUuid);
+            if (!$orderData) {
+                throw new \DomainException("Order not found: {$orderUuid}");
             }
-
-            $lines = $this->lineRepository->findAllByOrderId($orderUuid, $restaurantId);
-
-            $subtotal = $order->calculateSubtotal($lines);
-            $taxAmount = $order->calculateTaxAmount($lines);
-            $total = $subtotal + $taxAmount;
 
             $invoiceNumber = $this->invoiceRepository->getNextInvoiceNumber();
 
             $invoice = Invoice::dddCreate(
                 Uuid::generate(),
-                $order->uuid(),
+                Uuid::create($orderData->orderUuid),
                 $invoiceNumber,
-                $subtotal,
-                $taxAmount,
-                $total,
+                $orderData->subtotal,
+                $orderData->taxAmount,
+                $orderData->total,
             );
 
             $this->invoiceRepository->save($invoice);

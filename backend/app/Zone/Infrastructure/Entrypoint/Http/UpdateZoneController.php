@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Zone\Infrastructure\Entrypoint\Http;
 
 use App\Zone\Application\UpdateZone\UpdateZone;
@@ -20,6 +22,6 @@ class UpdateZoneController
 
         $zone = ($this->useCase)($uuid, $validated['name'], $request->user()->restaurant_id);
 
-        return new JsonResponse($zone);
+        return new JsonResponse($zone->toArray());
     }
 }

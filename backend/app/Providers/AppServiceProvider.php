@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Providers;
 
 use App\CashShift\Domain\Interfaces\CashShiftRepositoryInterface;
 use App\CashShift\Infrastructure\Persistence\Repositories\EloquentCashShiftRepository;
 use App\Dashboard\Domain\Interfaces\DashboardRepositoryInterface;
+use App\Dashboard\Infrastructure\Persistence\Repositories\CachedDashboardRepository;
 use App\Dashboard\Infrastructure\Persistence\Repositories\EloquentDashboardRepository;
 use App\Family\Domain\Interfaces\FamilyRepositoryInterface;
 use App\Family\Infrastructure\Persistence\Repositories\EloquentFamilyRepository;
 use App\Invoice\Application\GenerateInvoice\GenerateInvoice;
+use App\Invoice\Domain\Interfaces\InvoiceOrderDataProviderInterface;
 use App\Invoice\Domain\Interfaces\InvoiceRepositoryInterface;
+use App\Invoice\Infrastructure\Persistence\Providers\EloquentInvoiceOrderDataProvider;
 use App\Invoice\Infrastructure\Persistence\Repositories\EloquentInvoiceRepository;
 use App\Log\Application\CreateLog\CreateLog;
 use App\Log\Application\GetLogs\GetLogs;
@@ -42,6 +47,11 @@ use App\User\Infrastructure\Services\LaravelPasswordHasher;
 use App\User\Infrastructure\Services\LaravelTokenGenerator;
 use App\Zone\Domain\Interfaces\ZoneRepositoryInterface;
 use App\Zone\Infrastructure\Persistence\Repositories\EloquentZoneRepository;
+use App\Log\Infrastructure\Listener\WriteLogOnActionLogged;
+use App\Order\Domain\Event\OrderClosed;
+use App\Sale\Application\CreateSaleOnOrderClosed\CreateSaleOnOrderClosed;
+use App\Shared\Domain\Event\ActionLogged;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -49,7 +59,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Dashboard
-        $this->app->bind(DashboardRepositoryInterface::class, EloquentDashboardRepository::class);
+        $this->app->bind(DashboardRepositoryInterface::class, CachedDashboardRepository::class);
 
         // User
         $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);
@@ -81,10 +91,10 @@ class AppServiceProvider extends ServiceProvider
 
         // Invoice
         $this->app->bind(InvoiceRepositoryInterface::class, EloquentInvoiceRepository::class);
+        $this->app->bind(InvoiceOrderDataProviderInterface::class, EloquentInvoiceOrderDataProvider::class);
         $this->app->bind(GenerateInvoice::class, fn($app) => new GenerateInvoice(
             $app->make(InvoiceRepositoryInterface::class),
-            $app->make(OrderRepositoryInterface::class),
-            $app->make(OrderLineRepositoryInterface::class),
+            $app->make(InvoiceOrderDataProviderInterface::class),
         ));
 
         // Log
@@ -105,6 +115,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        //
+        Event::listen(ActionLogged::class, WriteLogOnActionLogged::class);
+        Event::listen(OrderClosed::class, CreateSaleOnOrderClosed::class);
     }
 }

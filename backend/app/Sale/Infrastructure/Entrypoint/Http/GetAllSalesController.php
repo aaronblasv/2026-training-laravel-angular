@@ -25,6 +25,24 @@ class GetAllSalesController
             is_string($to)   ? $to   : null,
         );
 
-        return new JsonResponse($sales);
+        return new JsonResponse(
+            array_map(fn($s) => [
+                'uuid' => $s->uuid,
+                'ticket_number' => $s->ticketNumber,
+                'value_date' => $s->valueDate,
+                'subtotal' => $s->subtotal,
+                'tax_amount' => $s->taxAmount,
+                'line_discount_total' => $s->lineDiscountTotal,
+                'order_discount_total' => $s->orderDiscountTotal,
+                'total' => $s->total,
+                'refunded_total' => $s->refundedTotal,
+                'net_total' => $s->netTotal,
+                'table_name' => $s->tableName,
+                'open_user_name' => $s->openUserName,
+                'close_user_name' => $s->closeUserName,
+                'opened_at' => $s->openedAt,
+                'closed_at' => $s->closedAt,
+            ], $sales)
+        );
     }
 }

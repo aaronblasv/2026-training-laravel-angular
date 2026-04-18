@@ -5,15 +5,16 @@ declare(strict_types=1);
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\CloseOrder\CloseOrder;
-use App\Log\Application\CreateLog\CreateLog;
+use App\Shared\Infrastructure\Http\DispatchesActionLogged;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CloseOrderController
 {
+    use DispatchesActionLogged;
+
     public function __construct(
         private CloseOrder $useCase,
-        private CreateLog $createLog,
     ) {}
 
     public function __invoke(Request $request, string $orderUuid): JsonResponse
@@ -28,7 +29,7 @@ class CloseOrderController
             $request->user()->restaurant_id,
         );
 
-        ($this->createLog)(
+        $this->logAction(
             $request->user()->restaurant_id,
             $request->user()->uuid,
             'order.closed',

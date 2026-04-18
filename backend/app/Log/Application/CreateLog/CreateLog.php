@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Log\Application\CreateLog;
 
 use App\Log\Domain\Entity\Log;

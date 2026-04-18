@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Log\Infrastructure\Entrypoint\Http;
 
 use App\Log\Application\GetLogs\GetLogs;

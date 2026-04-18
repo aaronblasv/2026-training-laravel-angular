@@ -18,6 +18,21 @@ class GetSaleLinesController
     {
         $lines = ($this->useCase)($request->user()->restaurant_id, $uuid);
 
-        return new JsonResponse($lines);
+        return new JsonResponse(
+            array_map(fn($l) => [
+                'uuid' => $l->uuid,
+                'product_name' => $l->productName,
+                'quantity' => $l->quantity,
+                'price' => $l->price,
+                'tax_percentage' => $l->taxPercentage,
+                'line_subtotal' => $l->lineSubtotal,
+                'tax_amount' => $l->taxAmount,
+                'discount_type' => $l->discountType,
+                'discount_value' => $l->discountValue,
+                'discount_amount' => $l->discountAmount,
+                'line_total' => $l->lineTotal,
+                'refunded_quantity' => $l->refundedQuantity,
+            ], $lines)
+        );
     }
 }

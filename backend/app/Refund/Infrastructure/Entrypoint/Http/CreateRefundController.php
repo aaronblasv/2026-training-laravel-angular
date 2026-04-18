@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Refund\Infrastructure\Entrypoint\Http;
 
-use App\Log\Application\CreateLog\CreateLog;
 use App\Refund\Application\CreateRefund\CreateRefund;
+use App\Shared\Infrastructure\Http\DispatchesActionLogged;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CreateRefundController
 {
+    use DispatchesActionLogged;
+
     public function __construct(
         private CreateRefund $useCase,
-        private CreateLog $createLog,
     ) {}
 
     public function __invoke(Request $request, string $saleUuid): JsonResponse
@@ -37,7 +38,7 @@ class CreateRefundController
             $request->user()->restaurant_id,
         );
 
-        ($this->createLog)(
+        $this->logAction(
             $request->user()->restaurant_id,
             $request->user()->uuid,
             'sale.refunded',

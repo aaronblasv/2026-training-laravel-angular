@@ -6,6 +6,9 @@ namespace App\Sale\Domain\Interfaces;
 
 use App\Sale\Domain\Entity\Sale;
 use App\Sale\Domain\Entity\SaleLine;
+use App\Sale\Domain\ReadModel\SaleLineDetail;
+use App\Sale\Domain\ReadModel\SalesGroupedReport;
+use App\Sale\Domain\ReadModel\SaleSummary;
 
 interface SaleRepositoryInterface
 {
@@ -18,12 +21,11 @@ interface SaleRepositoryInterface
     public function findByUuid(int $restaurantId, string $saleUuid): ?Sale;
     public function findDomainLinesBySaleUuid(int $restaurantId, string $saleUuid): array;
 
-    /** @return array<int, array<string, mixed>> */
+    /** @return SaleSummary[] */
     public function findFiltered(int $restaurantId, ?string $from, ?string $to): array;
 
-    /** @return array<int, array<string, mixed>> */
+    /** @return SaleLineDetail[] */
     public function findLinesBySaleUuid(int $restaurantId, string $saleUuid): array;
 
-    /** @return array{by_day: array, by_zone: array, by_product: array, by_user: array} */
-    public function getGroupedReport(int $restaurantId, ?string $from, ?string $to): array;
+    public function getGroupedReport(int $restaurantId, ?string $from, ?string $to): SalesGroupedReport;
 }

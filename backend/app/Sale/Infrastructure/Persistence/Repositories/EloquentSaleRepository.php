@@ -7,6 +7,13 @@ namespace App\Sale\Infrastructure\Persistence\Repositories;
 use App\Sale\Domain\Entity\Sale;
 use App\Sale\Domain\Entity\SaleLine;
 use App\Sale\Domain\Interfaces\SaleRepositoryInterface;
+use App\Sale\Domain\ReadModel\SaleLineDetail;
+use App\Sale\Domain\ReadModel\SalesGroupedReport;
+use App\Sale\Domain\ReadModel\SalesReportByDay;
+use App\Sale\Domain\ReadModel\SalesReportByProduct;
+use App\Sale\Domain\ReadModel\SalesReportByUser;
+use App\Sale\Domain\ReadModel\SalesReportByZone;
+use App\Sale\Domain\ReadModel\SaleSummary;
 use App\Sale\Infrastructure\Persistence\Models\EloquentSale;
 use App\Sale\Infrastructure\Persistence\Models\EloquentSaleLine;
 use App\Order\Infrastructure\Persistence\Models\EloquentOrder;
@@ -239,23 +246,23 @@ class EloquentSaleRepository implements SaleRepositoryInterface
             $query->where('s.value_date', '<=', $to . ' 23:59:59');
         }
 
-        return $query->get()->map(fn($row) => [
-            'uuid'            => $row->uuid,
-            'ticket_number'   => $row->ticket_number,
-            'value_date'      => $row->value_date,
-            'subtotal'        => (int) $row->subtotal,
-            'tax_amount'      => (int) $row->tax_amount,
-            'line_discount_total' => (int) $row->line_discount_total,
-            'order_discount_total' => (int) $row->order_discount_total,
-            'total'           => (int) $row->total,
-            'refunded_total'  => (int) $row->refunded_total,
-            'net_total'       => (int) $row->total - (int) $row->refunded_total,
-            'table_name'      => $row->table_name,
-            'open_user_name'  => $row->open_user_name,
-            'close_user_name' => $row->close_user_name ?? '—',
-            'opened_at'       => $row->opened_at,
-            'closed_at'       => $row->closed_at,
-        ])->all();
+        return $query->get()->map(fn($row) => new SaleSummary(
+            uuid: $row->uuid,
+            ticketNumber: (int) $row->ticket_number,
+            valueDate: $row->value_date,
+            subtotal: (int) $row->subtotal,
+            taxAmount: (int) $row->tax_amount,
+            lineDiscountTotal: (int) $row->line_discount_total,
+            orderDiscountTotal: (int) $row->order_discount_total,
+            total: (int) $row->total,
+            refundedTotal: (int) $row->refunded_total,
+            netTotal: (int) $row->total - (int) $row->refunded_total,
+            tableName: $row->table_name,
+            openUserName: $row->open_user_name,
+            closeUserName: $row->close_user_name ?? '—',
+            openedAt: $row->opened_at,
+            closedAt: $row->closed_at,
+        ))->all();
     }
 
     public function findLinesBySaleUuid(int $restaurantId, string $saleUuid): array
@@ -289,24 +296,24 @@ class EloquentSaleRepository implements SaleRepositoryInterface
                 'sl.refunded_quantity',
             )
             ->get()
-            ->map(fn($row) => [
-                'uuid'           => $row->uuid,
-                'product_name'   => $row->product_name,
-                'quantity'       => (int) $row->quantity,
-                'price'          => (int) $row->price,
-                'tax_percentage' => (int) $row->tax_percentage,
-                'line_subtotal'  => (int) $row->line_subtotal,
-                'tax_amount'     => (int) $row->tax_amount,
-                'discount_type'  => $row->discount_type,
-                'discount_value' => (int) $row->discount_value,
-                'discount_amount' => (int) $row->discount_amount,
-                'line_total'     => (int) $row->line_total,
-                'refunded_quantity' => (int) $row->refunded_quantity,
-            ])
+            ->map(fn($row) => new SaleLineDetail(
+                uuid: $row->uuid,
+                productName: $row->product_name,
+                quantity: (int) $row->quantity,
+                price: (int) $row->price,
+                taxPercentage: (int) $row->tax_percentage,
+                lineSubtotal: (int) $row->line_subtotal,
+                taxAmount: (int) $row->tax_amount,
+                discountType: $row->discount_type,
+                discountValue: (int) $row->discount_value,
+                discountAmount: (int) $row->discount_amount,
+                lineTotal: (int) $row->line_total,
+                refundedQuantity: (int) $row->refunded_quantity,
+            ))
             ->all();
     }
 
-    public function getGroupedReport(int $restaurantId, ?string $from, ?string $to): array
+    public function getGroupedReport(int $restaurantId, ?string $from, ?string $to): SalesGroupedReport
     {
         $applyFilters = function ($q) use ($restaurantId, $from, $to) {
             $q->where('s.restaurant_id', $restaurantId)->whereNull('s.deleted_at');
@@ -318,7 +325,7 @@ class EloquentSaleRepository implements SaleRepositoryInterface
         $byDay = $applyFilters(DB::table('sales as s'))
             ->select(DB::raw('DATE(s.value_date) as day'), DB::raw('COUNT(*) as count'), DB::raw('SUM(s.total - s.refunded_total) as total'))
             ->groupBy('day')->orderBy('day')
-            ->get()->map(fn($r) => ['day' => $r->day, 'count' => (int) $r->count, 'total' => (int) $r->total])->all();
+            ->get()->map(fn($r) => new SalesReportByDay(day: $r->day, count: (int) $r->count, total: (int) $r->total))->all();
 
         $byZone = $applyFilters(DB::table('sales as s'))
             ->join('orders as o', 's.order_id', '=', 'o.id')
@@ -326,7 +333,7 @@ class EloquentSaleRepository implements SaleRepositoryInterface
             ->join('zones as z', 't.zone_id', '=', 'z.id')
             ->select('z.name as zone_name', DB::raw('COUNT(*) as count'), DB::raw('SUM(s.total - s.refunded_total) as total'))
             ->groupBy('z.id', 'z.name')->orderByDesc('total')
-            ->get()->map(fn($r) => ['zone_name' => $r->zone_name, 'count' => (int) $r->count, 'total' => (int) $r->total])->all();
+            ->get()->map(fn($r) => new SalesReportByZone(zoneName: $r->zone_name, count: (int) $r->count, total: (int) $r->total))->all();
 
         $byProduct = $applyFilters(DB::table('sales as s'))
             ->join('sales_lines as sl', 'sl.sale_id', '=', 's.id')
@@ -335,20 +342,20 @@ class EloquentSaleRepository implements SaleRepositoryInterface
             ->whereNull('sl.deleted_at')
             ->select('p.name as product_name', DB::raw('SUM(sl.quantity - sl.refunded_quantity) as total_quantity'), DB::raw('SUM(sl.line_total - ((sl.refunded_quantity / sl.quantity) * sl.line_total)) as total'))
             ->groupBy('p.id', 'p.name')->orderByDesc('total_quantity')
-            ->get()->map(fn($r) => ['product_name' => $r->product_name, 'total_quantity' => (int) $r->total_quantity, 'total' => (int) $r->total])->all();
+            ->get()->map(fn($r) => new SalesReportByProduct(productName: $r->product_name, totalQuantity: (int) $r->total_quantity, total: (int) $r->total))->all();
 
         $byUser = $applyFilters(DB::table('sales as s'))
             ->join('users as u', 's.user_id', '=', 'u.id')
             ->select('u.name as user_name', DB::raw('COUNT(*) as count'), DB::raw('SUM(s.total - s.refunded_total) as total'))
             ->groupBy('u.id', 'u.name')->orderByDesc('total')
-            ->get()->map(fn($r) => ['user_name' => $r->user_name, 'count' => (int) $r->count, 'total' => (int) $r->total])->all();
+            ->get()->map(fn($r) => new SalesReportByUser(userName: $r->user_name, count: (int) $r->count, total: (int) $r->total))->all();
 
-        return [
-            'by_day'     => $byDay,
-            'by_zone'    => $byZone,
-            'by_product' => $byProduct,
-            'by_user'    => $byUser,
-        ];
+        return new SalesGroupedReport(
+            byDay: $byDay,
+            byZone: $byZone,
+            byProduct: $byProduct,
+            byUser: $byUser,
+        );
     }
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Zone\Infrastructure\Entrypoint\Http;
 
 use App\Zone\Application\CreateZone\CreateZone;
@@ -20,6 +22,6 @@ class CreateZoneController
 
         $zone = ($this->useCase)($validated['name'], $request->user()->restaurant_id);
 
-        return new JsonResponse($zone, 201);
+        return new JsonResponse($zone->toArray(), 201);
     }
 }

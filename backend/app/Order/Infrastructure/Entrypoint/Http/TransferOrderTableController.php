@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
-use App\Log\Application\CreateLog\CreateLog;
 use App\Order\Application\TransferOrderTable\TransferOrderTable;
+use App\Shared\Infrastructure\Http\DispatchesActionLogged;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TransferOrderTableController
 {
+    use DispatchesActionLogged;
+
     public function __construct(
         private TransferOrderTable $useCase,
-        private CreateLog $createLog,
     ) {}
 
     public function __invoke(Request $request, string $orderUuid): JsonResponse
@@ -28,7 +29,7 @@ class TransferOrderTableController
             $request->user()->restaurant_id,
         );
 
-        ($this->createLog)(
+        $this->logAction(
             $request->user()->restaurant_id,
             $request->user()->uuid,
             'order.transferred',

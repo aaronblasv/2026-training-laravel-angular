@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
-use App\Log\Application\CreateLog\CreateLog;
 use App\Order\Application\UpdateOrderDiscount\UpdateOrderDiscount;
+use App\Shared\Infrastructure\Http\DispatchesActionLogged;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UpdateOrderDiscountController
 {
+    use DispatchesActionLogged;
+
     public function __construct(
         private UpdateOrderDiscount $useCase,
-        private CreateLog $createLog,
     ) {}
 
     public function __invoke(Request $request, string $orderUuid): JsonResponse
@@ -33,7 +34,7 @@ class UpdateOrderDiscountController
             $request->user()->restaurant_id,
         );
 
-        ($this->createLog)(
+        $this->logAction(
             $request->user()->restaurant_id,
             $request->user()->uuid,
             'order.discount.updated',

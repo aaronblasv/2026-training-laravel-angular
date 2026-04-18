@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\User\Infrastructure\Entrypoint\Http;
 
 use App\User\Application\CreateUser\CreateUser;
@@ -26,7 +28,7 @@ class CreateUserController
             $validated['name'],
             $validated['password'],
             $validated['role'] ?? 'waiter',
-            auth()->user()->restaurant_id,
+            $request->user()->restaurant_id,
             $validated['image_src'] ?? null,
         );
 
