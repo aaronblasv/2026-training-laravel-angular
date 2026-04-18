@@ -6,6 +6,7 @@ namespace App\Table\Domain\Entity;
 
 use App\Shared\Domain\ValueObject\RestaurantId;
 use App\Shared\Domain\ValueObject\Uuid;
+use App\Table\Domain\ValueObject\TableName;
 
 class Table
 {

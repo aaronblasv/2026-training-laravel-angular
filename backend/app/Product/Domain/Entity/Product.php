@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace App\Product\Domain\Entity;
 
-use App\Shared\Domain\ValueObject\RestaurantId;
-use App\Shared\Domain\ValueObject\Uuid;
+use App\Product\Domain\ValueObject\ProductName;
 use App\Product\Domain\ValueObject\ProductPrice;
 use App\Product\Domain\ValueObject\ProductStock;
+use App\Shared\Domain\ValueObject\RestaurantId;
+use App\Shared\Domain\ValueObject\Uuid;
 
 class Product
 {
