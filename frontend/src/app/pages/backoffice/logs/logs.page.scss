@@ -1,3 +1,51 @@
+.filters-card {
+  background: var(--bo-surface, #1E2A3B);
+  border: 1px solid var(--bo-border, #2D3B52);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.filters-grid {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
+  gap: 1rem;
+  align-items: end;
+}
+
+.filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  span {
+    color: var(--bo-text-2, #94A3B8);
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  select {
+    min-height: 44px;
+    border: 1px solid var(--bo-border, #2D3B52);
+    border-radius: 10px;
+    padding: 0 0.9rem;
+    background: var(--bo-surface2, #243044);
+    color: var(--bo-text-1, #F1F5F9);
+    font: inherit;
+  }
+}
+
+.btn-clear {
+  min-height: 44px;
+  padding: 0 1rem;
+  border-radius: 10px;
+  border: 1px solid var(--bo-border, #2D3B52);
+  background: transparent;
+  color: var(--bo-text-2, #94A3B8);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .table-card {
   background: var(--bo-surface, #1E2A3B);
   border: 1px solid var(--bo-border, #2D3B52);
@@ -59,6 +107,11 @@
   color: var(--bo-blue, #3B82F6);
 }
 
+.badge-amber {
+  background: rgba(245, 158, 11, .16);
+  color: #F59E0B;
+}
+
 .badge-red {
   background: var(--bo-red-bg, rgba(239,68,68,.12));
   color: var(--bo-red, #EF4444);
@@ -80,4 +133,10 @@
   text-align: center;
   color: var(--bo-text-3, #64748B);
   font-size: 0.875rem;
+}
+
+@media (max-width: 900px) {
+  .filters-grid {
+    grid-template-columns: 1fr;
+  }
 }

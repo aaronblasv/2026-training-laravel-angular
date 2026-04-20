@@ -10,6 +10,32 @@
         </div>
       </div>
 
+      <div class="filters-card">
+        <div class="filters-grid">
+          <label class="filter-field">
+            <span>Tipo de acción</span>
+            <select [(ngModel)]="filters.action" (ngModelChange)="onFiltersChanged()">
+              <option value="">Todas las acciones</option>
+              @for (option of actionOptions; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="filter-field">
+            <span>Usuario</span>
+            <select [(ngModel)]="filters.user_id" (ngModelChange)="onFiltersChanged()">
+              <option value="">Todos los usuarios</option>
+              @for (user of users; track user.uuid) {
+                <option [value]="user.uuid">{{ user.name }}</option>
+              }
+            </select>
+          </label>
+
+          <button class="btn-clear" type="button" (click)="clearFilters()">Limpiar filtros</button>
+        </div>
+      </div>
+
       <div class="table-card">
         <table>
           <thead>
@@ -35,14 +61,16 @@
                     <span class="entity-type">{{ log.entity_type }}</span>
                   }
                 </td>
-                <td>{{ log.user_id ?? '-' }}</td>
+                <td>{{ log.user_name ?? 'Sistema' }}</td>
                 <td class="ip-cell">{{ log.ip_address ?? '-' }}</td>
               </tr>
             }
           </tbody>
         </table>
 
-        @if (logs.length === 0) {
+        @if (loading) {
+          <div class="empty-state">Cargando registros...</div>
+        } @else if (logs.length === 0) {
           <div class="empty-state">No hay registros de actividad</div>
         }
       </div>
