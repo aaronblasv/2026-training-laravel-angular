@@ -4,7 +4,7 @@
       <h2>Seleccionar camarero</h2>
 
       <div class="waiters-grid">
-        @for (waiter of waiters; track waiter.id) {
+        @for (waiter of waiters; track waiter.uuid) {
           <button class="waiter-card" (click)="selectWaiter(waiter)">
             <div class="waiter-avatar">{{ waiter.name.charAt(0) }}</div>
             <span class="waiter-name">{{ waiter.name }}</span>

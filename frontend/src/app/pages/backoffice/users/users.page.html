@@ -23,7 +23,7 @@
             </tr>
           </thead>
           <tbody>
-            @for (user of users; track user.id) {
+            @for (user of users; track user.uuid) {
               <tr>
                 <td>
                   @if (user.image_src) {
