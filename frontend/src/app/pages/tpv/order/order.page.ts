@@ -11,10 +11,9 @@ import { TableService } from '../../../services/api/table.service';
 import { PaymentService } from '../../../services/api/payment.service';
 import { LoggerService } from '../../../services/logger.service';
 import { PinModalComponent } from '../../../components/pin-modal/pin-modal.component';
-import { PaymentModalComponent } from '../../../components/payment-modal/payment-modal.component';
 import { SuccessModalComponent } from '../../../components/success-modal/success-modal.component';
 import { WaiterModalComponent } from '../../../components/waiter-modal/waiter-modal.component';
-import { SplitBillModalComponent } from '../../../components/split-bill-modal/split-bill-modal.component';
+
 import { DiscountModalComponent, DiscountResult } from '../../../components/discount-modal/discount-modal.component';
 import { DinersModalComponent } from '../../../components/diners-modal/diners-modal.component';
 import { Order, OrderLine } from '../../../types/order.model';
@@ -31,7 +30,7 @@ registerLocaleData(localeEs);
 @Component({
   selector: 'app-order',
   standalone: true,
-  imports: [CommonModule, IonicModule, PinModalComponent, SuccessModalComponent, WaiterModalComponent, SplitBillModalComponent, DiscountModalComponent, DinersModalComponent],
+  imports: [CommonModule, IonicModule, PinModalComponent, SuccessModalComponent, WaiterModalComponent, DiscountModalComponent, DinersModalComponent],
   templateUrl: './order.page.html',
   styleUrls: ['./order.page.scss'],
   encapsulation: ViewEncapsulation.None,
@@ -62,7 +61,6 @@ export class OrderPage implements OnInit {
   showCloseWaiterModal = false;
   showClosePinModal = false;
   showTransferModal = false;
-  showSplitModal = false;
   showDiscountModal = false;
   showChangeDinersModal = false;
   discountModalTitle = 'Descuento';
@@ -76,12 +74,18 @@ export class OrderPage implements OnInit {
   lastTotalAmount = 0;
 
   // Payment view state
+  payMode: 'full' | 'split' | 'custom' = 'full';
   payMethod: 'cash' | 'card' | 'bizum' = 'cash';
   payInput = '';
+  splitShares: { index: number; amount: number; method: 'cash' | 'card' | 'bizum'; paid: boolean }[] = [];
   payInputDisplay = '0.00';
   payInputCents = 0;
   numpadKeys: string[] = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'back'];
   quickAmounts: number[] = [];
+
+  get pendingAmount(): number {
+    return Math.max(0, this.orderTotal - this.totalPaid);
+  }
 
   get payChange(): number {
     const pending = this.orderTotal - this.totalPaid;
@@ -123,32 +127,56 @@ export class OrderPage implements OnInit {
     this.updatePayInputDisplay();
   }
 
-  initPaymentView() {
-    const pending = this.orderTotal - this.totalPaid;
-    this.payMethod = 'cash';
-    this.setPayAmount(pending);
-    // Quick amounts: exact, rounded up, +20, big round
-    const pendingEur = pending / 100;
-    const rounded5 = Math.ceil(pendingEur / 5) * 5;
-    const rounded10 = Math.ceil(pendingEur / 10) * 10;
-    const candidates = [pending, rounded5 * 100, rounded10 * 100, 10000];
-    this.quickAmounts = [...new Set(candidates)].filter(a => a >= pending).sort((a, b) => a - b).slice(0, 4);
-  }
-
-  exitPaymentView() {
-    this.currentTab = 'order';
-  }
-
   goToPayment() {
-    this.initPaymentView();
+    this.payMode = 'full';
     this.currentTab = 'summary';
   }
 
-  confirmPayment() {
-    if (this.payInputCents <= 0) return;
-    const pending = this.orderTotal - this.totalPaid;
-    const amount = Math.min(this.payInputCents, pending);
-    this.onPaymentRegistered({ amount, method: this.payMethod, description: '' });
+  payFull() {
+    if (this.pendingAmount <= 0) return;
+    this.onPaymentRegistered({ amount: this.pendingAmount, method: this.payMethod, description: '' });
+  }
+
+  payCustomAmount() {
+    if (this.payInputCents <= 0 || this.pendingAmount <= 0) return;
+    const amount = Math.min(this.payInputCents, this.pendingAmount);
+    this.onPaymentRegistered({ amount, method: this.payMethod, description: 'Pago parcial' });
+    this.payInput = '';
+    this.updatePayInputDisplay();
+  }
+
+  switchToSplit() {
+    this.payMode = 'split';
+    this.buildSplitShares();
+  }
+
+  switchToCustom() {
+    this.payMode = 'custom';
+    this.payInput = '';
+    this.updatePayInputDisplay();
+  }
+
+  buildSplitShares() {
+    const count = Math.max(1, this.order?.diners || 1);
+    const pending = this.pendingAmount;
+    const base = Math.floor(pending / count);
+    const remainder = pending % count;
+    this.splitShares = Array.from({ length: count }, (_, i) => ({
+      index: i,
+      amount: base + (i < remainder ? 1 : 0),
+      method: 'cash' as const,
+      paid: false,
+    }));
+  }
+
+  paySplitShare(share: { index: number; amount: number; method: 'cash' | 'card' | 'bizum'; paid: boolean }) {
+    if (share.paid || share.amount <= 0) return;
+    share.paid = true;
+    this.onPaymentRegistered({
+      amount: share.amount,
+      method: share.method,
+      description: `Comensal ${share.index + 1}/${this.splitShares.length}`,
+    });
   }
 
   ngOnInit() {
@@ -173,7 +201,6 @@ export class OrderPage implements OnInit {
     this.showCloseWaiterModal = false;
     this.showClosePinModal = false;
     this.showTransferModal = false;
-    this.showSplitModal = false;
     this.closeSelectedWaiter = null;
     this.availableTransferTables = [];
     this.totalPaid = 0;
@@ -694,7 +721,7 @@ export class OrderPage implements OnInit {
     this.showClosePinModal = false;
     this.closeSelectedWaiter = null;
     this.currentUser = user;
-    this.initPaymentView();
+    this.payMode = 'full';
     this.currentTab = 'summary';
   }
 
@@ -783,33 +810,7 @@ export class OrderPage implements OnInit {
     this.currentTab = 'order';
   }
 
-  openSplitBill() {
-    this.showSplitModal = true;
-  }
 
-  onSplitPayment(payment: PaymentData) {
-    this.paymentService.registerPayment(
-      this.order!.uuid,
-      Math.round(payment.amount),
-      payment.method,
-      payment.description,
-    ).subscribe({
-      next: () => {
-        this.totalPaid += Math.round(payment.amount);
-        this.logger.log('Split payment registered, totalPaid:', this.totalPaid);
-      },
-      error: (err) => this.logger.error('Error registering split payment:', err),
-    });
-  }
-
-  onSplitAllPaid() {
-    this.showSplitModal = false;
-    this.onPaymentComplete();
-  }
-
-  onSplitCancelled() {
-    this.showSplitModal = false;
-  }
 
   goBack() {
     this.router.navigate(['/tpv'], { replaceUrl: true });

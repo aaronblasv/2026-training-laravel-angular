@@ -77,57 +77,134 @@
           </div>
         </div>
 
-        <!-- Right panel: quick actions -->
+        <!-- Right panel: payment -->
         <aside class="summary-sidebar">
-          <div class="summary-sidebar-section">
-            <h4>Método de Pago</h4>
-            <div class="summary-pay-methods">
-              <button class="pay-method-card" [class.active]="payMethod === 'card'" (click)="payMethod = 'card'">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
-                <span>Tarjeta</span>
-              </button>
-              <button class="pay-method-card" [class.active]="payMethod === 'cash'" (click)="payMethod = 'cash'">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
-                <span>Efectivo</span>
-              </button>
-              <button class="pay-method-card" [class.active]="payMethod === 'bizum'" (click)="payMethod = 'bizum'">
-                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 12h8M12 8v8"/></svg>
-                <span>Bizum</span>
-              </button>
-            </div>
+
+          <!-- Payment mode tabs -->
+          <div class="pay-mode-tabs">
+            <button class="pay-mode-tab" [class.active]="payMode === 'full'" (click)="payMode = 'full'">Completo</button>
+            <button class="pay-mode-tab" [class.active]="payMode === 'split'" (click)="switchToSplit()">Dividir</button>
+            <button class="pay-mode-tab" [class.active]="payMode === 'custom'" (click)="switchToCustom()">Parcial</button>
           </div>
 
-          <button class="summary-split-btn" (click)="openSplitBill()">
-            <span>Dividir cuenta</span>
-            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M16 3h5v5M8 3H3v5M16 21h5v-5M8 21H3v-5"/></svg>
-          </button>
-
-          <div class="summary-sidebar-totals">
-            <div class="summary-total-row">
-              <span>Subtotal</span>
-              <span>{{ orderSubtotal / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+          <!-- Totals bar -->
+          <div class="pay-totals-bar">
+            <div class="pay-totals-row">
+              <span>Total</span>
+              <span class="pay-totals-value">{{ orderTotal / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
             </div>
-            <div class="summary-total-row">
-              <span>IVA</span>
-              <span>{{ orderTax / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
-            </div>
-            @if (getOrderDiscountAmount() > 0) {
-              <div class="summary-total-row summary-discount-row">
-                <span>Descuento</span>
-                <span>-{{ getOrderDiscountAmount() / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+            @if (totalPaid > 0) {
+              <div class="pay-totals-row pay-totals-paid">
+                <span>Pagado</span>
+                <span>{{ totalPaid / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+              </div>
+              <div class="pay-totals-row pay-totals-pending">
+                <span>Pendiente</span>
+                <span>{{ pendingAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
               </div>
             }
-            <div class="summary-total-row summary-grand">
-              <span>Total</span>
-              <span>{{ orderTotal / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
-            </div>
           </div>
 
-          <button class="pay-confirm-btn" (click)="goToPayment()">
-            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 12 15 15 9"/></svg>
-            Cobrar
-          </button>
+          <!-- ═══ MODE: FULL ═══ -->
+          @if (payMode === 'full') {
+            <div class="pay-section">
+              <h4 class="pay-section-title">Método de Pago</h4>
+              <div class="summary-pay-methods">
+                <button class="pay-method-card" [class.active]="payMethod === 'card'" (click)="payMethod = 'card'">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <span>Tarjeta</span>
+                </button>
+                <button class="pay-method-card" [class.active]="payMethod === 'cash'" (click)="payMethod = 'cash'">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+                  <span>Efectivo</span>
+                </button>
+                <button class="pay-method-card" [class.active]="payMethod === 'bizum'" (click)="payMethod = 'bizum'">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 12h8M12 8v8"/></svg>
+                  <span>Bizum</span>
+                </button>
+              </div>
+            </div>
 
+            <div class="pay-spacer"></div>
+
+            <button class="pay-confirm-btn" (click)="payFull()" [disabled]="pendingAmount <= 0">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="9 12 12 15 15 9"/></svg>
+              Cobrar {{ pendingAmount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}
+            </button>
+          }
+
+          <!-- ═══ MODE: SPLIT ═══ -->
+          @if (payMode === 'split') {
+            <div class="pay-section split-shares">
+              @for (share of splitShares; track share.index) {
+                <div class="split-share-card" [class.paid]="share.paid">
+                  <div class="split-share-header">
+                    <span class="split-share-label">🧑 Comensal {{ share.index + 1 }}</span>
+                    <span class="split-share-amount">{{ share.amount / 100 | currency:'EUR':'symbol':'1.2-2':'es' }}</span>
+                  </div>
+                  @if (!share.paid) {
+                    <div class="split-share-actions">
+                      <button class="split-method-btn" [class.active]="share.method === 'cash'" (click)="share.method = 'cash'">Efectivo</button>
+                      <button class="split-method-btn" [class.active]="share.method === 'card'" (click)="share.method = 'card'">Tarjeta</button>
+                      <button class="split-method-btn" [class.active]="share.method === 'bizum'" (click)="share.method = 'bizum'">Bizum</button>
+                      <button class="split-pay-btn" (click)="paySplitShare(share)">Cobrar</button>
+                    </div>
+                  } @else {
+                    <div class="split-paid-badge">✓ Pagado · {{ share.method === 'cash' ? 'Efectivo' : share.method === 'card' ? 'Tarjeta' : 'Bizum' }}</div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          <!-- ═══ MODE: CUSTOM ═══ -->
+          @if (payMode === 'custom') {
+            <div class="pay-section">
+              <h4 class="pay-section-title">Método de Pago</h4>
+              <div class="summary-pay-methods">
+                <button class="pay-method-card" [class.active]="payMethod === 'card'" (click)="payMethod = 'card'">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <span>Tarjeta</span>
+                </button>
+                <button class="pay-method-card" [class.active]="payMethod === 'cash'" (click)="payMethod = 'cash'">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="3"/></svg>
+                  <span>Efectivo</span>
+                </button>
+                <button class="pay-method-card" [class.active]="payMethod === 'bizum'" (click)="payMethod = 'bizum'">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z"/><path d="M8 12h8M12 8v8"/></svg>
+                  <span>Bizum</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Amount display -->
+            <div class="pay-amount-display">
+              <span class="pay-amount-value">{{ payInputDisplay }} €</span>
+              <button class="pay-amount-clear" (click)="payInput = ''; updatePayInputDisplay()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </button>
+            </div>
+
+            <!-- Numpad -->
+            <div class="pay-numpad">
+              @for (key of numpadKeys; track key) {
+                <button class="pay-numpad-key" (click)="onNumpadKey(key)">
+                  @if (key === 'back') {
+                    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
+                  } @else {
+                    {{ key }}
+                  }
+                </button>
+              }
+            </div>
+
+            <button class="pay-confirm-btn" (click)="payCustomAmount()" [disabled]="payInputCents <= 0 || pendingAmount <= 0">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              Añadir cobro
+            </button>
+          }
+
+          <!-- Bottom actions (always visible) -->
           <div class="pay-bottom-actions">
             <button class="pay-bottom-btn" (click)="printProvisionalTicket()">
               <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
@@ -274,6 +351,5 @@
 <app-waiter-modal [visible]="showCloseWaiterModal" (onSelected)="onCloseWaiterSelected($event)" (onCancel)="onCloseWaiterCancelled()"></app-waiter-modal>
 <app-pin-modal [visible]="showClosePinModal" [selectedWaiter]="closeSelectedWaiter" (onValidated)="onClosePinValidated($event)" (onCancel)="onClosePinCancelled()"></app-pin-modal>
 <app-success-modal [visible]="showSuccessModal" [invoiceNumber]="lastInvoiceNumber" [totalAmount]="lastTotalAmount" (onClose)="onSuccessModalClose()"></app-success-modal>
-<app-split-bill-modal [visible]="showSplitModal" [totalAmount]="orderTotal" [diners]="order?.diners || 1" (onPayment)="onSplitPayment($event)" (onAllPaid)="onSplitAllPaid()" (onCancel)="onSplitCancelled()"></app-split-bill-modal>
 <app-discount-modal [visible]="showDiscountModal" [title]="discountModalTitle" [currentType]="discountModalCurrentType" [currentValue]="discountModalCurrentValue" (onConfirm)="onDiscountConfirmed($event)" (onCancel)="onDiscountCancelled()"></app-discount-modal>
 <app-diners-modal [visible]="showChangeDinersModal" (onConfirm)="onChangeDinersConfirmed($event)" (onCancel)="onChangeDinersCancelled()"></app-diners-modal>
