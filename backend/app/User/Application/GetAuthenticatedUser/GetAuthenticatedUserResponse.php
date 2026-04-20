@@ -27,7 +27,7 @@ final readonly class GetAuthenticatedUserResponse
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
             role: $user->role()->getValue(),
-            restaurantId: $user->restaurantId(),
+            restaurantId: $user->restaurantId()->getValue(),
             restaurantName: $restaurantName ?? '',
             imageSrc: $user->imageSrc(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),

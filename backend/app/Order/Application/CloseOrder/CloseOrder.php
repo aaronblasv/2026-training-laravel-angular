@@ -10,6 +10,10 @@ use App\Order\Domain\Exception\OrderNotFoundException;
 use App\Order\Domain\Interfaces\OrderRepositoryInterface;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Sale\Domain\Interfaces\SaleRepositoryInterface;
+use App\Shared\Application\Context\AuditContext;
+use App\Shared\Domain\Event\ActionLogged;
+use App\Shared\Domain\Interfaces\DomainEventBusInterface;
+use App\Shared\Domain\Interfaces\TransactionManagerInterface;
 use App\Shared\Domain\ValueObject\Uuid;
 
 class CloseOrder
@@ -18,44 +22,59 @@ class CloseOrder
         private OrderRepositoryInterface $orderRepository,
         private OrderLineRepositoryInterface $lineRepository,
         private SaleRepositoryInterface $saleRepository,
+        private TransactionManagerInterface $transactionManager,
+        private DomainEventBusInterface $domainEventBus,
     ) {}
 
-    public function __invoke(string $orderUuid, string $closedByUserUuid, int $restaurantId): CloseOrderResponse
+    public function __invoke(AuditContext $auditContext, string $orderUuid, string $closedByUserUuid): CloseOrderResponse
     {
-        $order = $this->orderRepository->findById($orderUuid, $restaurantId);
-        if (!$order) {
-            throw new OrderNotFoundException($orderUuid);
-        }
+        return $this->transactionManager->run(function () use ($auditContext, $orderUuid, $closedByUserUuid) {
+            $order = $this->orderRepository->findById($orderUuid, $auditContext->restaurantId);
+            if (!$order) {
+                throw new OrderNotFoundException($orderUuid);
+            }
 
-        $lines = $this->lineRepository->findAllByOrderId($orderUuid, $restaurantId);
-        if (empty($lines)) {
-            throw new CannotCloseOrderWithNoLinesException($orderUuid);
-        }
+            $lines = $this->lineRepository->findAllByOrderId($orderUuid, $auditContext->restaurantId);
+            if (empty($lines)) {
+                throw new CannotCloseOrderWithNoLinesException($orderUuid);
+            }
 
-        $subtotal = $order->calculateSubtotal($lines);
-        $taxAmount = $order->calculateTaxAmount($lines);
-        $lineDiscountTotal = $order->calculateLineDiscountTotal($lines);
-        $orderDiscountTotal = $order->calculateOrderDiscountAmount($lines);
-        $total = $subtotal + $taxAmount;
+            $subtotal = $order->calculateSubtotal($lines);
+            $taxAmount = $order->calculateTaxAmount($lines);
+            $lineDiscountTotal = $order->calculateLineDiscountTotal($lines);
+            $orderDiscountTotal = $order->calculateOrderDiscountAmount($lines);
+            $total = $subtotal + $taxAmount;
+            $ticketNumber = $this->saleRepository->getNextTicketNumber($order->restaurantId());
 
-        $order->close(Uuid::create($closedByUserUuid));
+            $order->close(Uuid::create($closedByUserUuid));
+            $this->orderRepository->update($order);
 
-        $this->orderRepository->update($order);
+            $order->recordDomainEvent(new OrderClosed(
+                orderUuid: $order->uuid(),
+                restaurantId: $order->restaurantId(),
+                closedByUserUuid: Uuid::create($closedByUserUuid),
+                ticketNumber: $ticketNumber,
+                subtotal: $subtotal,
+                taxAmount: $taxAmount,
+                lineDiscountTotal: $lineDiscountTotal,
+                orderDiscountTotal: $orderDiscountTotal,
+                total: $total,
+                lines: $lines,
+            ));
 
-        $ticketNumber = $this->saleRepository->getNextTicketNumber($order->restaurantId());
+            $order->recordDomainEvent(ActionLogged::create(
+                $auditContext->restaurantId,
+                $auditContext->userId,
+                'order.closed',
+                'order',
+                $orderUuid,
+                ['closed_by_user_id' => $closedByUserUuid],
+                $auditContext->ipAddress,
+            ));
 
-        event(new OrderClosed(
-            orderUuid: $order->uuid(),
-            restaurantId: $order->restaurantId(),
-            closedByUserUuid: Uuid::create($closedByUserUuid),
-            subtotal: $subtotal,
-            taxAmount: $taxAmount,
-            lineDiscountTotal: $lineDiscountTotal,
-            orderDiscountTotal: $orderDiscountTotal,
-            total: $total,
-            lines: $lines,
-        ));
+            $this->domainEventBus->dispatch(...$order->pullDomainEvents());
 
-        return CloseOrderResponse::create($order, $total, $ticketNumber);
+            return CloseOrderResponse::create($order, $total, $ticketNumber);
+        });
     }
 }

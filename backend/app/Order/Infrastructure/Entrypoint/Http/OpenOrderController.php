@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\OpenOrder\OpenOrder;
-use App\Shared\Infrastructure\Http\DispatchesActionLogged;
+use App\Shared\Application\Context\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class OpenOrderController
 {
-    use DispatchesActionLogged;
-
     public function __construct(
         private OpenOrder $useCase,
     ) {}
@@ -26,24 +24,14 @@ class OpenOrderController
         ]);
 
         $response = ($this->useCase)(
-            $request->user()->restaurant_id,
+            new AuditContext(
+                $request->user()->restaurant_id,
+                $request->user()->uuid,
+                $request->ip(),
+            ),
             $validated['table_id'],
             $validated['opened_by_user_id'],
             $validated['diners'],
-        );
-
-        $this->logAction(
-            $request->user()->restaurant_id,
-            $request->user()->uuid,
-            'order.opened',
-            'order',
-            $response->uuid,
-            [
-                'table_id' => $validated['table_id'],
-                'diners' => $validated['diners'],
-                'opened_by_user_id' => $validated['opened_by_user_id'],
-            ],
-            $request->ip(),
         );
 
         return new JsonResponse($response->toArray(), 201);

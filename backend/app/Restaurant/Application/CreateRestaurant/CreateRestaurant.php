@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Restaurant\Application\CreateRestaurant;
 
 use App\Restaurant\Domain\Interfaces\RestaurantRepositoryInterface;
+use App\Shared\Domain\ValueObject\RestaurantId;
 use App\User\Domain\Entity\User;
 use App\User\Domain\Interfaces\PasswordHasherInterface;
+use App\User\Domain\Interfaces\PinGeneratorInterface;
 use App\User\Domain\Interfaces\UserRepositoryInterface;
 use App\User\Domain\ValueObject\PasswordHash;
 use App\User\Domain\ValueObject\UserName;
@@ -19,6 +21,7 @@ class CreateRestaurant
         private RestaurantRepositoryInterface $restaurantRepository,
         private UserRepositoryInterface $userRepository,
         private PasswordHasherInterface $passwordHasher,
+        private PinGeneratorInterface $pinGenerator,
     ) {}
 
     public function __invoke(
@@ -42,7 +45,8 @@ class CreateRestaurant
             UserName::create($adminName),
             PasswordHash::create($this->passwordHasher->hash($adminPassword)),
             UserRole::create('admin'),
-            $restaurantId,
+            RestaurantId::create($restaurantId),
+            $this->pinGenerator->generate(),
         );
 
         $this->userRepository->save($admin);

@@ -18,7 +18,6 @@ class CreateSaleOnOrderClosed
 
     public function handle(OrderClosed $event): void
     {
-        $ticketNumber = $this->saleRepository->getNextTicketNumber($event->restaurantId);
         $saleUuid = Uuid::generate();
 
         $sale = Sale::dddCreate(
@@ -26,7 +25,7 @@ class CreateSaleOnOrderClosed
             $event->restaurantId,
             $event->orderUuid,
             $event->closedByUserUuid,
-            $ticketNumber,
+            $event->ticketNumber,
             $event->subtotal,
             $event->taxAmount,
             $event->lineDiscountTotal,

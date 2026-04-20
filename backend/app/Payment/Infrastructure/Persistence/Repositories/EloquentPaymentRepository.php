@@ -65,7 +65,7 @@ class EloquentPaymentRepository implements PaymentRepositoryInterface
             return 0;
         }
 
-        return $this->model->newQuery()->where('order_id', $order->id)->sum('amount') ?? 0;
+        return (int) ($this->model->newQuery()->where('order_id', $order->id)->sum('amount') ?? 0);
     }
 
     private function toDomain(EloquentPayment $payment): Payment

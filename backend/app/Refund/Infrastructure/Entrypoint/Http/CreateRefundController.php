@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Refund\Infrastructure\Entrypoint\Http;
 
 use App\Refund\Application\CreateRefund\CreateRefund;
-use App\Shared\Infrastructure\Http\DispatchesActionLogged;
+use App\Shared\Application\Context\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CreateRefundController
 {
-    use DispatchesActionLogged;
-
     public function __construct(
         private CreateRefund $useCase,
     ) {}
@@ -29,23 +27,16 @@ class CreateRefundController
         ]);
 
         $response = ($this->useCase)(
+            new AuditContext(
+                $request->user()->restaurant_id,
+                $request->user()->uuid,
+                $request->ip(),
+            ),
             $saleUuid,
-            $request->user()->uuid,
             $validated['method'],
             $validated['reason'] ?? null,
             (bool) $validated['refund_all'],
             $validated['lines'] ?? [],
-            $request->user()->restaurant_id,
-        );
-
-        $this->logAction(
-            $request->user()->restaurant_id,
-            $request->user()->uuid,
-            'sale.refunded',
-            'sale',
-            $saleUuid,
-            $response,
-            $request->ip(),
         );
 
         return new JsonResponse($response, 201);

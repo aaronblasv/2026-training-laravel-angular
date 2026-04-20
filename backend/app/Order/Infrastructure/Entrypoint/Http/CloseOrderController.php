@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\CloseOrder\CloseOrder;
-use App\Shared\Infrastructure\Http\DispatchesActionLogged;
+use App\Shared\Application\Context\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class CloseOrderController
 {
-    use DispatchesActionLogged;
-
     public function __construct(
         private CloseOrder $useCase,
     ) {}
@@ -24,19 +22,13 @@ class CloseOrderController
         ]);
 
         $response = ($this->useCase)(
+            new AuditContext(
+                $request->user()->restaurant_id,
+                $request->user()->uuid,
+                $request->ip(),
+            ),
             $orderUuid,
             $validated['closed_by_user_id'],
-            $request->user()->restaurant_id,
-        );
-
-        $this->logAction(
-            $request->user()->restaurant_id,
-            $request->user()->uuid,
-            'order.closed',
-            'order',
-            $orderUuid,
-            ['closed_by_user_id' => $validated['closed_by_user_id']],
-            $request->ip(),
         );
 
         return new JsonResponse($response->toArray());

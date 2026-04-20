@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\UpdateOrderLineDiscount\UpdateOrderLineDiscount;
-use App\Shared\Infrastructure\Http\DispatchesActionLogged;
+use App\Shared\Application\Context\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class UpdateOrderLineDiscountController
 {
-    use DispatchesActionLogged;
-
     public function __construct(
         private UpdateOrderLineDiscount $useCase,
     ) {}
@@ -28,24 +26,15 @@ class UpdateOrderLineDiscountController
         $discountValue = (int) ($validated['discount_value'] ?? 0);
 
         ($this->useCase)(
+            new AuditContext(
+                $request->user()->restaurant_id,
+                $request->user()->uuid,
+                $request->ip(),
+            ),
+            $orderUuid,
             $lineUuid,
             $discountType,
             $discountValue,
-            $request->user()->restaurant_id,
-        );
-
-        $this->logAction(
-            $request->user()->restaurant_id,
-            $request->user()->uuid,
-            'order.line.discount.updated',
-            'order_line',
-            $lineUuid,
-            [
-                'order_uuid' => $orderUuid,
-                'discount_type' => $discountType,
-                'discount_value' => $discountValue,
-            ],
-            $request->ip(),
         );
 
         return new JsonResponse(null, 204);

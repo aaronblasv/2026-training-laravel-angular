@@ -10,7 +10,13 @@ interface LogRepositoryInterface
 {
     public function save(Log $log): void;
 
-    public function findAll(int $restaurantId, int $limit = 50, int $offset = 0): array;
+    public function findAll(
+        int $restaurantId,
+        ?string $action = null,
+        ?string $userId = null,
+        int $limit = 50,
+        int $offset = 0,
+    ): array;
 
     public function findByUser(int $restaurantId, string $userId, int $limit = 50, int $offset = 0): array;
 
@@ -18,5 +24,5 @@ interface LogRepositoryInterface
 
     public function findByEntity(int $restaurantId, string $entityType, string $entityUuid, int $limit = 50, int $offset = 0): array;
 
-    public function count(int $restaurantId): int;
+    public function count(int $restaurantId, ?string $action = null, ?string $userId = null): int;
 }

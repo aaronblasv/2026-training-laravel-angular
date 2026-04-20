@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\Payment\Domain\Entity;
 
 use App\Payment\Domain\ValueObject\PaymentMethod;
+use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
+use App\Shared\Domain\Support\RecordsDomainEvents;
 use App\Shared\Domain\ValueObject\Uuid;
 
-class Payment
+class Payment implements HasDomainEventsInterface
 {
+    use RecordsDomainEvents;
+
     private function __construct(
         private Uuid $uuid,
         private Uuid $orderId,
@@ -47,7 +51,8 @@ class Payment
         );
     }
 
-    public function uuid(): Uuid { return $this->uuid; }
+    public function id(): Uuid { return $this->uuid; }
+    public function uuid(): Uuid { return $this->id(); }
     public function orderId(): Uuid { return $this->orderId; }
     public function userId(): Uuid { return $this->userId; }
     public function amount(): int { return $this->amount; }

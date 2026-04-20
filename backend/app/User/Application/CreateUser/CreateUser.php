@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\User\Application\CreateUser;
 
 use App\Shared\Domain\ValueObject\Email;
+use App\Shared\Domain\ValueObject\RestaurantId;
 use App\User\Domain\Entity\User;
 use App\User\Domain\Interfaces\PasswordHasherInterface;
+use App\User\Domain\Interfaces\PinGeneratorInterface;
 use App\User\Domain\Interfaces\UserRepositoryInterface;
 use App\User\Domain\ValueObject\PasswordHash;
 use App\User\Domain\ValueObject\UserName;
@@ -17,6 +19,7 @@ class CreateUser
     public function __construct(
         private UserRepositoryInterface $userRepository,
         private PasswordHasherInterface $passwordHasher,
+        private PinGeneratorInterface $pinGenerator,
     ) {}
 
     public function __invoke(string $email, string $name, string $plainPassword, string $role, int $restaurantId, ?string $imageSrc = null): CreateUserResponse
@@ -25,7 +28,7 @@ class CreateUser
         $nameVO = UserName::create($name);
         $passwordHashVO = PasswordHash::create($this->passwordHasher->hash($plainPassword));
         $roleVO = UserRole::create($role);
-        $user = User::dddCreate($emailVO, $nameVO, $passwordHashVO, $roleVO, $restaurantId, $imageSrc);
+        $user = User::dddCreate($emailVO, $nameVO, $passwordHashVO, $roleVO, RestaurantId::create($restaurantId), $this->pinGenerator->generate(), $imageSrc);
         $this->userRepository->save($user);
 
         return CreateUserResponse::create($user);

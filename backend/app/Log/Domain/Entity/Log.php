@@ -13,6 +13,7 @@ class Log
         private Uuid $uuid,
         private ?int $restaurantId,
         private ?string $userId,
+        private ?string $userName,
         private string $action,
         private ?string $entityType,
         private ?string $entityUuid,
@@ -35,6 +36,7 @@ class Log
             $uuid,
             $restaurantId,
             $userId,
+            null,
             $action,
             $entityType,
             $entityUuid,
@@ -48,6 +50,7 @@ class Log
         string $uuid,
         ?int $restaurantId,
         ?string $userId,
+        ?string $userName,
         string $action,
         ?string $entityType,
         ?string $entityUuid,
@@ -59,6 +62,7 @@ class Log
             Uuid::create($uuid),
             $restaurantId,
             $userId,
+            $userName,
             $action,
             $entityType,
             $entityUuid,
@@ -71,6 +75,7 @@ class Log
     public function uuid(): Uuid { return $this->uuid; }
     public function restaurantId(): ?int { return $this->restaurantId; }
     public function userId(): ?string { return $this->userId; }
+    public function userName(): ?string { return $this->userName; }
     public function action(): string { return $this->action; }
     public function entityType(): ?string { return $this->entityType; }
     public function entityUuid(): ?string { return $this->entityUuid; }

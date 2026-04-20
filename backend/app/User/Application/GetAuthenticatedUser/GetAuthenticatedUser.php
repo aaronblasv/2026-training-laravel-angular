@@ -24,7 +24,7 @@ class GetAuthenticatedUser
             throw new UserNotFoundException($uuid);
         }
 
-        $restaurantName = $this->restaurantRepository->findNameById($user->restaurantId());
+        $restaurantName = $this->restaurantRepository->findNameById($user->restaurantId()->getValue());
 
         return GetAuthenticatedUserResponse::create($user, $restaurantName);
     }

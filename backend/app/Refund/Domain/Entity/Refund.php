@@ -5,11 +5,15 @@ declare(strict_types=1);
 namespace App\Refund\Domain\Entity;
 
 use App\Payment\Domain\ValueObject\PaymentMethod;
+use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
+use App\Shared\Domain\Support\RecordsDomainEvents;
 use App\Shared\Domain\ValueObject\RestaurantId;
 use App\Shared\Domain\ValueObject\Uuid;
 
-class Refund
+class Refund implements HasDomainEventsInterface
 {
+    use RecordsDomainEvents;
+
     private function __construct(
         private Uuid $uuid,
         private RestaurantId $restaurantId,
@@ -38,7 +42,8 @@ class Refund
         return new self($uuid, RestaurantId::create($restaurantId), $saleId, $userId, $type, PaymentMethod::create($method), $reason, $subtotal, $taxAmount, $total);
     }
 
-    public function uuid(): Uuid { return $this->uuid; }
+    public function id(): Uuid { return $this->uuid; }
+    public function uuid(): Uuid { return $this->id(); }
     public function restaurantId(): int { return $this->restaurantId->getValue(); }
     public function saleId(): Uuid { return $this->saleId; }
     public function userId(): Uuid { return $this->userId; }

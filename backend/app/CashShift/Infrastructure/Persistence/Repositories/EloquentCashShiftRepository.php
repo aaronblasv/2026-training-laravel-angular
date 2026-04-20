@@ -8,8 +8,6 @@ use App\CashShift\Domain\Entity\CashShift;
 use App\CashShift\Domain\Interfaces\CashShiftRepositoryInterface;
 use App\CashShift\Infrastructure\Persistence\Models\EloquentCashShift;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
-use Illuminate\Support\Facades\DB;
-
 class EloquentCashShiftRepository implements CashShiftRepositoryInterface
 {
     public function __construct(
@@ -26,7 +24,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
             'restaurant_id' => $cashShift->restaurantId(),
             'opened_by_user_id' => $openedByUserId,
             'closed_by_user_id' => null,
-            'status' => $cashShift->status(),
+            'status' => $cashShift->status()->value,
             'opening_cash' => $cashShift->openingCash(),
             'cash_total' => $cashShift->cashTotal(),
             'card_total' => $cashShift->cardTotal(),
@@ -51,7 +49,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
             ->firstOrFail()
             ->update([
                 'closed_by_user_id' => $closedByUserId,
-                'status' => $cashShift->status(),
+                'status' => $cashShift->status()->value,
                 'cash_total' => $cashShift->cashTotal(),
                 'card_total' => $cashShift->cardTotal(),
                 'bizum_total' => $cashShift->bizumTotal(),
@@ -82,48 +80,6 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
             ->first();
 
         return $model ? $this->toDomain($model) : null;
-    }
-
-    public function getWindowSummary(int $restaurantId, \DateTimeImmutable $from, ?\DateTimeImmutable $to): array
-    {
-        $fromString = $from->format('Y-m-d H:i:s');
-        $toString = ($to ?? new \DateTimeImmutable())->format('Y-m-d H:i:s');
-
-        $paymentTotals = DB::table('payments as p')
-            ->join('orders as o', 'p.order_id', '=', 'o.id')
-            ->where('o.restaurant_id', $restaurantId)
-            ->whereBetween('p.created_at', [$fromString, $toString])
-            ->select(
-                DB::raw("SUM(CASE WHEN p.method = 'cash' THEN p.amount ELSE 0 END) as cash_total"),
-                DB::raw("SUM(CASE WHEN p.method = 'card' THEN p.amount ELSE 0 END) as card_total"),
-                DB::raw("SUM(CASE WHEN p.method = 'bizum' THEN p.amount ELSE 0 END) as bizum_total"),
-            )
-            ->first();
-
-        $refundTotals = DB::table('refunds')
-            ->where('restaurant_id', $restaurantId)
-            ->whereBetween('created_at', [$fromString, $toString])
-            ->select(
-                DB::raw("SUM(CASE WHEN method = 'cash' THEN total ELSE 0 END) as cash_total"),
-                DB::raw("SUM(CASE WHEN method = 'card' THEN total ELSE 0 END) as card_total"),
-                DB::raw("SUM(CASE WHEN method = 'bizum' THEN total ELSE 0 END) as bizum_total"),
-                DB::raw('SUM(total) as refund_total'),
-            )
-            ->first();
-
-        $cashPayments = (int) ($paymentTotals->cash_total ?? 0);
-        $cardPayments = (int) ($paymentTotals->card_total ?? 0);
-        $bizumPayments = (int) ($paymentTotals->bizum_total ?? 0);
-        $cashRefunds = (int) ($refundTotals->cash_total ?? 0);
-        $cardRefunds = (int) ($refundTotals->card_total ?? 0);
-        $bizumRefunds = (int) ($refundTotals->bizum_total ?? 0);
-
-        return [
-            'cash_total' => $cashPayments - $cashRefunds,
-            'card_total' => $cardPayments - $cardRefunds,
-            'bizum_total' => $bizumPayments - $bizumRefunds,
-            'refund_total' => (int) ($refundTotals->refund_total ?? 0),
-        ];
     }
 
     private function toDomain(EloquentCashShift $model): CashShift

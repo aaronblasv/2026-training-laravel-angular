@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Order\Domain\Entity;
 
+use App\Order\Domain\ValueObject\Diners;
+use App\Order\Domain\ValueObject\DiscountType;
+use App\Order\Domain\ValueObject\OrderStatus;
+use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
+use App\Shared\Domain\Support\RecordsDomainEvents;
 use App\Shared\Domain\ValueObject\DomainDateTime;
+use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\RestaurantId;
 use App\Shared\Domain\ValueObject\Uuid;
-use App\Order\Domain\ValueObject\OrderStatus;
-use App\Order\Domain\ValueObject\Diners;
 
-class Order
+class Order implements HasDomainEventsInterface
 {
+    use RecordsDomainEvents;
+
     private function __construct(
         private Uuid $uuid,
         private RestaurantId $restaurantId,
@@ -20,9 +26,9 @@ class Order
         private Uuid $openedByUserId,
         private ?Uuid $closedByUserId,
         private Diners $diners,
-        private ?string $discountType,
+        private ?DiscountType $discountType,
         private int $discountValue,
-        private int $discountAmount,
+        private Money $discountAmount,
         private DomainDateTime $openedAt,
         private ?DomainDateTime $closedAt,
     ) {}
@@ -44,7 +50,7 @@ class Order
             $diners,
             null,
             0,
-            0,
+            Money::zero(),
             DomainDateTime::now(),
             null,
         );
@@ -72,9 +78,9 @@ class Order
             Uuid::create($openedByUserId),
             $closedByUserId ? Uuid::create($closedByUserId) : null,
             Diners::create($diners),
-            $discountType,
+            DiscountType::create($discountType),
             $discountValue,
-            $discountAmount,
+            Money::create($discountAmount),
             DomainDateTime::create($openedAt),
             $closedAt ? DomainDateTime::create($closedAt) : null,
         );
@@ -103,14 +109,15 @@ class Order
         if ($discountType === null || $discountValue <= 0) {
             $this->discountType = null;
             $this->discountValue = 0;
-            $this->discountAmount = 0;
+            $this->discountAmount = Money::zero();
 
             return;
         }
 
-        $this->discountType = $discountType;
+        $discountTypeVO = DiscountType::create($discountType);
+        $this->discountType = $discountTypeVO;
         $this->discountValue = $discountValue;
-        $this->discountAmount = self::calculateDiscountAmount($discountType, $discountValue, $baseAmount);
+        $this->discountAmount = Money::create($discountTypeVO?->calculateAmount($baseAmount, $discountValue) ?? 0);
     }
 
     public function cancel(): void
@@ -138,16 +145,17 @@ class Order
         $this->tableId = $tableId;
     }
 
-    public function uuid(): Uuid { return $this->uuid; }
+    public function id(): Uuid { return $this->uuid; }
+    public function uuid(): Uuid { return $this->id(); }
     public function restaurantId(): int { return $this->restaurantId->getValue(); }
     public function status(): OrderStatus { return $this->status; }
     public function tableId(): Uuid { return $this->tableId; }
     public function openedByUserId(): Uuid { return $this->openedByUserId; }
     public function closedByUserId(): ?Uuid { return $this->closedByUserId; }
     public function diners(): Diners { return $this->diners; }
-    public function discountType(): ?string { return $this->discountType; }
+    public function discountType(): ?string { return $this->discountType?->value; }
     public function discountValue(): int { return $this->discountValue; }
-    public function discountAmount(): int { return $this->discountAmount; }
+    public function discountAmount(): int { return $this->discountAmount->getValue(); }
     public function openedAt(): DomainDateTime { return $this->openedAt; }
     public function closedAt(): ?DomainDateTime { return $this->closedAt; }
 
@@ -183,24 +191,14 @@ class Order
             return 0;
         }
 
-        return self::calculateDiscountAmount(
-            $this->discountType,
-            $this->discountValue,
+        return $this->discountType->calculateAmount(
             $this->calculateLinesSubtotalAfterDiscounts($lines),
+            $this->discountValue,
         );
     }
 
     private function calculateLinesSubtotalAfterDiscounts(array $lines): int
     {
         return array_reduce($lines, fn ($carry, $line) => $carry + $line->subtotalAfterDiscount(), 0);
-    }
-
-    private static function calculateDiscountAmount(string $discountType, int $discountValue, int $baseAmount): int
-    {
-        $rawAmount = $discountType === 'percentage'
-            ? (int) round($baseAmount * $discountValue / 100)
-            : $discountValue;
-
-        return max(0, min($baseAmount, $rawAmount));
     }
 }

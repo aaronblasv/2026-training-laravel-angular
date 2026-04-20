@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace App\Order\Domain\Entity;
 
+use App\Order\Domain\ValueObject\DiscountType;
 use App\Order\Domain\ValueObject\Quantity;
+use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
+use App\Shared\Domain\Support\RecordsDomainEvents;
+use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\RestaurantId;
 use App\Shared\Domain\ValueObject\Uuid;
 
-class OrderLine
+class OrderLine implements HasDomainEventsInterface
 {
+    use RecordsDomainEvents;
+
     private function __construct(
         private Uuid $uuid,
         private RestaurantId $restaurantId,
@@ -17,11 +23,11 @@ class OrderLine
         private Uuid $productId,
         private Uuid $userId,
         private Quantity $quantity,
-        private int $price,
+        private Money $price,
         private int $taxPercentage,
-        private ?string $discountType,
+        private ?DiscountType $discountType,
         private int $discountValue,
-        private int $discountAmount,
+        private Money $discountAmount,
     ) {}
 
     public static function fromPersistence(
@@ -44,11 +50,11 @@ class OrderLine
             Uuid::create($productId),
             Uuid::create($userId),
             Quantity::create($quantity),
-            $price,
+            Money::create($price),
             $taxPercentage,
-            $discountType,
+            DiscountType::create($discountType),
             $discountValue,
-            $discountAmount,
+            Money::create($discountAmount),
         );
     }
 
@@ -65,7 +71,7 @@ class OrderLine
         int $discountValue = 0,
         int $discountAmount = 0,
     ): self {
-        return new self($uuid, RestaurantId::create($restaurantId), $orderId, $productId, $userId, $quantity, $price, $taxPercentage, $discountType, $discountValue, $discountAmount);
+        return new self($uuid, RestaurantId::create($restaurantId), $orderId, $productId, $userId, $quantity, Money::create($price), $taxPercentage, DiscountType::create($discountType), $discountValue, Money::create($discountAmount));
     }
 
     public function updateQuantity(Quantity $quantity): void
@@ -79,45 +85,42 @@ class OrderLine
         if ($discountType === null || $discountValue <= 0) {
             $this->discountType = null;
             $this->discountValue = 0;
-            $this->discountAmount = 0;
+            $this->discountAmount = Money::zero();
 
             return;
         }
 
-        $this->discountType = $discountType;
+        $this->discountType = DiscountType::create($discountType);
         $this->discountValue = $discountValue;
         $this->recalculateDiscountAmount();
     }
 
-    public function uuid(): Uuid { return $this->uuid; }
+    public function id(): Uuid { return $this->uuid; }
+    public function uuid(): Uuid { return $this->id(); }
     public function restaurantId(): int { return $this->restaurantId->getValue(); }
     public function orderId(): Uuid { return $this->orderId; }
     public function productId(): Uuid { return $this->productId; }
     public function userId(): Uuid { return $this->userId; }
     public function quantity(): Quantity { return $this->quantity; }
-    public function price(): int { return $this->price; }
+    public function price(): int { return $this->price->getValue(); }
     public function taxPercentage(): int { return $this->taxPercentage; }
-    public function discountType(): ?string { return $this->discountType; }
+    public function discountType(): ?string { return $this->discountType?->value; }
     public function discountValue(): int { return $this->discountValue; }
-    public function discountAmount(): int { return $this->discountAmount; }
-    public function subtotal(): int { return $this->price * $this->quantity->getValue(); }
-    public function subtotalAfterDiscount(): int { return max(0, $this->subtotal() - $this->discountAmount); }
+    public function discountAmount(): int { return $this->discountAmount->getValue(); }
+    public function subtotal(): int { return $this->price->getValue() * $this->quantity->getValue(); }
+    public function subtotalAfterDiscount(): int { return max(0, $this->subtotal() - $this->discountAmount->getValue()); }
     public function taxAmount(): int { return (int) round($this->subtotalAfterDiscount() * $this->taxPercentage / 100); }
     public function total(): int { return $this->subtotalAfterDiscount() + $this->taxAmount(); }
 
     private function recalculateDiscountAmount(): void
     {
         if ($this->discountType === null || $this->discountValue <= 0) {
-            $this->discountAmount = 0;
+            $this->discountAmount = Money::zero();
 
             return;
         }
 
         $baseAmount = $this->subtotal();
-        $rawAmount = $this->discountType === 'percentage'
-            ? (int) round($baseAmount * $this->discountValue / 100)
-            : $this->discountValue;
-
-        $this->discountAmount = max(0, min($baseAmount, $rawAmount));
+        $this->discountAmount = Money::create($this->discountType->calculateAmount($baseAmount, $this->discountValue));
     }
 }

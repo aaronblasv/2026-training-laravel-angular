@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace App\CashShift\Application\GetCurrentCashShift;
 
 use App\CashShift\Domain\Interfaces\CashShiftRepositoryInterface;
+use App\CashShift\Domain\Interfaces\CashShiftSalesReadModelInterface;
 
 class GetCurrentCashShift
 {
-    public function __construct(private CashShiftRepositoryInterface $repository) {}
+    public function __construct(
+        private CashShiftRepositoryInterface $repository,
+        private CashShiftSalesReadModelInterface $salesReadModel,
+    ) {}
 
     public function __invoke(int $restaurantId): ?array
     {
@@ -17,17 +21,17 @@ class GetCurrentCashShift
             return null;
         }
 
-        $summary = $this->repository->getWindowSummary($restaurantId, $cashShift->openedAt(), null);
+        $summary = $this->salesReadModel->getWindowSummary($restaurantId, $cashShift->openedAt(), null);
 
         return [
             'uuid' => $cashShift->uuid()->getValue(),
-            'status' => $cashShift->status(),
+            'status' => $cashShift->status()->value,
             'opening_cash' => $cashShift->openingCash(),
-            'cash_total' => $summary['cash_total'],
-            'card_total' => $summary['card_total'],
-            'bizum_total' => $summary['bizum_total'],
-            'refund_total' => $summary['refund_total'],
-            'expected_cash' => $cashShift->openingCash() + $summary['cash_total'],
+            'cash_total' => $summary->cashTotal->getValue(),
+            'card_total' => $summary->cardTotal->getValue(),
+            'bizum_total' => $summary->bizumTotal->getValue(),
+            'refund_total' => $summary->refundTotal->getValue(),
+            'expected_cash' => $summary->expectedCash(\App\Shared\Domain\ValueObject\Money::create($cashShift->openingCash()))->getValue(),
             'opened_at' => $cashShift->openedAt()->format('Y-m-d H:i:s'),
             'notes' => $cashShift->notes(),
         ];

@@ -28,7 +28,7 @@ class User
         private DomainDateTime $updatedAt,
     ) {}
 
-    public static function dddCreate(Email $email, UserName $name, PasswordHash $passwordHash, UserRole $role, int $restaurantId, ?string $imageSrc = null): self
+    public static function dddCreate(Email $email, UserName $name, PasswordHash $passwordHash, UserRole $role, RestaurantId $restaurantId, Pin $pin, ?string $imageSrc = null): self
     {
         $now = DomainDateTime::now();
 
@@ -38,8 +38,8 @@ class User
             $email,
             $passwordHash,
             $role,
-            RestaurantId::create($restaurantId),
-            Pin::create(str_pad((string) random_int(0, 9999), 4, '0', STR_PAD_LEFT)),
+            $restaurantId,
+            $pin,
             $imageSrc,
             $now,
             $now,
@@ -80,16 +80,15 @@ class User
         );
     }
 
-    public function uuid(): Uuid { return $this->id; }
+    public function id(): Uuid { return $this->id; }
+    public function uuid(): Uuid { return $this->id(); }
     public function name(): UserName { return $this->name; }
     public function email(): Email { return $this->email; }
     public function passwordHash(): PasswordHash { return $this->passwordHash; }
     public function role(): UserRole { return $this->role; }
-    public function restaurantId(): int { return $this->restaurantId->getValue(); }
-    public function restaurantIdVO(): RestaurantId { return $this->restaurantId; }
+    public function restaurantId(): RestaurantId { return $this->restaurantId; }
     public function createdAt(): DomainDateTime { return $this->createdAt; }
     public function updatedAt(): DomainDateTime { return $this->updatedAt; }
-    public function pin(): ?string { return $this->pin?->getValue(); }
-    public function pinVO(): ?Pin { return $this->pin; }
+    public function pin(): ?Pin { return $this->pin; }
     public function imageSrc(): ?string { return $this->imageSrc; }
 }

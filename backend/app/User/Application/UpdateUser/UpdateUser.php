@@ -20,7 +20,7 @@ class UpdateUser
     {
         $user = $this->userRepository->findById($uuid);
 
-        if ($user === null || $user->restaurantId() !== $restaurantId) {
+        if ($user === null || $user->restaurantId()->getValue() !== $restaurantId) {
             throw new UserNotFoundException($uuid);
         }
 

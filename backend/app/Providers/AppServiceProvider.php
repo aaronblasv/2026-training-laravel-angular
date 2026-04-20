@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\CashShift\Domain\Interfaces\CashShiftRepositoryInterface;
+use App\CashShift\Domain\Interfaces\CashShiftSalesReadModelInterface;
 use App\CashShift\Infrastructure\Persistence\Repositories\EloquentCashShiftRepository;
+use App\CashShift\Infrastructure\Persistence\ReadModels\EloquentCashShiftSalesReadModel;
 use App\Dashboard\Domain\Interfaces\DashboardRepositoryInterface;
 use App\Dashboard\Infrastructure\Persistence\Repositories\CachedDashboardRepository;
 use App\Dashboard\Infrastructure\Persistence\Repositories\EloquentDashboardRepository;
@@ -51,8 +53,17 @@ use App\Log\Infrastructure\Listener\WriteLogOnActionLogged;
 use App\Order\Domain\Event\OrderClosed;
 use App\Sale\Application\CreateSaleOnOrderClosed\CreateSaleOnOrderClosed;
 use App\Shared\Domain\Event\ActionLogged;
+use App\Shared\Domain\Interfaces\DomainEventBusInterface;
+use App\Shared\Domain\Interfaces\ImageUploaderInterface;
+use App\Shared\Domain\Interfaces\TransactionManagerInterface;
+use App\Shared\Application\UploadImage\UploadImage;
+use App\Shared\Infrastructure\Services\LaravelDomainEventBus;
+use App\Shared\Infrastructure\Services\LaravelTransactionManager;
+use App\Shared\Infrastructure\Services\PublicStorageImageUploader;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
+use App\User\Domain\Interfaces\PinGeneratorInterface;
+use App\User\Infrastructure\Services\RandomPinGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -65,6 +76,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);
         $this->app->bind(PasswordHasherInterface::class, LaravelPasswordHasher::class);
         $this->app->bind(TokenGeneratorInterface::class, LaravelTokenGenerator::class);
+        $this->app->bind(PinGeneratorInterface::class, RandomPinGenerator::class);
 
         // Restaurant
         $this->app->bind(RestaurantRepositoryInterface::class, EloquentRestaurantRepository::class);
@@ -87,6 +99,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(PaymentRepositoryInterface::class, EloquentPaymentRepository::class);
         $this->app->bind(RegisterPayment::class, fn($app) => new RegisterPayment(
             $app->make(PaymentRepositoryInterface::class),
+            $app->make(TransactionManagerInterface::class),
+            $app->make(DomainEventBusInterface::class),
         ));
 
         // Invoice
@@ -95,6 +109,8 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(GenerateInvoice::class, fn($app) => new GenerateInvoice(
             $app->make(InvoiceRepositoryInterface::class),
             $app->make(InvoiceOrderDataProviderInterface::class),
+            $app->make(TransactionManagerInterface::class),
+            $app->make(DomainEventBusInterface::class),
         ));
 
         // Log
@@ -111,6 +127,15 @@ class AppServiceProvider extends ServiceProvider
 
         // Cash shift
         $this->app->bind(CashShiftRepositoryInterface::class, EloquentCashShiftRepository::class);
+        $this->app->bind(CashShiftSalesReadModelInterface::class, EloquentCashShiftSalesReadModel::class);
+
+        // Shared
+        $this->app->bind(DomainEventBusInterface::class, LaravelDomainEventBus::class);
+        $this->app->bind(ImageUploaderInterface::class, PublicStorageImageUploader::class);
+        $this->app->bind(TransactionManagerInterface::class, LaravelTransactionManager::class);
+        $this->app->bind(UploadImage::class, fn($app) => new UploadImage(
+            $app->make(ImageUploaderInterface::class),
+        ));
     }
 
     public function boot(): void

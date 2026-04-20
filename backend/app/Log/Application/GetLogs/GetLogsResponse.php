@@ -19,6 +19,7 @@ final readonly class GetLogsResponse
             array_map(fn(Log $log) => [
                 'uuid'        => $log->uuid()->getValue(),
                 'user_id'     => $log->userId(),
+                'user_name'   => $log->userName(),
                 'action'      => $log->action(),
                 'entity_type' => $log->entityType(),
                 'entity_uuid' => $log->entityUuid(),

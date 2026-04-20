@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace App\Invoice\Domain\Entity;
 
+use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
+use App\Shared\Domain\Support\RecordsDomainEvents;
 use App\Shared\Domain\ValueObject\DomainDateTime;
 use App\Shared\Domain\ValueObject\Uuid;
 
-class Invoice
+class Invoice implements HasDomainEventsInterface
 {
+    use RecordsDomainEvents;
+
     private function __construct(
         private Uuid $uuid,
         private Uuid $orderId,
@@ -50,7 +54,8 @@ class Invoice
         );
     }
 
-    public function uuid(): Uuid { return $this->uuid; }
+    public function id(): Uuid { return $this->uuid; }
+    public function uuid(): Uuid { return $this->id(); }
     public function orderId(): Uuid { return $this->orderId; }
     public function invoiceNumber(): string { return $this->invoiceNumber; }
     public function subtotal(): int { return $this->subtotal; }

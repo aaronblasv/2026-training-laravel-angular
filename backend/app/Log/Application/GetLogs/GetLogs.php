@@ -17,15 +17,9 @@ class GetLogs
         int $limit = 50,
         int $offset = 0,
     ): GetLogsResponse {
-        if ($action) {
-            $logs = $this->repository->findByAction($restaurantId, $action, $limit, $offset);
-        } elseif ($userId) {
-            $logs = $this->repository->findByUser($restaurantId, $userId, $limit, $offset);
-        } else {
-            $logs = $this->repository->findAll($restaurantId, $limit, $offset);
-        }
+        $logs = $this->repository->findAll($restaurantId, $action, $userId, $limit, $offset);
 
-        $total = $this->repository->count($restaurantId);
+        $total = $this->repository->count($restaurantId, $action, $userId);
 
         return GetLogsResponse::create($logs, $total);
     }

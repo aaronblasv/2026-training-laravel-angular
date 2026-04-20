@@ -24,7 +24,7 @@ final readonly class CreateUserResponse
             id: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
-            pin: $user->pin(),
+            pin: $user->pin()?->getValue() ?? '',
             imageSrc: $user->imageSrc(),
             createdAt: $user->createdAt()->format(\DateTimeInterface::ATOM),
             updatedAt: $user->updatedAt()->format(\DateTimeInterface::ATOM),

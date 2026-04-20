@@ -5,14 +5,12 @@ declare(strict_types=1);
 namespace App\Order\Infrastructure\Entrypoint\Http;
 
 use App\Order\Application\TransferOrderTable\TransferOrderTable;
-use App\Shared\Infrastructure\Http\DispatchesActionLogged;
+use App\Shared\Application\Context\AuditContext;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TransferOrderTableController
 {
-    use DispatchesActionLogged;
-
     public function __construct(
         private TransferOrderTable $useCase,
     ) {}
@@ -24,21 +22,13 @@ class TransferOrderTableController
         ]);
 
         ($this->useCase)(
+            new AuditContext(
+                $request->user()->restaurant_id,
+                $request->user()->uuid,
+                $request->ip(),
+            ),
             $orderUuid,
             $validated['target_table_id'],
-            $request->user()->restaurant_id,
-        );
-
-        $this->logAction(
-            $request->user()->restaurant_id,
-            $request->user()->uuid,
-            'order.transferred',
-            'order',
-            $orderUuid,
-            [
-                'target_table_id' => $validated['target_table_id'],
-            ],
-            $request->ip(),
         );
 
         return new JsonResponse(null, 204);

@@ -7,20 +7,25 @@ namespace App\Invoice\Application\GenerateInvoice;
 use App\Invoice\Domain\Entity\Invoice;
 use App\Invoice\Domain\Interfaces\InvoiceOrderDataProviderInterface;
 use App\Invoice\Domain\Interfaces\InvoiceRepositoryInterface;
+use App\Shared\Application\Context\AuditContext;
+use App\Shared\Domain\Event\ActionLogged;
+use App\Shared\Domain\Interfaces\DomainEventBusInterface;
+use App\Shared\Domain\Interfaces\TransactionManagerInterface;
 use App\Shared\Domain\ValueObject\Uuid;
-use Illuminate\Support\Facades\DB;
 
 class GenerateInvoice
 {
     public function __construct(
         private InvoiceRepositoryInterface $invoiceRepository,
         private InvoiceOrderDataProviderInterface $orderDataProvider,
+        private TransactionManagerInterface $transactionManager,
+        private DomainEventBusInterface $domainEventBus,
     ) {}
 
-    public function __invoke(string $orderUuid, int $restaurantId): GenerateInvoiceResponse
+    public function __invoke(AuditContext $auditContext, string $orderUuid): GenerateInvoiceResponse
     {
-        return DB::transaction(function () use ($orderUuid, $restaurantId) {
-            $orderData = $this->orderDataProvider->getOrderForInvoice($orderUuid, $restaurantId);
+        return $this->transactionManager->run(function () use ($auditContext, $orderUuid) {
+            $orderData = $this->orderDataProvider->getOrderForInvoice($orderUuid, $auditContext->restaurantId);
 
             if (!$orderData) {
                 throw new \DomainException("Order not found: {$orderUuid}");
@@ -39,7 +44,25 @@ class GenerateInvoice
 
             $this->invoiceRepository->save($invoice);
 
-            return GenerateInvoiceResponse::create($invoice);
+            $response = GenerateInvoiceResponse::create($invoice);
+
+            $invoice->recordDomainEvent(ActionLogged::create(
+                $auditContext->restaurantId,
+                $auditContext->userId,
+                'invoice.generated',
+                'invoice',
+                $response->uuid,
+                [
+                    'order_uuid' => $orderUuid,
+                    'invoice_number' => $response->invoiceNumber,
+                    'total' => $response->total,
+                ],
+                $auditContext->ipAddress,
+            ));
+
+            $this->domainEventBus->dispatch(...$invoice->pullDomainEvents());
+
+            return $response;
         });
     }
 }
