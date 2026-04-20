@@ -1,6 +1,7 @@
 export interface OrderLine {
   uuid: string;
   product_id: string;
+  user_id: string;
   quantity: number;
   price: number;
   tax_percentage: number;

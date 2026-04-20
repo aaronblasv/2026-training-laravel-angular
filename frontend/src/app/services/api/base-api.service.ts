@@ -52,11 +52,8 @@ export abstract class BaseApiService {
         return this.deleteHttpCall(endpoint, params);
 
       default:
-        console.warn(`Unknown HTTP method received: ${method}`);
-        break;
+        return this.getHttpCall(endpoint, params);
     }
-
-    return this.getHttpCall(endpoint, params); // Use GET request as a default callback
   }
 
 
