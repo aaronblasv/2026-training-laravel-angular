@@ -61,7 +61,7 @@ export class ProfileModalComponent {
   savePhoto() {
     if (!this.user || !this.userService) return;
     this.saving = true;
-    this.userService.updatePhoto(this.user.uuid ?? (this.user as any).id, this.photoUrl || null).subscribe({
+    this.userService.updatePhoto(this.user.uuid, this.photoUrl || null).subscribe({
       next: () => {
         if (this.user) {
           this.user.image_src = this.photoUrl || null;

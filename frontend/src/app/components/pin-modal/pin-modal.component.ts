@@ -54,7 +54,7 @@ export class PinModalComponent {
       next: (user: User) => {
         this.loading = false;
         if (this.selectedWaiter && user.uuid !== this.selectedWaiter.uuid) {
-          this.error = 'El PIN no corresponde a ' + this.selectedWaiter.name;
+          this.error = 'PIN incorrecto';
           this.pin = '';
           return;
         }

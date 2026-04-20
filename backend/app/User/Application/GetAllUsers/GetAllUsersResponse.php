@@ -9,7 +9,7 @@ use App\User\Domain\Entity\User;
 final readonly class GetAllUsersResponse
 {
     private function __construct(
-        public string $id,
+        public string $uuid,
         public string $name,
         public string $email,
         public string $role,
@@ -21,7 +21,7 @@ final readonly class GetAllUsersResponse
     public static function create(User $user): self
     {
         return new self(
-            id: $user->uuid()->getValue(),
+            uuid: $user->uuid()->getValue(),
             name: $user->name()->getValue(),
             email: $user->email()->getValue(),
             role: $user->role()->getValue(),
@@ -37,7 +37,7 @@ final readonly class GetAllUsersResponse
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
+            'uuid' => $this->uuid,
             'name' => $this->name,
             'email' => $this->email,
             'role' => $this->role,

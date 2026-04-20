@@ -293,7 +293,7 @@ export class FloorPage implements OnInit, OnDestroy {
 
   onDinersConfirmed(diners: number) {
     this.showDinersModal = false;
-    this.orderService.openOrder(this.selectedTable!.uuid, this.validatedUser!.id, diners).subscribe({
+    this.orderService.openOrder(this.selectedTable!.uuid, this.validatedUser!.uuid, diners).subscribe({
       next: () => {
         this.router.navigate(['/tpv/order', this.selectedTable!.uuid], {
           state: { user: this.validatedUser },

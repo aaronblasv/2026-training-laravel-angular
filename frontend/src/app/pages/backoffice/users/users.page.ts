@@ -75,7 +75,7 @@ export class UsersPage implements OnInit {
   save() {
     this.errors = {};
     const action = this.editingUser
-      ? this.userService.update(this.editingUser.id, this.form)
+      ? this.userService.update(this.editingUser.uuid, this.form)
       : this.userService.create(this.form);
 
     action.subscribe({

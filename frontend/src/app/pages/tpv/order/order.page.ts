@@ -287,7 +287,7 @@ export class OrderPage implements OnInit {
         error: (err) => this.logger.error('Error updating line:', err),
       });
     } else {
-      this.orderService.addLine(this.order!.uuid, product.uuid, this.currentUser!.id, 1).subscribe({
+      this.orderService.addLine(this.order!.uuid, product.uuid, this.currentUser!.uuid, 1).subscribe({
         next: () => { this.loadOrder(); },
         error: (err) => this.logger.error('Error adding line:', err),
       });

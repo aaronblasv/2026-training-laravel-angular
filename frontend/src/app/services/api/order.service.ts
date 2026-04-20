@@ -16,18 +16,18 @@ export class OrderService {
     );
   }
 
-  openOrder(tableId: string, openedByUserId: number, diners: number): Observable<Order> {
+  openOrder(tableId: string, openedByUserId: string, diners: number): Observable<Order> {
     return this.http.post<Order>(`${this.apiUrl}/orders`, {
       table_id: tableId,
-      opened_by_user_id: String(openedByUserId),
+      opened_by_user_id: openedByUserId,
       diners,
     });
   }
 
-  addLine(orderUuid: string, productId: string, userId: number, quantity: number): Observable<OrderLine> {
+  addLine(orderUuid: string, productId: string, userId: string, quantity: number): Observable<OrderLine> {
     return this.http.post<OrderLine>(`${this.apiUrl}/orders/${orderUuid}/lines`, {
       product_id: productId,
-      user_id: String(userId),
+      user_id: userId,
       quantity,
     });
   }
