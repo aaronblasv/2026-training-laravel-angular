@@ -15,8 +15,8 @@ class AddOrderLineController
     public function __invoke(Request $request, string $orderUuid): JsonResponse
     {
         $validated = $request->validate([
-            'product_id'     => 'required|string',
-            'user_id'        => 'required|string',
+            'product_id'     => 'required|uuid',
+            'user_id'        => 'required|uuid',
             'quantity'       => 'required|integer|min:1',
         ]);
 

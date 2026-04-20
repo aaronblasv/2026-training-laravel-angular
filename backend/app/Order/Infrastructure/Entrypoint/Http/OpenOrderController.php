@@ -20,8 +20,8 @@ class OpenOrderController
     public function __invoke(Request $request): JsonResponse
     {
         $validated = $request->validate([
-            'table_id' => 'required|string',
-            'opened_by_user_id' => 'required|string',
+            'table_id' => 'required|uuid',
+            'opened_by_user_id' => 'required|uuid',
             'diners' => 'required|integer|min:1',
         ]);
 
