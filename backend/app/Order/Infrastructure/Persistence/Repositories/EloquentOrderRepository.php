@@ -111,7 +111,7 @@ class EloquentOrderRepository implements OrderRepositoryInterface
             ->value('updated_at');
 
         if ($freshUpdatedAt !== null) {
-            $order->syncPersistedAt(DomainDateTime::create(new \DateTimeImmutable($freshUpdatedAt)));
+            $order->syncPersistedAt(DomainDateTime::create($this->toDateTimeImmutable($freshUpdatedAt)));
         }
     }
 

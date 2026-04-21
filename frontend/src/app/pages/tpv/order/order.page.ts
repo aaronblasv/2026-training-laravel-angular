@@ -809,8 +809,7 @@ export class OrderPage implements OnInit {
     this.lastTotalAmount = this.orderTotal;
 
     if (!this.order?.uuid) {
-      this.logger.error('Order not found or invalid');
-      this.showSuccessModal = true;
+      this.handleOrderClosureError('No se pudo identificar la cuenta a cerrar.');
       return;
     }
 
@@ -820,8 +819,7 @@ export class OrderPage implements OnInit {
         this.lastInvoiceNumber = invoice.invoice_number || 'INV-XXXXXX-XXXX';
 
         if (!this.currentUser?.uuid) {
-          this.logger.error('Current user not found or invalid');
-          this.showSuccessModal = true;
+          this.handleOrderClosureError('No se pudo validar el usuario que cierra la mesa.');
           return;
         }
 
@@ -832,25 +830,31 @@ export class OrderPage implements OnInit {
           },
           error: (err) => {
             this.logger.error('Error closing order:', err);
-            this.showSuccessModal = true;
+            this.handleOrderClosureError('El pago se registró, pero la mesa no pudo cerrarse.');
           },
         });
       },
       error: (err) => {
         this.logger.error('Error generating invoice:', err);
         if (!this.currentUser?.uuid) {
-          this.showSuccessModal = true;
+          this.handleOrderClosureError('El pago se registró, pero faltan datos del usuario para cerrar la mesa.');
           return;
         }
         this.orderService.closeOrder(this.order!.uuid, this.currentUser.uuid).subscribe({
           next: () => { this.showSuccessModal = true; },
           error: (closeErr) => {
             this.logger.error('Error closing order:', closeErr);
-            this.showSuccessModal = true;
+            this.handleOrderClosureError('El pago se registró, pero la mesa no pudo cerrarse.');
           },
         });
       },
     });
+  }
+
+  private handleOrderClosureError(message: string) {
+    this.showSuccessModal = false;
+    this.currentTab = 'summary';
+    alert(message);
   }
 
   onSuccessModalClose() {
