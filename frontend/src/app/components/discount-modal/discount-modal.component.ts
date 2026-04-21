@@ -23,7 +23,7 @@ export class DiscountModalComponent implements OnChanges {
   @Output() onCancel = new EventEmitter<void>();
 
   mode: 'percentage' | 'amount' = 'percentage';
-  inputValue = '';
+  inputValue: string | number | null = '';
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['visible'] && this.visible) {
@@ -50,7 +50,9 @@ export class DiscountModalComponent implements OnChanges {
   }
 
   confirm() {
-    const raw = this.inputValue.replace(',', '.');
+    const raw = String(this.inputValue ?? '').replace(',', '.').trim();
+    if (!raw) return;
+
     const num = Number(raw);
     if (isNaN(num) || num < 0) return;
 

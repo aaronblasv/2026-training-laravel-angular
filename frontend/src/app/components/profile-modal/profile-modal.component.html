@@ -8,7 +8,7 @@
           @if (user.image_src) {
             <img [src]="user.image_src" alt="" class="profile-avatar-img" />
           } @else {
-            <div class="profile-avatar-placeholder">{{ user.name?.charAt(0) | uppercase }}</div>
+            <div class="profile-avatar-placeholder">{{ user.name.charAt(0) | uppercase }}</div>
           }
         </div>
         <h2 class="profile-name">{{ user.name }}</h2>
