@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Order\Domain\ValueObject;
 
+// Se mantiene separado del Quantity compartido porque en pedidos la cantidad mínima válida es 1.
+// Ver ADR `docs/adr/0001-refactor-plan-parked-items.md` (punto 1.8).
 class Quantity
 {
     private function __construct(private int $value) {}

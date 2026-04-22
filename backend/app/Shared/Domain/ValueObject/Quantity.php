@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Shared\Domain\ValueObject;
 
+// Se mantiene separado del Quantity de Order porque aquí 0 sí es válido para stock,
+// acumulados y restas seguras. Ver ADR `docs/adr/0001-refactor-plan-parked-items.md` (punto 1.8).
 class Quantity
 {
     private int $value;
