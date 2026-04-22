@@ -8,12 +8,17 @@ use App\Order\Domain\Exception\CannotCancelClosedOrderException;
 use App\Order\Domain\Exception\CannotCloseClosedOrderException;
 use App\Order\Domain\Exception\CannotInvoiceOpenOrderException;
 use App\Order\Domain\Exception\CannotTransferClosedOrderException;
+use App\Order\Domain\Exception\CannotUpdateDinersOnClosedOrderException;
+use App\Order\Domain\ValueObject\AmountDiscount;
 use App\Order\Domain\ValueObject\Diners;
+use App\Order\Domain\ValueObject\DiscountPolicy;
 use App\Order\Domain\ValueObject\DiscountType;
+use App\Order\Domain\ValueObject\NoDiscount;
 use App\Order\Domain\ValueObject\OrderStatus;
+use App\Order\Domain\ValueObject\OrderTotals;
+use App\Order\Domain\ValueObject\PercentageDiscount;
 use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
 use App\Shared\Domain\Support\RecordsDomainEvents;
-use App\Shared\Domain\ValueObject\Discount;
 use App\Shared\Domain\ValueObject\DomainDateTime;
 use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\RestaurantId;
@@ -49,7 +54,7 @@ class Order implements HasDomainEventsInterface
         return new self(
             $uuid,
             RestaurantId::create($restaurantId),
-            OrderStatus::open(),
+            OrderStatus::OPEN,
             $tableId,
             $openedByUserId,
             null,
@@ -81,7 +86,7 @@ class Order implements HasDomainEventsInterface
         return new self(
             Uuid::create($uuid),
             RestaurantId::create($restaurantId),
-            OrderStatus::create($status),
+            OrderStatus::from($status),
             Uuid::create($tableId),
             Uuid::create($openedByUserId),
             $closedByUserId ? Uuid::create($closedByUserId) : null,
@@ -97,77 +102,123 @@ class Order implements HasDomainEventsInterface
 
     public function close(Uuid $closedByUserId): void
     {
-        if (!$this->status->isOpen()) {
+        if (! $this->status->isOpen()) {
             throw new CannotCloseClosedOrderException($this->uuid->getValue());
         }
-        $this->status = OrderStatus::closed();
+        $this->status = OrderStatus::CLOSED;
         $this->closedByUserId = $closedByUserId;
         $this->closedAt = DomainDateTime::now();
     }
 
     public function updateDiners(Diners $diners): void
     {
-        if (!$this->status->isOpen()) {
-            throw new \App\Order\Domain\Exception\CannotUpdateDinersOnClosedOrderException($this->uuid->getValue());
+        if (! $this->status->isOpen()) {
+            throw new CannotUpdateDinersOnClosedOrderException($this->uuid->getValue());
         }
         $this->diners = $diners;
     }
 
     public function applyDiscount(?string $discountType, int $discountValue, int $baseAmount): void
     {
-        if ($discountType === null || $discountValue <= 0) {
-            $this->discountType = null;
-            $this->discountValue = 0;
-            $this->discountAmount = Money::zero();
-
-            return;
-        }
-
-        $discountTypeVO = DiscountType::create($discountType);
-        $this->discountType = $discountTypeVO;
-        $this->discountValue = $discountValue;
-        $this->discountAmount = Money::create(Discount::calculateAmount($discountTypeVO->value, $discountValue, $baseAmount));
+        $this->discountType = DiscountType::create($discountType);
+        $this->discountValue = $discountType === null || $discountValue <= 0 ? 0 : $discountValue;
+        $this->discountAmount = $this->discountPolicy()->applyTo(Money::fromCents($baseAmount));
     }
 
     public function cancel(): void
     {
-        if (!$this->status->isOpen()) {
+        if (! $this->status->isOpen()) {
             throw new CannotCancelClosedOrderException($this->uuid->getValue());
         }
-        $this->status = OrderStatus::cancelled();
+        $this->status = OrderStatus::CANCELLED;
     }
 
     public function markAsInvoiced(): void
     {
-        if (!$this->status->isClosed()) {
+        if (! $this->status->isClosed()) {
             throw new CannotInvoiceOpenOrderException($this->uuid->getValue());
         }
-        $this->status = OrderStatus::invoiced();
+        $this->status = OrderStatus::INVOICED;
     }
 
     public function moveToTable(Uuid $tableId): void
     {
-        if (!$this->status->isOpen()) {
+        if (! $this->status->isOpen()) {
             throw new CannotTransferClosedOrderException($this->uuid->getValue());
         }
 
         $this->tableId = $tableId;
     }
 
-    public function id(): Uuid { return $this->uuid; }
-    public function uuid(): Uuid { return $this->id(); }
-    public function restaurantId(): int { return $this->restaurantId->getValue(); }
-    public function status(): OrderStatus { return $this->status; }
-    public function tableId(): Uuid { return $this->tableId; }
-    public function openedByUserId(): Uuid { return $this->openedByUserId; }
-    public function closedByUserId(): ?Uuid { return $this->closedByUserId; }
-    public function diners(): Diners { return $this->diners; }
-    public function discountType(): ?string { return $this->discountType?->value; }
-    public function discountValue(): int { return $this->discountValue; }
-    public function discountAmount(): int { return $this->discountAmount->getValue(); }
-    public function openedAt(): DomainDateTime { return $this->openedAt; }
-    public function closedAt(): ?DomainDateTime { return $this->closedAt; }
-    public function persistedAt(): ?DomainDateTime { return $this->persistedAt; }
+    public function id(): Uuid
+    {
+        return $this->uuid;
+    }
+
+    public function uuid(): Uuid
+    {
+        return $this->id();
+    }
+
+    public function restaurantId(): int
+    {
+        return $this->restaurantId->getValue();
+    }
+
+    public function status(): OrderStatus
+    {
+        return $this->status;
+    }
+
+    public function tableId(): Uuid
+    {
+        return $this->tableId;
+    }
+
+    public function openedByUserId(): Uuid
+    {
+        return $this->openedByUserId;
+    }
+
+    public function closedByUserId(): ?Uuid
+    {
+        return $this->closedByUserId;
+    }
+
+    public function diners(): Diners
+    {
+        return $this->diners;
+    }
+
+    public function discountType(): ?string
+    {
+        return $this->discountType?->value;
+    }
+
+    public function discountValue(): int
+    {
+        return $this->discountValue;
+    }
+
+    public function discountAmount(): int
+    {
+        return $this->discountAmount->getValue();
+    }
+
+    public function openedAt(): DomainDateTime
+    {
+        return $this->openedAt;
+    }
+
+    public function closedAt(): ?DomainDateTime
+    {
+        return $this->closedAt;
+    }
+
+    public function persistedAt(): ?DomainDateTime
+    {
+        return $this->persistedAt;
+    }
 
     public function syncPersistedAt(DomainDateTime $persistedAt): void
     {
@@ -176,45 +227,69 @@ class Order implements HasDomainEventsInterface
 
     public function calculateSubtotal(array $lines): int
     {
-        return max(0, $this->calculateLinesSubtotalAfterDiscounts($lines) - $this->calculateOrderDiscountAmount($lines));
+        return $this->computeTotals($lines)->subtotal->getValue();
     }
 
     public function calculateTaxAmount(array $lines): int
     {
-        $lineSubtotal = $this->calculateLinesSubtotalAfterDiscounts($lines);
-        if ($lineSubtotal <= 0) {
-            return 0;
-        }
-
-        $taxBeforeOrderDiscount = array_reduce($lines, function ($carry, $line) {
-            return $carry + $line->taxAmount();
-        }, 0);
-
-        $ratio = max(0, ($lineSubtotal - $this->calculateOrderDiscountAmount($lines)) / $lineSubtotal);
-
-        return (int) round($taxBeforeOrderDiscount * $ratio);
+        return $this->computeTotals($lines)->taxAmount->getValue();
     }
 
     public function calculateLineDiscountTotal(array $lines): int
     {
-        return array_reduce($lines, fn ($carry, $line) => $carry + $line->discountAmount(), 0);
+        return $this->computeTotals($lines)->lineDiscounts->getValue();
     }
 
     public function calculateOrderDiscountAmount(array $lines): int
     {
-        if ($this->discountType === null || $this->discountValue <= 0) {
-            return 0;
+        return $this->computeTotals($lines)->orderDiscount->getValue();
+    }
+
+    public function calculateDiscountBase(array $lines): int
+    {
+        return array_reduce($lines, fn ($carry, $line) => $carry + $line->subtotalAfterDiscount(), 0);
+    }
+
+    public function computeTotals(array $lines): OrderTotals
+    {
+        $lineSubtotalAfterDiscounts = 0;
+        $lineDiscounts = 0;
+        $taxBeforeOrderDiscount = 0;
+
+        foreach ($lines as $line) {
+            $lineSubtotalAfterDiscounts += $line->subtotalAfterDiscount();
+            $lineDiscounts += $line->discountAmount();
+            $taxBeforeOrderDiscount += $line->taxAmount();
         }
 
-        return Discount::calculateAmount(
-            $this->discountType->value,
-            $this->discountValue,
-            $this->calculateLinesSubtotalAfterDiscounts($lines),
+        $orderDiscount = $this->discountPolicy()->applyTo(Money::fromCents($lineSubtotalAfterDiscounts));
+        $subtotal = Money::fromCents(max(0, $lineSubtotalAfterDiscounts - $orderDiscount->getValue()));
+
+        if ($lineSubtotalAfterDiscounts <= 0) {
+            $taxAmount = Money::zero();
+        } else {
+            $ratio = max(0, $subtotal->getValue() / $lineSubtotalAfterDiscounts);
+            $taxAmount = Money::fromCents((int) round($taxBeforeOrderDiscount * $ratio));
+        }
+
+        return new OrderTotals(
+            subtotal: $subtotal,
+            lineDiscounts: Money::fromCents($lineDiscounts),
+            orderDiscount: $orderDiscount,
+            taxAmount: $taxAmount,
+            total: $subtotal->add($taxAmount),
         );
     }
 
-    private function calculateLinesSubtotalAfterDiscounts(array $lines): int
+    private function discountPolicy(): DiscountPolicy
     {
-        return array_reduce($lines, fn ($carry, $line) => $carry + $line->subtotalAfterDiscount(), 0);
+        if ($this->discountType === null || $this->discountValue <= 0) {
+            return new NoDiscount;
+        }
+
+        return match ($this->discountType) {
+            DiscountType::AMOUNT => new AmountDiscount($this->discountValue),
+            DiscountType::PERCENTAGE => new PercentageDiscount($this->discountValue),
+        };
     }
 }

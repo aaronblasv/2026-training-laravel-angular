@@ -4,11 +4,14 @@ declare(strict_types=1);
 
 namespace App\Order\Domain\Entity;
 
+use App\Order\Domain\ValueObject\AmountDiscount;
+use App\Order\Domain\ValueObject\DiscountPolicy;
 use App\Order\Domain\ValueObject\DiscountType;
+use App\Order\Domain\ValueObject\NoDiscount;
+use App\Order\Domain\ValueObject\PercentageDiscount;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
 use App\Shared\Domain\Support\RecordsDomainEvents;
-use App\Shared\Domain\ValueObject\Discount;
 use App\Shared\Domain\ValueObject\DomainDateTime;
 use App\Shared\Domain\ValueObject\Money;
 use App\Shared\Domain\ValueObject\RestaurantId;
@@ -77,7 +80,24 @@ class OrderLine implements HasDomainEventsInterface
         int $discountAmount = 0,
         ?DomainDateTime $sentToKitchenAt = null,
     ): self {
-        return new self($uuid, RestaurantId::create($restaurantId), $orderId, $productId, $userId, $quantity, Money::create($price), $taxPercentage, DiscountType::create($discountType), $discountValue, Money::create($discountAmount), $sentToKitchenAt);
+        $line = new self(
+            $uuid,
+            RestaurantId::create($restaurantId),
+            $orderId,
+            $productId,
+            $userId,
+            $quantity,
+            Money::create($price),
+            $taxPercentage,
+            DiscountType::create($discountType),
+            $discountValue,
+            Money::create($discountAmount),
+            $sentToKitchenAt,
+        );
+
+        $line->recalculateDiscountAmount();
+
+        return $line;
     }
 
     public function moveToOrder(Uuid $orderId): void
@@ -115,34 +135,110 @@ class OrderLine implements HasDomainEventsInterface
         $this->sentToKitchenAt = DomainDateTime::now();
     }
 
-    public function id(): Uuid { return $this->uuid; }
-    public function uuid(): Uuid { return $this->id(); }
-    public function restaurantId(): int { return $this->restaurantId->getValue(); }
-    public function orderId(): Uuid { return $this->orderId; }
-    public function productId(): Uuid { return $this->productId; }
-    public function userId(): Uuid { return $this->userId; }
-    public function quantity(): Quantity { return $this->quantity; }
-    public function price(): int { return $this->price->getValue(); }
-    public function taxPercentage(): int { return $this->taxPercentage; }
-    public function discountType(): ?string { return $this->discountType?->value; }
-    public function discountValue(): int { return $this->discountValue; }
-    public function discountAmount(): int { return $this->discountAmount->getValue(); }
-    public function sentToKitchenAt(): ?DomainDateTime { return $this->sentToKitchenAt; }
-    public function isSentToKitchen(): bool { return $this->sentToKitchenAt !== null; }
-    public function subtotal(): int { return $this->price->getValue() * $this->quantity->getValue(); }
-    public function subtotalAfterDiscount(): int { return max(0, $this->subtotal() - $this->discountAmount->getValue()); }
-    public function taxAmount(): int { return (int) round($this->subtotalAfterDiscount() * $this->taxPercentage / 100); }
-    public function total(): int { return $this->subtotalAfterDiscount() + $this->taxAmount(); }
+    public function id(): Uuid
+    {
+        return $this->uuid;
+    }
+
+    public function uuid(): Uuid
+    {
+        return $this->id();
+    }
+
+    public function restaurantId(): int
+    {
+        return $this->restaurantId->getValue();
+    }
+
+    public function orderId(): Uuid
+    {
+        return $this->orderId;
+    }
+
+    public function productId(): Uuid
+    {
+        return $this->productId;
+    }
+
+    public function userId(): Uuid
+    {
+        return $this->userId;
+    }
+
+    public function quantity(): Quantity
+    {
+        return $this->quantity;
+    }
+
+    public function price(): int
+    {
+        return $this->price->getValue();
+    }
+
+    public function taxPercentage(): int
+    {
+        return $this->taxPercentage;
+    }
+
+    public function discountType(): ?string
+    {
+        return $this->discountType?->value;
+    }
+
+    public function discountValue(): int
+    {
+        return $this->discountValue;
+    }
+
+    public function discountAmount(): int
+    {
+        return $this->discountAmount->getValue();
+    }
+
+    public function sentToKitchenAt(): ?DomainDateTime
+    {
+        return $this->sentToKitchenAt;
+    }
+
+    public function isSentToKitchen(): bool
+    {
+        return $this->sentToKitchenAt !== null;
+    }
+
+    public function subtotal(): int
+    {
+        return $this->price->getValue() * $this->quantity->getValue();
+    }
+
+    public function subtotalAfterDiscount(): int
+    {
+        return max(0, $this->subtotal() - $this->discountAmount->getValue());
+    }
+
+    public function taxAmount(): int
+    {
+        return (int) round($this->subtotalAfterDiscount() * $this->taxPercentage / 100);
+    }
+
+    public function total(): int
+    {
+        return $this->subtotalAfterDiscount() + $this->taxAmount();
+    }
 
     private function recalculateDiscountAmount(): void
     {
-        if ($this->discountType === null || $this->discountValue <= 0) {
-            $this->discountAmount = Money::zero();
+        $this->discountAmount = $this->discountPolicy()->applyTo(Money::fromCents($this->subtotal()));
+    }
 
-            return;
+    private function discountPolicy(): DiscountPolicy
+    {
+        if ($this->discountType === null || $this->discountValue <= 0) {
+            return new NoDiscount;
         }
 
-        $baseAmount = $this->subtotal();
-        $this->discountAmount = Money::create(Discount::calculateAmount($this->discountType->value, $this->discountValue, $baseAmount));
+        return match ($this->discountType) {
+            DiscountType::AMOUNT => new AmountDiscount($this->discountValue),
+            DiscountType::PERCENTAGE => new PercentageDiscount($this->discountValue),
+        };
     }
 }

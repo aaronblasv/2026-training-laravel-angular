@@ -27,7 +27,7 @@ final readonly class GetOrderByTableResponse
     {
         return new self(
             $order->uuid()->getValue(),
-            $order->status()->getValue(),
+            $order->status()->value,
             $order->tableId()->getValue(),
             $order->openedByUserId()->getValue(),
             $order->diners()->getValue(),

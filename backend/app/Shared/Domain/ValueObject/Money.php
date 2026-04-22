@@ -6,13 +6,16 @@ namespace App\Shared\Domain\ValueObject;
 
 final readonly class Money
 {
-    private function __construct(private int $amount)
+    private function __construct(private int $amount) {}
+
+    public static function fromCents(int $amount): self
     {
+        return new self($amount);
     }
 
     public static function create(int $amount): self
     {
-        return new self($amount);
+        return self::fromCents($amount);
     }
 
     public static function zero(): self
@@ -33,6 +36,11 @@ final readonly class Money
     public function subtract(self $other): self
     {
         return new self($this->amount - $other->amount);
+    }
+
+    public function multiply(int $factor): self
+    {
+        return new self($this->amount * $factor);
     }
 
     public function isNegative(): bool

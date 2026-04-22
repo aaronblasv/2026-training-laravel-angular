@@ -4,63 +4,30 @@ declare(strict_types=1);
 
 namespace App\Order\Domain\ValueObject;
 
-class OrderStatus
+enum OrderStatus: string
 {
-    public const OPEN = 'open';
-    public const CLOSED = 'closed';
-    public const CANCELLED = 'cancelled';
-    public const INVOICED = 'invoiced';
-    private const VALID_STATUSES = [self::OPEN, self::CLOSED, self::CANCELLED, self::INVOICED];
-
-    private function __construct(private string $value) {}
-
-    public static function open(): self
-    {
-        return new self(self::OPEN);
-    }
-
-    public static function closed(): self
-    {
-        return new self(self::CLOSED);
-    }
-
-    public static function cancelled(): self
-    {
-        return new self(self::CANCELLED);
-    }
-
-    public static function invoiced(): self
-    {
-        return new self(self::INVOICED);
-    }
-
-    public static function create(string $value): self
-    {
-        if (!in_array($value, self::VALID_STATUSES)) {
-            throw new \InvalidArgumentException("Invalid order status: {$value}");
-        }
-        return new self($value);
-    }
+    case OPEN = 'open';
+    case CLOSED = 'closed';
+    case CANCELLED = 'cancelled';
+    case INVOICED = 'invoiced';
 
     public function isOpen(): bool
     {
-        return $this->value === self::OPEN;
+        return $this === self::OPEN;
     }
 
     public function isClosed(): bool
     {
-        return $this->value === self::CLOSED;
+        return $this === self::CLOSED;
     }
 
     public function isCancelled(): bool
     {
-        return $this->value === self::CANCELLED;
+        return $this === self::CANCELLED;
     }
 
     public function isInvoiced(): bool
     {
-        return $this->value === self::INVOICED;
+        return $this === self::INVOICED;
     }
-
-    public function getValue(): string { return $this->value; }
 }

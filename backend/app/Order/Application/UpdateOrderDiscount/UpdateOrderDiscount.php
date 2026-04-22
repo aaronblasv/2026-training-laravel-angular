@@ -25,12 +25,12 @@ class UpdateOrderDiscount
     {
         $this->transactionManager->run(function () use ($auditContext, $orderUuid, $discountType, $discountValue) {
             $order = $this->orderRepository->findById($orderUuid, $auditContext->restaurantId);
-            if (!$order) {
+            if (! $order) {
                 throw new OrderNotFoundException($orderUuid);
             }
 
             $lines = $this->orderLineRepository->findAllByOrderId($orderUuid, $auditContext->restaurantId);
-            $baseAmount = array_reduce($lines, fn ($carry, $line) => $carry + $line->subtotalAfterDiscount(), 0);
+            $baseAmount = $order->calculateDiscountBase($lines);
 
             $order->applyDiscount($discountType, $discountValue, $baseAmount);
             $this->orderRepository->update($order);

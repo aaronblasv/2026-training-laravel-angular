@@ -93,11 +93,7 @@ class MergeTables
         $survivorOrder->updateDiners(Diners::create($totalDiners));
 
         $mergedLines = $this->orderLineRepository->findAllByOrderId($survivorOrder->uuid()->getValue(), $restaurantId);
-        $linesSubtotal = array_reduce(
-            $mergedLines,
-            static fn(int $sum, OrderLine $line) => $sum + $line->subtotalAfterDiscount(),
-            0,
-        );
+        $linesSubtotal = $survivorOrder->calculateDiscountBase($mergedLines);
 
         $survivorOrder->applyDiscount(
             $totalOrderDiscount > 0 ? 'amount' : null,

@@ -21,7 +21,7 @@ final readonly class CloseOrderResponse
     {
         return new self(
             $order->uuid()->getValue(),
-            $order->status()->getValue(),
+            $order->status()->value,
             $total,
             $ticketNumber,
             $order->closedByUserId()->getValue(),

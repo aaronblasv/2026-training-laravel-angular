@@ -7,8 +7,8 @@ namespace App\Order\Application\CloseOrder;
 use App\Order\Domain\Event\OrderClosed;
 use App\Order\Domain\Exception\CannotCloseOrderWithNoLinesException;
 use App\Order\Domain\Exception\OrderNotFoundException;
-use App\Order\Domain\Interfaces\OrderRepositoryInterface;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
+use App\Order\Domain\Interfaces\OrderRepositoryInterface;
 use App\Sale\Domain\Interfaces\SaleWriteRepositoryInterface;
 use App\Shared\Application\Context\AuditContext;
 use App\Shared\Domain\Event\ActionLogged;
@@ -30,7 +30,7 @@ class CloseOrder
     {
         return $this->transactionManager->run(function () use ($auditContext, $orderUuid, $closedByUserUuid) {
             $order = $this->orderRepository->findById($orderUuid, $auditContext->restaurantId);
-            if (!$order) {
+            if (! $order) {
                 throw new OrderNotFoundException($orderUuid);
             }
 
@@ -39,11 +39,7 @@ class CloseOrder
                 throw new CannotCloseOrderWithNoLinesException($orderUuid);
             }
 
-            $subtotal = $order->calculateSubtotal($lines);
-            $taxAmount = $order->calculateTaxAmount($lines);
-            $lineDiscountTotal = $order->calculateLineDiscountTotal($lines);
-            $orderDiscountTotal = $order->calculateOrderDiscountAmount($lines);
-            $total = $subtotal + $taxAmount;
+            $totals = $order->computeTotals($lines);
             $ticketNumber = $this->saleRepository->getNextTicketNumber($order->restaurantId());
 
             $order->close(Uuid::create($closedByUserUuid));
@@ -54,11 +50,11 @@ class CloseOrder
                 restaurantId: $order->restaurantId(),
                 closedByUserUuid: Uuid::create($closedByUserUuid),
                 ticketNumber: $ticketNumber,
-                subtotal: $subtotal,
-                taxAmount: $taxAmount,
-                lineDiscountTotal: $lineDiscountTotal,
-                orderDiscountTotal: $orderDiscountTotal,
-                total: $total,
+                subtotal: $totals->subtotal->getValue(),
+                taxAmount: $totals->taxAmount->getValue(),
+                lineDiscountTotal: $totals->lineDiscounts->getValue(),
+                orderDiscountTotal: $totals->orderDiscount->getValue(),
+                total: $totals->total->getValue(),
                 lines: $lines,
             ));
 
@@ -74,7 +70,7 @@ class CloseOrder
 
             $this->domainEventBus->dispatch(...$order->pullDomainEvents());
 
-            return CloseOrderResponse::create($order, $total, $ticketNumber);
+            return CloseOrderResponse::create($order, $totals->total->getValue(), $ticketNumber);
         });
     }
 }
