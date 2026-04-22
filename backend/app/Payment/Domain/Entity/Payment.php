@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Payment\Domain\Entity;
 
+use App\Payment\Domain\Exception\InvalidPaymentMethodException;
 use App\Payment\Domain\ValueObject\PaymentMethod;
 use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
 use App\Shared\Domain\Support\RecordsDomainEvents;
@@ -30,7 +31,7 @@ class Payment implements HasDomainEventsInterface
         string $method,
         ?string $description = null,
     ): self {
-        return new self($uuid, $orderId, $userId, $amount, PaymentMethod::create($method), $description);
+        return new self($uuid, $orderId, $userId, $amount, self::resolveMethod($method), $description);
     }
 
     public static function fromPersistence(
@@ -46,7 +47,7 @@ class Payment implements HasDomainEventsInterface
             Uuid::create($orderId),
             Uuid::create($userId),
             $amount,
-            PaymentMethod::create($method),
+            self::resolveMethod($method),
             $description,
         );
     }
@@ -56,7 +57,12 @@ class Payment implements HasDomainEventsInterface
     public function orderId(): Uuid { return $this->orderId; }
     public function userId(): Uuid { return $this->userId; }
     public function amount(): int { return $this->amount; }
-    public function method(): string { return $this->method->getValue(); }
+    public function method(): string { return $this->method->value; }
     public function methodVO(): PaymentMethod { return $this->method; }
     public function description(): ?string { return $this->description; }
+
+    private static function resolveMethod(string $method): PaymentMethod
+    {
+        return PaymentMethod::tryFrom($method) ?? throw new InvalidPaymentMethodException($method);
+    }
 }

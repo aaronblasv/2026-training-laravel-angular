@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace App\Payment\Infrastructure\Persistence\Repositories;
 
+use App\Order\Domain\Exception\OrderNotFoundException;
 use App\Payment\Domain\Exception\PaymentPersistenceRelationNotFoundException;
 use App\Payment\Domain\Entity\Payment;
 use App\Payment\Domain\Interfaces\PaymentRepositoryInterface;
 use App\Payment\Infrastructure\Persistence\Models\EloquentPayment;
 use App\Order\Infrastructure\Persistence\Models\EloquentOrder;
+use App\User\Domain\Exception\UserNotFoundException;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
 
 class EloquentPaymentRepository implements PaymentRepositoryInterface
@@ -25,11 +27,11 @@ class EloquentPaymentRepository implements PaymentRepositoryInterface
         $user = $this->userModel->newQuery()->where('uuid', $payment->userId()->getValue())->first();
 
         if (!$order) {
-            throw new \DomainException('Order not found');
+            throw new OrderNotFoundException($payment->orderId()->getValue());
         }
 
         if (!$user) {
-            throw new \DomainException('User not found');
+            throw new UserNotFoundException($payment->userId()->getValue());
         }
 
         $this->model->newQuery()->create([

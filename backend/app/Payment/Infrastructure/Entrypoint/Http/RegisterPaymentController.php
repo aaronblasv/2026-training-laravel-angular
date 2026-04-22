@@ -20,7 +20,7 @@ class RegisterPaymentController
         $validated = $request->validate([
             'paid_by_user_id' => 'required|uuid',
             'amount' => 'required|integer|min:1',
-            'method' => 'required|in:cash,card,bizum',
+            'method' => 'required|string',
             'description' => 'nullable|string|max:255',
         ]);
 

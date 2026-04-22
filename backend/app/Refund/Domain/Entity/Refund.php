@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Refund\Domain\Entity;
 
+use App\Payment\Domain\Exception\InvalidPaymentMethodException;
 use App\Payment\Domain\ValueObject\PaymentMethod;
 use App\Shared\Domain\Interfaces\HasDomainEventsInterface;
 use App\Shared\Domain\Support\RecordsDomainEvents;
@@ -39,7 +40,7 @@ class Refund implements HasDomainEventsInterface
         int $taxAmount,
         int $total,
     ): self {
-        return new self($uuid, RestaurantId::create($restaurantId), $saleId, $userId, $type, PaymentMethod::create($method), $reason, $subtotal, $taxAmount, $total);
+        return new self($uuid, RestaurantId::create($restaurantId), $saleId, $userId, $type, self::resolveMethod($method), $reason, $subtotal, $taxAmount, $total);
     }
 
     public function id(): Uuid { return $this->uuid; }
@@ -48,9 +49,14 @@ class Refund implements HasDomainEventsInterface
     public function saleId(): Uuid { return $this->saleId; }
     public function userId(): Uuid { return $this->userId; }
     public function type(): string { return $this->type; }
-    public function method(): string { return $this->method->getValue(); }
+    public function method(): string { return $this->method->value; }
     public function reason(): ?string { return $this->reason; }
     public function subtotal(): int { return $this->subtotal; }
     public function taxAmount(): int { return $this->taxAmount; }
     public function total(): int { return $this->total; }
+
+    private static function resolveMethod(string $method): PaymentMethod
+    {
+        return PaymentMethod::tryFrom($method) ?? throw new InvalidPaymentMethodException($method);
+    }
 }
