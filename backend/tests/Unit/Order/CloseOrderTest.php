@@ -91,6 +91,62 @@ class CloseOrderTest extends TestCase
         $useCase($auditContext, $orderUuid, $closedByUserUuid);
     }
 
+    public function test_close_order_requests_single_ticket_number_for_the_sale_flow(): void
+    {
+        $restaurantId = 1;
+        $orderUuid = Uuid::generate()->getValue();
+        $authenticatedUserUuid = Uuid::generate()->getValue();
+        $closedByUserUuid = Uuid::generate()->getValue();
+        $auditContext = new AuditContext($restaurantId, $authenticatedUserUuid, '127.0.0.1');
+
+        $order = Order::dddCreate(
+            Uuid::create($orderUuid),
+            $restaurantId,
+            Uuid::generate(),
+            Uuid::generate(),
+            Diners::create(2),
+        );
+
+        $line = Mockery::mock();
+        $line->shouldReceive('subtotalAfterDiscount')->andReturn(1000);
+        $line->shouldReceive('taxAmount')->andReturn(100);
+        $line->shouldReceive('discountAmount')->andReturn(0);
+        $line->shouldReceive('uuid')->andReturn(Uuid::generate());
+        $line->shouldReceive('userId')->andReturn(Uuid::generate());
+        $line->shouldReceive('quantity->getValue')->andReturn(1);
+        $line->shouldReceive('price')->andReturn(1000);
+        $line->shouldReceive('taxPercentage')->andReturn(10);
+        $line->shouldReceive('subtotal')->andReturn(1000);
+        $line->shouldReceive('discountType')->andReturn(null);
+        $line->shouldReceive('discountValue')->andReturn(0);
+        $line->shouldReceive('total')->andReturn(1100);
+
+        $orderRepository = Mockery::mock(OrderRepositoryInterface::class);
+        $orderRepository->shouldReceive('findById')->once()->with($orderUuid, $restaurantId)->andReturn($order);
+        $orderRepository->shouldReceive('update')->once();
+
+        $lineRepository = Mockery::mock(OrderLineRepositoryInterface::class);
+        $lineRepository->shouldReceive('findAllByOrderId')->once()->with($orderUuid, $restaurantId)->andReturn([$line]);
+
+        $saleRepository = Mockery::mock(SaleWriteRepositoryInterface::class);
+        $saleRepository->shouldReceive('getNextTicketNumber')->once()->with($restaurantId)->andReturn(42);
+
+        $domainEventBus = Mockery::mock(DomainEventBusInterface::class);
+        $domainEventBus->shouldReceive('dispatch')->once();
+
+        $useCase = new CloseOrder(
+            $orderRepository,
+            $lineRepository,
+            $saleRepository,
+            $this->transactionManager(),
+            $domainEventBus,
+        );
+
+        $response = $useCase($auditContext, $orderUuid, $closedByUserUuid);
+
+        $this->assertSame(42, $response->ticketNumber);
+    }
+
     private function transactionManager(): TransactionManagerInterface
     {
         return new class implements TransactionManagerInterface {

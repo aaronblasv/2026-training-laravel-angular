@@ -77,7 +77,12 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         // Dashboard
-        $this->app->bind(DashboardRepositoryInterface::class, CachedDashboardRepository::class);
+        $this->app->bind(DashboardRepositoryInterface::class, function ($app) {
+            return new CachedDashboardRepository(
+                $app->make(EloquentDashboardRepository::class),
+                $app->make(CacheRepositoryInterface::class),
+            );
+        });
 
         // User
         $this->app->bind(UserRepositoryInterface::class, EloquentUserRepository::class);

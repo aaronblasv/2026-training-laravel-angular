@@ -11,6 +11,7 @@ interface SaleWriteRepositoryInterface
 {
     public function save(Sale $sale): void;
     public function saveLine(SaleLine $line): void;
+    public function saveLinesBatch(array $lines): void;
     public function update(Sale $sale): void;
     public function updateLine(SaleLine $line): void;
     public function getNextTicketNumber(int $restaurantId): int;

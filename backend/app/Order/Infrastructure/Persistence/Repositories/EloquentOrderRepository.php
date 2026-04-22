@@ -4,14 +4,20 @@ declare(strict_types=1);
 
 namespace App\Order\Infrastructure\Persistence\Repositories;
 
-use App\Order\Domain\Exception\OrderPersistenceRelationNotFoundException;
 use App\Order\Domain\Entity\Order;
+use App\Order\Domain\Exception\OrderNotFoundException;
+use App\Order\Domain\Exception\OrderPersistenceRelationNotFoundException;
+use App\Order\Domain\Exception\TableAlreadyHasOpenOrderException;
 use App\Order\Domain\Interfaces\OrderRepositoryInterface;
+use App\Order\Infrastructure\Persistence\Models\EloquentOrder;
 use App\Shared\Domain\Exception\ConcurrencyException;
 use App\Shared\Domain\ValueObject\DomainDateTime;
-use App\Order\Infrastructure\Persistence\Models\EloquentOrder;
+use App\Table\Domain\Exception\TableNotFoundException;
 use App\Table\Infrastructure\Persistence\Models\EloquentTable;
+use App\User\Domain\Exception\UserNotFoundException;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Database\QueryException;
 
 class EloquentOrderRepository implements OrderRepositoryInterface
 {
@@ -23,23 +29,31 @@ class EloquentOrderRepository implements OrderRepositoryInterface
 
     public function save(Order $order): void
     {
-        $tableId = $this->tableModel->newQuery()->where('uuid', $order->tableId()->getValue())->firstOrFail()->id;
-        $openedByUserId = $this->userModel->newQuery()->where('uuid', $order->openedByUserId()->getValue())->firstOrFail()->id;
+        $tableId = $this->resolveTableId($order->tableId()->getValue());
+        $openedByUserId = $this->resolveUserId($order->openedByUserId()->getValue());
 
-        $this->model->newQuery()->create([
-            'uuid'              => $order->uuid()->getValue(),
-            'restaurant_id'     => $order->restaurantId(),
-            'status'            => $order->status()->getValue(),
-            'table_id'          => $tableId,
-            'opened_by_user_id' => $openedByUserId,
-            'closed_by_user_id' => null,
-            'diners'            => $order->diners()->getValue(),
-            'discount_type'     => $order->discountType(),
-            'discount_value'    => $order->discountValue(),
-            'discount_amount'   => $order->discountAmount(),
-            'opened_at'         => $order->openedAt()->format('Y-m-d H:i:s'),
-            'closed_at'         => null,
-        ]);
+        try {
+            $this->model->newQuery()->create([
+                'uuid' => $order->uuid()->getValue(),
+                'restaurant_id' => $order->restaurantId(),
+                'status' => $order->status()->value,
+                'table_id' => $tableId,
+                'opened_by_user_id' => $openedByUserId,
+                'closed_by_user_id' => null,
+                'diners' => $order->diners()->getValue(),
+                'discount_type' => $order->discountType(),
+                'discount_value' => $order->discountValue(),
+                'discount_amount' => $order->discountAmount(),
+                'opened_at' => $order->openedAt()->format('Y-m-d H:i:s'),
+                'closed_at' => null,
+            ]);
+        } catch (QueryException $exception) {
+            if ($this->isOpenTableUniqueViolation($exception)) {
+                throw new TableAlreadyHasOpenOrderException($order->tableId()->getValue());
+            }
+
+            throw $exception;
+        }
     }
 
     public function findById(string $uuid, int $restaurantId): ?Order
@@ -56,7 +70,7 @@ class EloquentOrderRepository implements OrderRepositoryInterface
     public function findOpenByTableId(string $tableUuid, int $restaurantId): ?Order
     {
         $table = $this->tableModel->newQuery()->where('uuid', $tableUuid)->first();
-        if (!$table) {
+        if (! $table) {
             return null;
         }
 
@@ -71,16 +85,17 @@ class EloquentOrderRepository implements OrderRepositoryInterface
 
     public function update(Order $order): void
     {
-        $this->model->newQuery()->where('uuid', $order->uuid()->getValue())->firstOrFail();
+        try {
+            $this->model->newQuery()->where('uuid', $order->uuid()->getValue())->firstOrFail();
+        } catch (ModelNotFoundException) {
+            throw new OrderNotFoundException($order->uuid()->getValue());
+        }
 
-        $tableId = $this->tableModel->newQuery()
-            ->where('uuid', $order->tableId()->getValue())
-            ->firstOrFail()
-            ->id;
+        $tableId = $this->resolveTableId($order->tableId()->getValue());
 
         $data = [
             'table_id' => $tableId,
-            'status' => $order->status()->getValue(),
+            'status' => $order->status()->value,
             'diners' => $order->diners()->getValue(),
             'discount_type' => $order->discountType(),
             'discount_value' => $order->discountValue(),
@@ -88,9 +103,7 @@ class EloquentOrderRepository implements OrderRepositoryInterface
         ];
 
         if ($order->closedByUserId()) {
-            $data['closed_by_user_id'] = $this->userModel->newQuery()
-                ->where('uuid', $order->closedByUserId()->getValue())
-                ->firstOrFail()->id;
+            $data['closed_by_user_id'] = $this->resolveUserId($order->closedByUserId()->getValue());
             $data['closed_at'] = $order->closedAt()->format('Y-m-d H:i:s');
         }
 
@@ -117,11 +130,15 @@ class EloquentOrderRepository implements OrderRepositoryInterface
 
     public function delete(string $uuid, int $restaurantId): void
     {
-        $this->model->newQuery()
-            ->where('uuid', $uuid)
-            ->where('restaurant_id', $restaurantId)
-            ->firstOrFail()
-            ->delete();
+        try {
+            $this->model->newQuery()
+                ->where('uuid', $uuid)
+                ->where('restaurant_id', $restaurantId)
+                ->firstOrFail()
+                ->delete();
+        } catch (ModelNotFoundException) {
+            throw new OrderNotFoundException($uuid);
+        }
     }
 
     public function findAllOpen(int $restaurantId): array
@@ -131,7 +148,7 @@ class EloquentOrderRepository implements OrderRepositoryInterface
             ->where('restaurant_id', $restaurantId)
             ->where('status', 'open')
             ->get()
-            ->map(fn(EloquentOrder $model) => $this->toDomain($model))
+            ->map(fn (EloquentOrder $model) => $this->toDomain($model))
             ->toArray();
     }
 
@@ -173,6 +190,37 @@ class EloquentOrderRepository implements OrderRepositoryInterface
         }
 
         return new \DateTimeImmutable((string) $value);
+    }
+
+    private function isOpenTableUniqueViolation(QueryException $exception): bool
+    {
+        $errorCode = $exception->errorInfo[1] ?? null;
+        $message = $exception->getMessage();
+
+        if ($errorCode === 1062 && str_contains($message, 'uniq_open_table_per_restaurant')) {
+            return true;
+        }
+
+        return str_contains($message, 'uniq_open_table_per_restaurant')
+            || str_contains($message, 'orders.restaurant_id, orders.open_table_guard');
+    }
+
+    private function resolveTableId(string $tableUuid): int
+    {
+        try {
+            return $this->tableModel->newQuery()->where('uuid', $tableUuid)->firstOrFail()->id;
+        } catch (ModelNotFoundException) {
+            throw new TableNotFoundException($tableUuid);
+        }
+    }
+
+    private function resolveUserId(string $userUuid): int
+    {
+        try {
+            return $this->userModel->newQuery()->where('uuid', $userUuid)->firstOrFail()->id;
+        } catch (ModelNotFoundException) {
+            throw new UserNotFoundException($userUuid);
+        }
     }
 
     private function resolveTableUuid(EloquentOrder $model): string

@@ -8,12 +8,14 @@ use App\Order\Domain\Event\OrderClosed;
 use App\Sale\Domain\Entity\Sale;
 use App\Sale\Domain\Entity\SaleLine;
 use App\Sale\Domain\Interfaces\SaleWriteRepositoryInterface;
+use App\Shared\Domain\CacheRepositoryInterface;
 use App\Shared\Domain\ValueObject\Uuid;
 
 class CreateSaleOnOrderClosed
 {
     public function __construct(
         private SaleWriteRepositoryInterface $saleRepository,
+        private CacheRepositoryInterface $cacheRepository,
     ) {}
 
     public function handle(OrderClosed $event): void
@@ -34,8 +36,10 @@ class CreateSaleOnOrderClosed
         );
         $this->saleRepository->save($sale);
 
+        $saleLines = [];
+
         foreach ($event->lines as $line) {
-            $saleLine = SaleLine::dddCreate(
+            $saleLines[] = SaleLine::dddCreate(
                 Uuid::generate(),
                 $event->restaurantId,
                 $saleUuid,
@@ -51,7 +55,9 @@ class CreateSaleOnOrderClosed
                 $line->discountAmount(),
                 $line->total(),
             );
-            $this->saleRepository->saveLine($saleLine);
         }
+
+        $this->saleRepository->saveLinesBatch($saleLines);
+        $this->cacheRepository->forgetByPrefix("dashboard:{$event->restaurantId}:");
     }
 }

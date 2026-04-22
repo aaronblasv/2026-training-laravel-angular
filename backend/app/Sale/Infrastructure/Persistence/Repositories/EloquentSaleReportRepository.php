@@ -126,6 +126,14 @@ class EloquentSaleReportRepository implements SaleReportRepositoryInterface
             return $q;
         };
 
+        $refundTotalsBySaleLine = DB::table('refund_lines')
+            ->select(
+                'sale_line_id',
+                DB::raw('SUM(quantity) as refunded_quantity'),
+                DB::raw('SUM(total) as refunded_total'),
+            )
+            ->groupBy('sale_line_id');
+
         $byDay = $applyFilters(DB::table('sales as s'))
             ->select(DB::raw('DATE(s.value_date) as day'), DB::raw('COUNT(*) as count'), DB::raw('SUM(s.total - s.refunded_total) as total'))
             ->groupBy('day')->orderBy('day')
@@ -141,10 +149,17 @@ class EloquentSaleReportRepository implements SaleReportRepositoryInterface
 
         $byProduct = $applyFilters(DB::table('sales as s'))
             ->join('sales_lines as sl', 'sl.sale_id', '=', 's.id')
+            ->leftJoinSub($refundTotalsBySaleLine, 'refund_totals', function ($join) {
+                $join->on('refund_totals.sale_line_id', '=', 'sl.id');
+            })
             ->join('order_lines as ol', 'sl.order_line_id', '=', 'ol.id')
             ->join('products as p', 'ol.product_id', '=', 'p.id')
             ->whereNull('sl.deleted_at')
-            ->select('p.name as product_name', DB::raw('SUM(sl.quantity - sl.refunded_quantity) as total_quantity'), DB::raw('SUM(sl.line_total - ((sl.refunded_quantity / sl.quantity) * sl.line_total)) as total'))
+            ->select(
+                'p.name as product_name',
+                DB::raw('SUM(sl.quantity - COALESCE(refund_totals.refunded_quantity, 0)) as total_quantity'),
+                DB::raw('SUM(sl.line_total - COALESCE(refund_totals.refunded_total, 0)) as total'),
+            )
             ->groupBy('p.id', 'p.name')->orderByDesc('total_quantity')
             ->get()->map(fn($r) => new SalesReportByProduct(productName: $r->product_name, totalQuantity: (int) $r->total_quantity, total: (int) $r->total))->all();
 

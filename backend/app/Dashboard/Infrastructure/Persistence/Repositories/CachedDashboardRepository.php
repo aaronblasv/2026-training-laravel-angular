@@ -6,20 +6,21 @@ namespace App\Dashboard\Infrastructure\Persistence\Repositories;
 
 use App\Dashboard\Domain\Interfaces\DashboardRepositoryInterface;
 use App\Dashboard\Domain\ReadModel\DashboardStats;
-use Illuminate\Support\Facades\Cache;
+use App\Shared\Domain\CacheRepositoryInterface;
 
 class CachedDashboardRepository implements DashboardRepositoryInterface
 {
     private const TTL_SECONDS = 300; // 5 minutes
 
     public function __construct(
-        private EloquentDashboardRepository $inner,
+        private DashboardRepositoryInterface $inner,
+        private CacheRepositoryInterface $cacheRepository,
     ) {}
 
     public function getStats(int $restaurantId): DashboardStats
     {
-        return Cache::remember(
-            "dashboard:stats:{$restaurantId}",
+        return $this->cacheRepository->remember(
+            "dashboard:{$restaurantId}:stats",
             self::TTL_SECONDS,
             fn() => $this->inner->getStats($restaurantId),
         );
@@ -27,8 +28,8 @@ class CachedDashboardRepository implements DashboardRepositoryInterface
 
     public function getSalesThisMonth(int $restaurantId, int $limit = 10): array
     {
-        return Cache::remember(
-            "dashboard:sales_month:{$restaurantId}:{$limit}",
+        return $this->cacheRepository->remember(
+            "dashboard:{$restaurantId}:sales_month:{$limit}",
             self::TTL_SECONDS,
             fn() => $this->inner->getSalesThisMonth($restaurantId, $limit),
         );
@@ -36,8 +37,8 @@ class CachedDashboardRepository implements DashboardRepositoryInterface
 
     public function getTopProducts(int $restaurantId, int $limit = 5): array
     {
-        return Cache::remember(
-            "dashboard:top_products:{$restaurantId}:{$limit}",
+        return $this->cacheRepository->remember(
+            "dashboard:{$restaurantId}:top_products:{$limit}",
             self::TTL_SECONDS,
             fn() => $this->inner->getTopProducts($restaurantId, $limit),
         );
@@ -45,8 +46,8 @@ class CachedDashboardRepository implements DashboardRepositoryInterface
 
     public function getSalesByDay(int $restaurantId, int $days = 30): array
     {
-        return Cache::remember(
-            "dashboard:sales_by_day:{$restaurantId}:{$days}",
+        return $this->cacheRepository->remember(
+            "dashboard:{$restaurantId}:sales_by_day:{$days}",
             self::TTL_SECONDS,
             fn() => $this->inner->getSalesByDay($restaurantId, $days),
         );
