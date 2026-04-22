@@ -19,6 +19,8 @@ export class CashShiftsPage implements OnInit {
   currentShift: CashShiftSummary | null = null;
   lastClosedShift: ClosedCashShiftSummary | null = null;
   loading = false;
+  submitting = false;
+  feedback: { type: 'success' | 'error'; message: string } | null = null;
 
   openingCash = 0;
   openingNotes = '';
@@ -31,32 +33,48 @@ export class CashShiftsPage implements OnInit {
 
   loadCurrentShift() {
     this.loading = true;
+    this.feedback = null;
     this.cashShiftService.getCurrent().subscribe({
       next: (shift) => {
         this.currentShift = shift;
+        this.countedCash = shift?.expected_cash ?? 0;
         this.loading = false;
       },
       error: () => {
         this.currentShift = null;
+        this.feedback = { type: 'error', message: 'No se pudo cargar el estado de caja.' };
         this.loading = false;
       },
     });
   }
 
   openShift() {
+    this.submitting = true;
+    this.feedback = null;
+
     this.cashShiftService.open(this.openingCash, this.openingNotes || undefined).subscribe({
       next: (shift) => {
         this.currentShift = shift;
+        this.countedCash = shift.expected_cash;
         this.openingCash = 0;
         this.openingNotes = '';
+        this.feedback = { type: 'success', message: 'Caja abierta correctamente.' };
+        this.submitting = false;
+      },
+      error: (error) => {
+        this.feedback = { type: 'error', message: error?.error?.message ?? 'No se pudo abrir la caja.' };
+        this.submitting = false;
       },
     });
   }
 
   closeShift() {
-    if (!this.currentShift) {
+    if (!this.currentShift || this.submitting) {
       return;
     }
+
+    this.submitting = true;
+    this.feedback = null;
 
     this.cashShiftService.close(this.currentShift.uuid, this.countedCash, this.closingNotes || undefined).subscribe({
       next: (shift) => {
@@ -64,6 +82,12 @@ export class CashShiftsPage implements OnInit {
         this.currentShift = null;
         this.countedCash = 0;
         this.closingNotes = '';
+        this.feedback = { type: 'success', message: 'Caja cerrada correctamente.' };
+        this.submitting = false;
+      },
+      error: (error) => {
+        this.feedback = { type: 'error', message: error?.error?.message ?? 'No se pudo cerrar la caja.' };
+        this.submitting = false;
       },
     });
   }

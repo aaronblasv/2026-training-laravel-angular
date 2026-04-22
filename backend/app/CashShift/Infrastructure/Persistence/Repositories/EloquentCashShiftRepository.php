@@ -74,7 +74,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
             ->value('updated_at');
 
         if ($freshUpdatedAt !== null) {
-            $cashShift->syncPersistedAt(DomainDateTime::create(new \DateTimeImmutable($freshUpdatedAt)));
+            $cashShift->syncPersistedAt(DomainDateTime::create($this->toDateTimeImmutable($freshUpdatedAt)));
         }
     }
 
