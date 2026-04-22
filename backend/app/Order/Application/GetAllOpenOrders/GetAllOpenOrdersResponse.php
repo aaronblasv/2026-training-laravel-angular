@@ -25,25 +25,24 @@ final readonly class GetAllOpenOrdersResponse
     ) {}
 
     /**
-     * @param OrderLine[] $lines
+     * @param  OrderLine[]  $lines
      */
     public static function create(Order $order, array $lines): self
     {
-        $subtotal = $order->calculateSubtotal($lines);
-        $taxAmount = $order->calculateTaxAmount($lines);
+        $totals = $order->computeTotals($lines);
 
         return new self(
             $order->uuid()->getValue(),
-            $order->status()->getValue(),
+            $order->status()->value,
             $order->tableId()->getValue(),
             $order->openedByUserId()->getValue(),
             $order->diners()->getValue(),
             $order->discountType(),
             $order->discountValue(),
-            $order->discountAmount(),
-            $subtotal,
-            $taxAmount,
-            $subtotal + $taxAmount,
+            $totals->orderDiscount->getValue(),
+            $totals->subtotal->getValue(),
+            $totals->taxAmount->getValue(),
+            $totals->total->getValue(),
             $order->openedAt()->format('Y-m-d H:i:s'),
         );
     }
