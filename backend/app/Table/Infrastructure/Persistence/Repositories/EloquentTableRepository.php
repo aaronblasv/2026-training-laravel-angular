@@ -19,6 +19,7 @@ class EloquentTableRepository implements TableRepositoryInterface
     public function findAll(int $restaurantId): array
     {
         return $this->model->newQuery()
+            ->with('zone')
             ->where('restaurant_id', $restaurantId)
             ->get()
             ->map(fn(EloquentTable $table) => $this->toDomain($table))
@@ -78,6 +79,7 @@ class EloquentTableRepository implements TableRepositoryInterface
     public function findByMergedWith(string $parentUuid, int $restaurantId): array
     {
         return $this->model->newQuery()
+            ->with('zone')
             ->where('merged_with', $parentUuid)
             ->where('restaurant_id', $restaurantId)
             ->get()
@@ -87,7 +89,11 @@ class EloquentTableRepository implements TableRepositoryInterface
 
     private function toDomain(EloquentTable $table): Table
     {
-        $zone = $this->zoneModel->newQuery()->find($table->zone_id);
+        $zone = $table->zone;
+
+        if ($zone === null) {
+            throw new \DomainException("Zone relation missing for table '{$table->uuid}'.");
+        }
 
         return Table::fromPersistence(
             $table->uuid,

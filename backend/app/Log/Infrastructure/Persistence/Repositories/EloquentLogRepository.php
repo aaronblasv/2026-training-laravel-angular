@@ -9,7 +9,6 @@ use App\Log\Domain\Interfaces\LogRepositoryInterface;
 use App\Log\Infrastructure\Persistence\Models\EloquentLog;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
 use Illuminate\Database\Eloquent\Builder;
-
 class EloquentLogRepository implements LogRepositoryInterface
 {
     public function __construct(
@@ -40,7 +39,7 @@ class EloquentLogRepository implements LogRepositoryInterface
     ): array
     {
         return $this->applyFilters(
-                $this->model->newQuery()->where('restaurant_id', $restaurantId),
+            $this->model->newQuery()->with('user')->where('restaurant_id', $restaurantId),
                 $action,
                 $userId,
             )
@@ -65,6 +64,7 @@ class EloquentLogRepository implements LogRepositoryInterface
     public function findByEntity(int $restaurantId, string $entityType, string $entityUuid, int $limit = 50, int $offset = 0): array
     {
         return $this->model->newQuery()
+            ->with('user')
             ->where('restaurant_id', $restaurantId)
             ->where('entity_type', $entityType)
             ->where('entity_uuid', $entityUuid)
@@ -101,19 +101,12 @@ class EloquentLogRepository implements LogRepositoryInterface
     private function toDomain(EloquentLog $model): Log
     {
         $createdAt = $model->created_at;
-        $userName = null;
-
-        if ($model->user_id) {
-            $userName = $this->userModel->newQuery()
-                ->where('uuid', $model->user_id)
-                ->value('name');
-        }
 
         return Log::fromPersistence(
             $model->uuid,
             $model->restaurant_id,
-            $model->user_id,
-            $userName,
+            $model->user?->uuid,
+            $model->user?->name,
             $model->action,
             $model->entity_type,
             $model->entity_uuid,
