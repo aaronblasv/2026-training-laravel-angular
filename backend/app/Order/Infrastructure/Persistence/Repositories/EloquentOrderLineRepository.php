@@ -13,6 +13,7 @@ use App\Order\Infrastructure\Persistence\Models\EloquentOrder;
 use App\Order\Infrastructure\Persistence\Models\EloquentOrderLine;
 use App\Product\Domain\Exception\ProductNotFoundException;
 use App\Product\Infrastructure\Persistence\Models\EloquentProduct;
+use App\Shared\Domain\ValueObject\DomainDateTime;
 use App\User\Domain\Exception\UserNotFoundException;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
 use Illuminate\Database\Eloquent\Builder;
@@ -106,6 +107,21 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
         }
 
         return $groupedLines;
+    }
+
+    public function bulkMarkSentToKitchen(array $lineUuids, int $restaurantId, DomainDateTime $sentAt): void
+    {
+        if ($lineUuids === [] || ! $this->supportsSentToKitchenAtColumn()) {
+            return;
+        }
+
+        $this->model->newQuery()
+            ->where('restaurant_id', $restaurantId)
+            ->whereIn('uuid', $lineUuids)
+            ->whereNull('sent_to_kitchen_at')
+            ->update([
+                'sent_to_kitchen_at' => $sentAt->format('Y-m-d H:i:s'),
+            ]);
     }
 
     public function update(OrderLine $line): void

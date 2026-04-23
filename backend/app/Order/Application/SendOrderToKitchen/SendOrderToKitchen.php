@@ -11,6 +11,7 @@ use App\Shared\Application\Context\AuditContext;
 use App\Shared\Domain\Event\ActionLogged;
 use App\Shared\Domain\Interfaces\DomainEventBusInterface;
 use App\Shared\Domain\Interfaces\TransactionManagerInterface;
+use App\Shared\Domain\ValueObject\DomainDateTime;
 
 class SendOrderToKitchen
 {
@@ -36,10 +37,13 @@ class SendOrderToKitchen
                 return;
             }
 
-            foreach ($pendingLines as $line) {
-                $line->markSentToKitchen();
-                $this->orderLineRepository->update($line);
-            }
+            $sentAt = DomainDateTime::now();
+
+            $this->orderLineRepository->bulkMarkSentToKitchen(
+                array_map(static fn ($line) => $line->uuid()->getValue(), $pendingLines),
+                $auditContext->restaurantId,
+                $sentAt,
+            );
 
             $order->recordDomainEvent(ActionLogged::create(
                 $auditContext->restaurantId,
