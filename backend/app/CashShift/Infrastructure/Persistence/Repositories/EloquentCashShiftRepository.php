@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\CashShift\Infrastructure\Persistence\Repositories;
 
 use App\CashShift\Domain\Entity\CashShift;
+use App\CashShift\Domain\Exception\CashShiftPersistenceRelationNotFoundException;
 use App\CashShift\Domain\Interfaces\CashShiftRepositoryInterface;
 use App\Shared\Domain\Exception\ConcurrencyException;
 use App\Shared\Domain\ValueObject\DomainDateTime;
@@ -37,6 +38,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
             'notes' => $cashShift->notes(),
             'opened_at' => $cashShift->openedAt()->format('Y-m-d H:i:s'),
             'closed_at' => null,
+            'version' => $cashShift->version(),
         ]);
     }
 
@@ -48,10 +50,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
 
         $updatedRows = $this->model->newQuery()
             ->where('uuid', $cashShift->uuid()->getValue())
-            ->when(
-                $cashShift->persistedAt() !== null,
-                fn ($query) => $query->where('updated_at', $cashShift->persistedAt()?->format('Y-m-d H:i:s')),
-            )
+            ->where('version', $cashShift->version())
             ->update([
                 'closed_by_user_id' => $closedByUserId,
                 'status' => $cashShift->status()->value,
@@ -63,24 +62,27 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
                 'cash_difference' => $cashShift->cashDifference()->getValue(),
                 'notes' => $cashShift->notes(),
                 'closed_at' => $cashShift->closedAt()?->format('Y-m-d H:i:s'),
+                'version' => $cashShift->version() + 1,
             ]);
 
         if ($updatedRows === 0) {
             throw ConcurrencyException::forResource('Cash shift', $cashShift->uuid()->getValue());
         }
 
-        $freshUpdatedAt = $this->model->newQuery()
+        $freshRow = $this->model->newQuery()
             ->where('uuid', $cashShift->uuid()->getValue())
-            ->value('updated_at');
+            ->first(['updated_at', 'version']);
 
-        if ($freshUpdatedAt !== null) {
-            $cashShift->syncPersistedAt(DomainDateTime::create($this->toDateTimeImmutable($freshUpdatedAt)));
+        if ($freshRow?->updated_at !== null) {
+            $cashShift->syncPersistedAt(DomainDateTime::create($this->toDateTimeImmutable($freshRow->updated_at)));
+            $cashShift->syncVersion((int) $freshRow->version);
         }
     }
 
     public function findOpenByRestaurant(int $restaurantId): ?CashShift
     {
         $model = $this->model->newQuery()
+            ->with(['openedByUser', 'closedByUser'])
             ->where('restaurant_id', $restaurantId)
             ->where('status', 'open')
             ->latest('opened_at')
@@ -92,6 +94,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
     public function findByUuid(int $restaurantId, string $uuid): ?CashShift
     {
         $model = $this->model->newQuery()
+            ->with(['openedByUser', 'closedByUser'])
             ->where('restaurant_id', $restaurantId)
             ->where('uuid', $uuid)
             ->first();
@@ -101,10 +104,8 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
 
     private function toDomain(EloquentCashShift $model): CashShift
     {
-        $openedByUuid = $this->userModel->newQuery()->find($model->opened_by_user_id)->uuid;
-        $closedByUuid = $model->closed_by_user_id
-            ? $this->userModel->newQuery()->find($model->closed_by_user_id)->uuid
-            : null;
+        $openedByUuid = $this->resolveOpenedByUserUuid($model);
+        $closedByUuid = $this->resolveClosedByUserUuid($model);
 
         return CashShift::fromPersistence(
             $model->uuid,
@@ -123,6 +124,7 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
             $this->toDateTimeImmutable($model->opened_at),
             $this->toDateTimeImmutable($model->closed_at),
             $this->toDateTimeImmutable($model->updated_at),
+            (int) $model->version,
         );
     }
 
@@ -141,5 +143,27 @@ class EloquentCashShiftRepository implements CashShiftRepositoryInterface
         }
 
         return new \DateTimeImmutable((string) $value);
+    }
+
+    private function resolveOpenedByUserUuid(EloquentCashShift $model): string
+    {
+        if ($model->openedByUser === null) {
+            throw CashShiftPersistenceRelationNotFoundException::missingOpenedByUser($model->uuid, (int) $model->opened_by_user_id);
+        }
+
+        return $model->openedByUser->uuid;
+    }
+
+    private function resolveClosedByUserUuid(EloquentCashShift $model): ?string
+    {
+        if ($model->closed_by_user_id === null) {
+            return null;
+        }
+
+        if ($model->closedByUser === null) {
+            throw CashShiftPersistenceRelationNotFoundException::missingClosedByUser($model->uuid, (int) $model->closed_by_user_id);
+        }
+
+        return $model->closedByUser->uuid;
     }
 }

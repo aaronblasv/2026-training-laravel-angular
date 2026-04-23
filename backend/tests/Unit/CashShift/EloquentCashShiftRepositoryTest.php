@@ -49,7 +49,7 @@ class EloquentCashShiftRepositoryTest extends TestCase
 
         $model->shouldReceive('newQuery')->once()->andReturn($updateQuery);
         $updateQuery->shouldReceive('where')->once()->with('uuid', $cashShift->uuid()->getValue())->andReturnSelf();
-        $updateQuery->shouldReceive('when')->once()->with(false, Mockery::type(\Closure::class))->andReturnSelf();
+        $updateQuery->shouldReceive('where')->once()->with('version', 0)->andReturnSelf();
         $updateQuery->shouldReceive('update')->once()->with(Mockery::on(function (array $data) {
             return $data['closed_by_user_id'] === 7
                 && $data['status'] === 'closed'
@@ -60,16 +60,21 @@ class EloquentCashShiftRepositoryTest extends TestCase
                 && $data['counted_cash'] === 12500
                 && $data['cash_difference'] === 0
                 && $data['notes'] === 'Conteo correcto'
-                && is_string($data['closed_at']);
+                && is_string($data['closed_at'])
+                && $data['version'] === 1;
         }))->andReturn(1);
 
         $model->shouldReceive('newQuery')->once()->andReturn($freshTimestampQuery);
         $freshTimestampQuery->shouldReceive('where')->once()->with('uuid', $cashShift->uuid()->getValue())->andReturnSelf();
-        $freshTimestampQuery->shouldReceive('value')->once()->with('updated_at')->andReturn(Carbon::parse('2026-04-22 09:10:00'));
+        $freshTimestampQuery->shouldReceive('first')->once()->with(['updated_at', 'version'])->andReturn((object) [
+            'updated_at' => Carbon::parse('2026-04-22 09:10:00'),
+            'version' => 1,
+        ]);
 
         $repository->update($cashShift);
 
         $this->assertNotNull($cashShift->persistedAt());
         $this->assertSame('2026-04-22 09:10:00', $cashShift->persistedAt()?->format('Y-m-d H:i:s'));
+        $this->assertSame(1, $cashShift->version());
     }
 }

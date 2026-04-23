@@ -36,6 +36,7 @@ class CashShift implements HasDomainEventsInterface
         private \DateTimeImmutable $openedAt,
         private ?\DateTimeImmutable $closedAt,
         private ?DomainDateTime $persistedAt,
+        private int $version,
     ) {}
 
     public static function open(Uuid $uuid, int $restaurantId, Uuid $openedByUserId, int $openingCash, ?string $notes): self
@@ -57,6 +58,7 @@ class CashShift implements HasDomainEventsInterface
             new \DateTimeImmutable(),
             null,
             null,
+            0,
         );
     }
 
@@ -77,6 +79,7 @@ class CashShift implements HasDomainEventsInterface
         \DateTimeImmutable $openedAt,
         ?\DateTimeImmutable $closedAt,
         ?\DateTimeImmutable $persistedAt,
+        int $version,
     ): self {
         return new self(
             Uuid::create($uuid),
@@ -95,6 +98,7 @@ class CashShift implements HasDomainEventsInterface
             $openedAt,
             $closedAt,
             $persistedAt ? DomainDateTime::create($persistedAt) : null,
+            $version,
         );
     }
 
@@ -146,9 +150,15 @@ class CashShift implements HasDomainEventsInterface
     public function openedAt(): \DateTimeImmutable { return $this->openedAt; }
     public function closedAt(): ?\DateTimeImmutable { return $this->closedAt; }
     public function persistedAt(): ?DomainDateTime { return $this->persistedAt; }
+    public function version(): int { return $this->version; }
 
     public function syncPersistedAt(DomainDateTime $persistedAt): void
     {
         $this->persistedAt = $persistedAt;
+    }
+
+    public function syncVersion(int $version): void
+    {
+        $this->version = $version;
     }
 }

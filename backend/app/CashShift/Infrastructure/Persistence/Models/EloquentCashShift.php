@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace App\CashShift\Infrastructure\Persistence\Models;
 
+use App\User\Infrastructure\Persistence\Models\EloquentUser;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class EloquentCashShift extends Model
 {
@@ -26,5 +28,16 @@ class EloquentCashShift extends Model
         'notes',
         'opened_at',
         'closed_at',
+        'version',
     ];
+
+    public function openedByUser(): BelongsTo
+    {
+        return $this->belongsTo(EloquentUser::class, 'opened_by_user_id')->withTrashed();
+    }
+
+    public function closedByUser(): BelongsTo
+    {
+        return $this->belongsTo(EloquentUser::class, 'closed_by_user_id')->withTrashed();
+    }
 }
