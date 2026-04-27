@@ -8,6 +8,7 @@ use App\Order\Application\VoidSentOrderLine\VoidSentOrderLine;
 use App\Order\Domain\Entity\OrderLine;
 use App\Order\Domain\Exception\CannotVoidOrderLineWithPaymentsException;
 use App\Order\Domain\Exception\CannotVoidPendingOrderLineException;
+use App\Order\Domain\Exception\VoidQuantityExceedsOrderLineQuantityException;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
 use App\Order\Domain\ValueObject\Quantity;
 use App\Payment\Domain\Interfaces\PaymentRepositoryInterface;
@@ -25,7 +26,7 @@ class VoidSentOrderLineTest extends TestCase
 {
     use MockeryPHPUnitIntegration;
 
-    public function test_it_voids_a_sent_line_and_dispatches_audit_log(): void
+    public function test_it_voids_part_of_a_sent_line_and_dispatches_audit_log(): void
     {
         $restaurantId = 1;
         $orderUuid = Uuid::generate()->getValue();
@@ -37,7 +38,13 @@ class VoidSentOrderLineTest extends TestCase
 
         $lineRepository = Mockery::mock(OrderLineRepositoryInterface::class);
         $lineRepository->shouldReceive('findById')->once()->with($lineUuid, $restaurantId)->andReturn($line);
-        $lineRepository->shouldReceive('delete')->once()->with($lineUuid, $restaurantId);
+        $lineRepository->shouldReceive('update')->once()->with(Mockery::on(function (OrderLine $updatedLine) use ($orderUuid, $productUuid) {
+            return $updatedLine->orderId()->getValue() === $orderUuid
+                && $updatedLine->productId()->getValue() === $productUuid
+                && $updatedLine->quantity()->getValue() === 1
+                && $updatedLine->isSentToKitchen();
+        }));
+        $lineRepository->shouldNotReceive('delete');
 
         $paymentRepository = Mockery::mock(PaymentRepositoryInterface::class);
         $paymentRepository->shouldReceive('getTotalPaidByOrder')->once()->with($orderUuid)->andReturn(0);
@@ -51,7 +58,8 @@ class VoidSentOrderLineTest extends TestCase
                         && $event->data === [
                             'line_uuid' => $lineUuid,
                             'product_id' => $productUuid,
-                            'quantity' => 2,
+                            'voided_quantity' => 1,
+                            'remaining_quantity' => 1,
                         ];
                 }
             }
@@ -66,7 +74,7 @@ class VoidSentOrderLineTest extends TestCase
             $domainEventBus,
         );
 
-        $useCase($auditContext, $orderUuid, $lineUuid);
+        $useCase($auditContext, $orderUuid, $lineUuid, 1);
     }
 
     public function test_it_rejects_voiding_a_pending_line(): void
@@ -97,7 +105,7 @@ class VoidSentOrderLineTest extends TestCase
 
         $this->expectException(CannotVoidPendingOrderLineException::class);
 
-        $useCase($auditContext, $orderUuid, $lineUuid);
+        $useCase($auditContext, $orderUuid, $lineUuid, 1);
     }
 
     public function test_it_rejects_voiding_a_sent_line_when_payments_exist(): void
@@ -129,7 +137,134 @@ class VoidSentOrderLineTest extends TestCase
 
         $this->expectException(CannotVoidOrderLineWithPaymentsException::class);
 
-        $useCase($auditContext, $orderUuid, $lineUuid);
+        $useCase($auditContext, $orderUuid, $lineUuid, 1);
+    }
+
+    public function test_it_deletes_the_sent_line_when_voiding_the_last_unit(): void
+    {
+        $restaurantId = 1;
+        $orderUuid = Uuid::generate()->getValue();
+        $lineUuid = Uuid::generate()->getValue();
+        $productUuid = Uuid::generate()->getValue();
+        $auditContext = new AuditContext($restaurantId, Uuid::generate()->getValue(), '127.0.0.1');
+
+        $line = $this->makeLine($orderUuid, $productUuid, 1, true);
+
+        $lineRepository = Mockery::mock(OrderLineRepositoryInterface::class);
+        $lineRepository->shouldReceive('findById')->once()->with($lineUuid, $restaurantId)->andReturn($line);
+        $lineRepository->shouldReceive('delete')->once()->with($lineUuid, $restaurantId);
+        $lineRepository->shouldNotReceive('update');
+
+        $paymentRepository = Mockery::mock(PaymentRepositoryInterface::class);
+        $paymentRepository->shouldReceive('getTotalPaidByOrder')->once()->with($orderUuid)->andReturn(0);
+
+        $domainEventBus = Mockery::mock(DomainEventBusInterface::class);
+        $domainEventBus->shouldReceive('dispatch')->once()->withArgs(function (...$events) use ($orderUuid, $lineUuid, $productUuid) {
+            foreach ($events as $event) {
+                if ($event instanceof ActionLogged) {
+                    return $event->action === 'order.line.voided_after_kitchen'
+                        && $event->entityUuid === $orderUuid
+                        && $event->data === [
+                            'line_uuid' => $lineUuid,
+                            'product_id' => $productUuid,
+                            'voided_quantity' => 1,
+                            'remaining_quantity' => 0,
+                        ];
+                }
+            }
+
+            return false;
+        });
+
+        $useCase = new VoidSentOrderLine(
+            $lineRepository,
+            $paymentRepository,
+            $this->transactionManager(),
+            $domainEventBus,
+        );
+
+        $useCase($auditContext, $orderUuid, $lineUuid, 1);
+    }
+
+    public function test_it_voids_multiple_units_from_a_sent_line(): void
+    {
+        $restaurantId = 1;
+        $orderUuid = Uuid::generate()->getValue();
+        $lineUuid = Uuid::generate()->getValue();
+        $productUuid = Uuid::generate()->getValue();
+        $auditContext = new AuditContext($restaurantId, Uuid::generate()->getValue(), '127.0.0.1');
+
+        $line = $this->makeLine($orderUuid, $productUuid, 5, true);
+
+        $lineRepository = Mockery::mock(OrderLineRepositoryInterface::class);
+        $lineRepository->shouldReceive('findById')->once()->with($lineUuid, $restaurantId)->andReturn($line);
+        $lineRepository->shouldReceive('update')->once()->with(Mockery::on(function (OrderLine $updatedLine) {
+            return $updatedLine->quantity()->getValue() === 2 && $updatedLine->isSentToKitchen();
+        }));
+        $lineRepository->shouldNotReceive('delete');
+
+        $paymentRepository = Mockery::mock(PaymentRepositoryInterface::class);
+        $paymentRepository->shouldReceive('getTotalPaidByOrder')->once()->with($orderUuid)->andReturn(0);
+
+        $domainEventBus = Mockery::mock(DomainEventBusInterface::class);
+        $domainEventBus->shouldReceive('dispatch')->once()->withArgs(function (...$events) use ($orderUuid, $lineUuid, $productUuid) {
+            foreach ($events as $event) {
+                if ($event instanceof ActionLogged) {
+                    return $event->action === 'order.line.voided_after_kitchen'
+                        && $event->entityUuid === $orderUuid
+                        && $event->data === [
+                            'line_uuid' => $lineUuid,
+                            'product_id' => $productUuid,
+                            'voided_quantity' => 3,
+                            'remaining_quantity' => 2,
+                        ];
+                }
+            }
+
+            return false;
+        });
+
+        $useCase = new VoidSentOrderLine(
+            $lineRepository,
+            $paymentRepository,
+            $this->transactionManager(),
+            $domainEventBus,
+        );
+
+        $useCase($auditContext, $orderUuid, $lineUuid, 3);
+    }
+
+    public function test_it_rejects_voiding_more_units_than_available(): void
+    {
+        $restaurantId = 1;
+        $orderUuid = Uuid::generate()->getValue();
+        $lineUuid = Uuid::generate()->getValue();
+        $productUuid = Uuid::generate()->getValue();
+        $auditContext = new AuditContext($restaurantId, Uuid::generate()->getValue(), '127.0.0.1');
+
+        $line = $this->makeLine($orderUuid, $productUuid, 2, true);
+
+        $lineRepository = Mockery::mock(OrderLineRepositoryInterface::class);
+        $lineRepository->shouldReceive('findById')->once()->with($lineUuid, $restaurantId)->andReturn($line);
+        $lineRepository->shouldNotReceive('update');
+        $lineRepository->shouldNotReceive('delete');
+
+        $paymentRepository = Mockery::mock(PaymentRepositoryInterface::class);
+        $paymentRepository->shouldReceive('getTotalPaidByOrder')->once()->with($orderUuid)->andReturn(0);
+
+        $domainEventBus = Mockery::mock(DomainEventBusInterface::class);
+        $domainEventBus->shouldNotReceive('dispatch');
+
+        $useCase = new VoidSentOrderLine(
+            $lineRepository,
+            $paymentRepository,
+            $this->transactionManager(),
+            $domainEventBus,
+        );
+
+        $this->expectException(VoidQuantityExceedsOrderLineQuantityException::class);
+
+        $useCase($auditContext, $orderUuid, $lineUuid, 3);
     }
 
     private function transactionManager(): TransactionManagerInterface

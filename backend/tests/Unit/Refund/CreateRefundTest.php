@@ -76,6 +76,7 @@ class CreateRefundTest extends TestCase
         $refundRepository = Mockery::mock(RefundRepositoryInterface::class);
         $refundRepository->shouldNotReceive('save');
         $refundRepository->shouldNotReceive('saveLine');
+        $refundRepository->shouldNotReceive('saveLinesBatch');
 
         $domainEventBus = Mockery::mock(DomainEventBusInterface::class);
         $domainEventBus->shouldNotReceive('dispatch');
@@ -154,7 +155,9 @@ class CreateRefundTest extends TestCase
 
         $refundRepository = Mockery::mock(RefundRepositoryInterface::class);
         $refundRepository->shouldReceive('save')->once();
-        $refundRepository->shouldReceive('saveLine')->once();
+        $refundRepository->shouldReceive('saveLinesBatch')->once()->with(Mockery::on(
+            fn (array $lines): bool => count($lines) === 1
+        ));
 
         $domainEventBus = Mockery::mock(DomainEventBusInterface::class);
         $domainEventBus->shouldReceive('dispatch')->once();

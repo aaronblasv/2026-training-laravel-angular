@@ -50,6 +50,24 @@ Los siguientes puntos quedan aparcados hasta que exista una necesidad funcional 
 - En varios límites externos el contrato en escalares sigue siendo más estable y más fácil de serializar, validar y versionar.
 - Se reabre solo donde exista un error repetido de primitivas o donde un puerto interno estrictamente de dominio gane claridad neta con VOs extremos a extremo.
 
+### `Dashboard` agregaciones en una sola query
+
+- `GetDashboardStats` mantiene varias queries simples porque hoy está amortiguado por la caché ya existente y no hay evidencia de latencia problemática en producción o demo.
+- Unificarlo con `SUM(CASE WHEN ...)` solo compensa si se amplía el número de KPIs o si las métricas dejan de servirse mayoritariamente desde caché.
+- Se reabre cuando el profiling muestre coste real en la carga del dashboard o cuando el TTL de caché deba reducirse.
+
+### Ubicación de `CacheRepositoryInterface` y `TransactionManagerInterface`
+
+- Existe una deuda de migración a medias entre `App\Shared\Domain\Interfaces\TransactionManagerInterface` y `App\Shared\Domain\TransactionManagerInterface`, además de `CacheRepositoryInterface` fuera de `/Interfaces`.
+- Se mantiene así por ahora para evitar churn transversal en imports, contenedor y tests sin retorno funcional inmediato.
+- La decisión consciente es documentarlo y concentrar una futura limpieza en una iteración dedicada, en lugar de mezclarla con fixes funcionales.
+
+### `CloseOrder` usando `SaleWriteRepositoryInterface::getNextTicketNumber`
+
+- El cruce `Order -> Sale` se mantiene de forma intencional porque la API de cierre necesita devolver el número de ticket en la misma respuesta síncrona.
+- La alternativa purista de mover la numeración al listener `CreateSaleOnOrderClosed` se descartó porque retrasaba ese dato y complicaba el contrato con frontend/TPV.
+- Se acepta el cruce mientras el ticket number siga siendo parte del resultado inmediato del cierre.
+
 ## Consecuencias
 
 - El refactor actual se mantiene enfocado en problemas reales detectados: cálculo de totales, enums nativos, invalidación de caché, locking de refund, traducción de excepciones, unicidad de órdenes abiertas y eliminación de N+1 en órdenes abiertas.

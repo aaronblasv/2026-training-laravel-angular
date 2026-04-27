@@ -30,12 +30,13 @@ class EloquentRefundRepository implements RefundRepositoryInterface
 
     public function save(Refund $refund): void
     {
-        $saleId = $this->resolveSaleId($refund->saleId()->getValue());
-        $userId = $this->resolveUserId($refund->userId()->getValue());
+        $restaurantId = $refund->restaurantId();
+        $saleId = $this->resolveSaleId($refund->saleId()->getValue(), $restaurantId);
+        $userId = $this->resolveUserId($refund->userId()->getValue(), $restaurantId);
 
         $this->model->newQuery()->create([
             'uuid' => $refund->uuid()->getValue(),
-            'restaurant_id' => $refund->restaurantId(),
+            'restaurant_id' => $restaurantId,
             'sale_id' => $saleId,
             'user_id' => $userId,
             'type' => $refund->type(),
@@ -49,12 +50,12 @@ class EloquentRefundRepository implements RefundRepositoryInterface
 
     public function saveLine(RefundLine $line): void
     {
-        $refundId = $this->resolveRefundId($line->refundId()->getValue());
-        $saleLineId = $this->resolveSaleLineId($line->saleLineId()->getValue());
+        $refund = $this->resolveRefund($line->refundId()->getValue());
+        $saleLineId = $this->resolveSaleLineId($line->saleLineId()->getValue(), (int) $refund->restaurant_id);
 
         $this->lineModel->newQuery()->create([
             'uuid' => $line->uuid()->getValue(),
-            'refund_id' => $refundId,
+            'refund_id' => $refund->id,
             'sale_line_id' => $saleLineId,
             'quantity' => $line->quantity(),
             'subtotal' => $line->subtotal(),
@@ -63,37 +64,90 @@ class EloquentRefundRepository implements RefundRepositoryInterface
         ]);
     }
 
-    private function resolveSaleId(string $saleUuid): int
+    public function saveLinesBatch(array $lines): void
+    {
+        if ($lines === []) {
+            return;
+        }
+
+        /** @var RefundLine $firstLine */
+        $firstLine = $lines[0];
+        $refund = $this->resolveRefund($firstLine->refundId()->getValue());
+        $restaurantId = (int) $refund->restaurant_id;
+
+        $saleLineIds = $this->saleLineModel->newQuery()
+            ->where('restaurant_id', $restaurantId)
+            ->whereIn('uuid', array_map(static fn (RefundLine $line): string => $line->saleLineId()->getValue(), $lines))
+            ->pluck('id', 'uuid')
+            ->all();
+
+        $timestamp = now();
+        $rows = [];
+
+        foreach ($lines as $line) {
+            if (! isset($saleLineIds[$line->saleLineId()->getValue()])) {
+                throw new SaleLineNotFoundException($line->saleLineId()->getValue());
+            }
+
+            $rows[] = [
+                'uuid' => $line->uuid()->getValue(),
+                'refund_id' => $refund->id,
+                'sale_line_id' => $saleLineIds[$line->saleLineId()->getValue()],
+                'quantity' => $line->quantity(),
+                'subtotal' => $line->subtotal(),
+                'tax_amount' => $line->taxAmount(),
+                'total' => $line->total(),
+                'created_at' => $timestamp,
+                'updated_at' => $timestamp,
+            ];
+        }
+
+        $this->lineModel->newQuery()->insert($rows);
+    }
+
+    private function resolveSaleId(string $saleUuid, int $restaurantId): int
     {
         try {
-            return $this->saleModel->newQuery()->where('uuid', $saleUuid)->firstOrFail()->id;
+            return $this->saleModel->newQuery()
+                ->where('uuid', $saleUuid)
+                ->where('restaurant_id', $restaurantId)
+                ->firstOrFail()
+                ->id;
         } catch (ModelNotFoundException) {
             throw new SaleNotFoundException($saleUuid);
         }
     }
 
-    private function resolveUserId(string $userUuid): int
+    private function resolveUserId(string $userUuid, int $restaurantId): int
     {
         try {
-            return $this->userModel->newQuery()->where('uuid', $userUuid)->firstOrFail()->id;
+            return $this->userModel->newQuery()
+                ->where('uuid', $userUuid)
+                ->where('restaurant_id', $restaurantId)
+                ->firstOrFail()
+                ->id;
         } catch (ModelNotFoundException) {
             throw new UserNotFoundException($userUuid);
         }
     }
 
-    private function resolveRefundId(string $refundUuid): int
+    private function resolveRefund(string $refundUuid): EloquentRefund
     {
         try {
-            return $this->model->newQuery()->where('uuid', $refundUuid)->firstOrFail()->id;
+            return $this->model->newQuery()->where('uuid', $refundUuid)->firstOrFail();
         } catch (ModelNotFoundException) {
             throw new RefundNotFoundException($refundUuid);
         }
     }
 
-    private function resolveSaleLineId(string $saleLineUuid): int
+    private function resolveSaleLineId(string $saleLineUuid, int $restaurantId): int
     {
         try {
-            return $this->saleLineModel->newQuery()->where('uuid', $saleLineUuid)->firstOrFail()->id;
+            return $this->saleLineModel->newQuery()
+                ->where('uuid', $saleLineUuid)
+                ->where('restaurant_id', $restaurantId)
+                ->firstOrFail()
+                ->id;
         } catch (ModelNotFoundException) {
             throw new SaleLineNotFoundException($saleLineUuid);
         }

@@ -8,7 +8,9 @@ use App\Order\Domain\Exception\CannotVoidOrderLineWithPaymentsException;
 use App\Order\Domain\Exception\CannotVoidPendingOrderLineException;
 use App\Order\Domain\Exception\OrderLineNotFoundException;
 use App\Order\Domain\Exception\OrderLineNotFoundInOrderContextException;
+use App\Order\Domain\Exception\VoidQuantityExceedsOrderLineQuantityException;
 use App\Order\Domain\Interfaces\OrderLineRepositoryInterface;
+use App\Order\Domain\ValueObject\Quantity;
 use App\Payment\Domain\Interfaces\PaymentRepositoryInterface;
 use App\Shared\Application\Context\AuditContext;
 use App\Shared\Domain\Event\ActionLogged;
@@ -24,9 +26,9 @@ class VoidSentOrderLine
         private DomainEventBusInterface $domainEventBus,
     ) {}
 
-    public function __invoke(AuditContext $auditContext, string $orderUuid, string $lineUuid): void
+    public function __invoke(AuditContext $auditContext, string $orderUuid, string $lineUuid, int $quantityToVoid = 1): void
     {
-        $this->transactionManager->run(function () use ($auditContext, $orderUuid, $lineUuid) {
+        $this->transactionManager->run(function () use ($auditContext, $orderUuid, $lineUuid, $quantityToVoid) {
             $line = $this->lineRepository->findById($lineUuid, $auditContext->restaurantId);
 
             if (! $line) {
@@ -45,7 +47,20 @@ class VoidSentOrderLine
                 throw new CannotVoidOrderLineWithPaymentsException($orderUuid);
             }
 
-            $this->lineRepository->delete($lineUuid, $auditContext->restaurantId);
+            $currentQuantity = $line->quantity()->getValue();
+
+            if ($quantityToVoid > $currentQuantity) {
+                throw new VoidQuantityExceedsOrderLineQuantityException($lineUuid, $quantityToVoid, $currentQuantity);
+            }
+
+            $remainingQuantity = $currentQuantity - $quantityToVoid;
+
+            if ($remainingQuantity > 0) {
+                $line->updateQuantity(Quantity::create($remainingQuantity));
+                $this->lineRepository->update($line);
+            } else {
+                $this->lineRepository->delete($lineUuid, $auditContext->restaurantId);
+            }
 
             $line->recordDomainEvent(ActionLogged::create(
                 $auditContext->restaurantId,
@@ -56,7 +71,8 @@ class VoidSentOrderLine
                 [
                     'line_uuid' => $lineUuid,
                     'product_id' => $line->productId()->getValue(),
-                    'quantity' => $line->quantity()->getValue(),
+                    'voided_quantity' => $quantityToVoid,
+                    'remaining_quantity' => max(0, $remainingQuantity),
                 ],
                 $auditContext->ipAddress,
             ));

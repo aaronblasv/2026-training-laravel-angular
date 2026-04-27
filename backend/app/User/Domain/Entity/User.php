@@ -54,6 +54,12 @@ class User
         $this->updatedAt = DomainDateTime::now();
     }
 
+    public function updatePhoto(?string $imageSrc = null): void
+    {
+        $this->imageSrc = $imageSrc;
+        $this->updatedAt = DomainDateTime::now();
+    }
+
     public static function fromPersistence(
         string $id,
         string $name,

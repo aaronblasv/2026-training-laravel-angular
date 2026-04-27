@@ -68,7 +68,8 @@ class MergeTables
         }
 
         $totalDiners = $survivorOrder->diners()->getValue();
-        $totalOrderDiscount = $survivorOrder->discountAmount();
+        $survivorLines = $this->orderLineRepository->findAllByOrderId($survivorOrder->uuid()->getValue(), $restaurantId);
+        $totalOrderDiscount = $survivorOrder->calculateOrderDiscountAmount($survivorLines);
         $childOrders = [];
 
         foreach ($childTableUuids as $childTableUuid) {
@@ -80,9 +81,10 @@ class MergeTables
 
         foreach ($childOrders as $childOrder) {
             $totalDiners += $childOrder->diners()->getValue();
-            $totalOrderDiscount += $childOrder->discountAmount();
+            $childLines = $this->orderLineRepository->findAllByOrderId($childOrder->uuid()->getValue(), $restaurantId);
+            $totalOrderDiscount += $childOrder->calculateOrderDiscountAmount($childLines);
 
-            foreach ($this->orderLineRepository->findAllByOrderId($childOrder->uuid()->getValue(), $restaurantId) as $line) {
+            foreach ($childLines as $line) {
                 $line->moveToOrder($survivorOrder->uuid());
                 $this->orderLineRepository->update($line);
             }

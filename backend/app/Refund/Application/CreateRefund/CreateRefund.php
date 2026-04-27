@@ -118,11 +118,13 @@ class CreateRefund
 
             $this->refundRepository->save($refund);
 
+            $refundLines = [];
+
             foreach ($refundLinePayload as [$line, $quantity, $lineSubtotal, $lineTax, $lineTotal]) {
                 $line->registerRefund($quantity);
                 $this->saleWriteRepository->updateLine($line);
 
-                $refundLine = RefundLine::dddCreate(
+                $refundLines[] = RefundLine::dddCreate(
                     Uuid::generate(),
                     $refund->uuid(),
                     $line->uuid(),
@@ -131,9 +133,9 @@ class CreateRefund
                     $lineTax,
                     $lineTotal,
                 );
-
-                $this->refundRepository->saveLine($refundLine);
             }
+
+            $this->refundRepository->saveLinesBatch($refundLines);
 
             $sale->registerRefund($total);
             $this->saleWriteRepository->update($sale);

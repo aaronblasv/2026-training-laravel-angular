@@ -25,6 +25,8 @@ final readonly class GetOrderByTableResponse
 
     public static function create(Order $order, array $lines): self
     {
+        $totals = $order->computeTotals($lines);
+
         return new self(
             $order->uuid()->getValue(),
             $order->status()->value,
@@ -33,7 +35,7 @@ final readonly class GetOrderByTableResponse
             $order->diners()->getValue(),
             $order->discountType(),
             $order->discountValue(),
-            $order->discountAmount(),
+            $totals->orderDiscount->getValue(),
             $order->openedAt()->format('Y-m-d H:i:s'),
             $lines,
         );

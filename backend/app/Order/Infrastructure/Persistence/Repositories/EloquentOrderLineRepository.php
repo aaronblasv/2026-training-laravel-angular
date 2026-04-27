@@ -18,12 +18,9 @@ use App\User\Domain\Exception\UserNotFoundException;
 use App\User\Infrastructure\Persistence\Models\EloquentUser;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\Schema;
 
 class EloquentOrderLineRepository implements OrderLineRepositoryInterface
 {
-    private ?bool $hasSentToKitchenAtColumn = null;
-
     public function __construct(
         private EloquentOrderLine $model,
         private EloquentOrder $orderModel,
@@ -49,11 +46,8 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             'discount_type' => $line->discountType(),
             'discount_value' => $line->discountValue(),
             'discount_amount' => $line->discountAmount(),
+            'sent_to_kitchen_at' => $line->sentToKitchenAt()?->format('Y-m-d H:i:s'),
         ];
-
-        if ($this->supportsSentToKitchenAtColumn()) {
-            $attributes['sent_to_kitchen_at'] = $line->sentToKitchenAt()?->format('Y-m-d H:i:s');
-        }
 
         $this->model->newQuery()->create($attributes);
     }
@@ -111,7 +105,7 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
 
     public function bulkMarkSentToKitchen(array $lineUuids, int $restaurantId, DomainDateTime $sentAt): void
     {
-        if ($lineUuids === [] || ! $this->supportsSentToKitchenAtColumn()) {
+        if ($lineUuids === []) {
             return;
         }
 
@@ -132,11 +126,8 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             'discount_type' => $line->discountType(),
             'discount_value' => $line->discountValue(),
             'discount_amount' => $line->discountAmount(),
+            'sent_to_kitchen_at' => $line->sentToKitchenAt()?->format('Y-m-d H:i:s'),
         ];
-
-        if ($this->supportsSentToKitchenAtColumn()) {
-            $attributes['sent_to_kitchen_at'] = $line->sentToKitchenAt()?->format('Y-m-d H:i:s');
-        }
 
         try {
             $this->model->newQuery()
@@ -179,7 +170,7 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
             $model->discount_type,
             (int) $model->discount_value,
             (int) $model->discount_amount,
-            $this->supportsSentToKitchenAtColumn() && $model->sent_to_kitchen_at
+            $model->sent_to_kitchen_at
                 ? $this->toDateTimeImmutable($model->sent_to_kitchen_at)
                 : null,
         );
@@ -200,11 +191,6 @@ class EloquentOrderLineRepository implements OrderLineRepositoryInterface
         }
 
         return new \DateTimeImmutable((string) $value);
-    }
-
-    private function supportsSentToKitchenAtColumn(): bool
-    {
-        return $this->hasSentToKitchenAtColumn ??= Schema::hasColumn($this->model->getTable(), 'sent_to_kitchen_at');
     }
 
     private function newQueryWithRelations(): Builder
